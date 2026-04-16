@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(npx create-vite@latest:*)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(npx create-expo-app@latest canada_24 --template blank-typescript)",
+      "Bash(mv /Users/karimnurudeen/Downloads/canada_24/.claude /tmp/canada24_claude_bak)",
+      "Bash(mv /Users/karimnurudeen/Downloads/canada_24/.vite /tmp/canada24_vite_bak)"
+    ]
+  }
+}
