@@ -1,0 +1,282 @@
+================================================================================
+CANADA IN REAL TIME — FULL INTEGRATION WALKTHROUGH
+Date: 2026-04-17
+================================================================================
+
+
+OVERVIEW
+--------
+Project: Canada In Real Time (canada_24)
+Frontend: React Native / Expo (TypeScript)
+Backend:  Django 5 + DRF + JWT + Django Channels (WebSockets)
+Device:   TECNO KM5 (Android) connected via USB/ADB
+
+
+================================================================================
+STEP 1 — PROJECT STRUCTURE EXPLORATION
+================================================================================
+
+Root layout:
+  /canada_24
+  ├── src/                     React Native source
+  │   ├── screens/             App screens
+  │   ├── context/             AppContext, AuthContext, InteractionsContext
+  │   ├── services/            api.ts, newsService.ts, sessionService.ts
+  │   ├── navigation/          MainTabs, types
+  │   └── components/          Shared UI
+  ├── backend/                 Django project
+  │   ├── apps/
+  │   │   ├── accounts/        OTP auth, user model
+  │   │   ├── news/            Articles, sections, posts
+  │   │   ├── interactions/    Reactions, comments, reposts, saves
+  │   │   ├── notifications/   Alert prefs, push tokens
+  │   │   └── regions/         Canadian city/province list
+  │   └── config/              settings, urls, asgi, routing
+  ├── .env                     Frontend env vars (EXPO_PUBLIC_API_BASE_URL)
+  └── package.json             Expo + React Native dependencies
+
+Key files:
+  src/services/api.ts           Base HTTP client, JWT bearer header injection
+  src/services/newsService.ts   Article/section/local news API calls
+  src/context/AuthContext.tsx   OTP auth flow, session persistence
+  src/context/InteractionsContext.tsx  Likes, comments, reposts
+  backend/config/urls.py        All API routes
+  backend/config/settings/development.py  SQLite + in-memory Celery/channels
+
+
+================================================================================
+STEP 2 — BACKEND ENVIRONMENT CHECK
+================================================================================
+
+Python version: 3.12.3
+Django version: 5.0.6
+
+backend/.env (key values):
+  DEBUG=True
+  SECRET_KEY=canada-in-real-time-secret-key-2024-change-in-production
+  USE_POSTGRES_IN_DEV=False         (uses SQLite locally)
+  CELERY_TASK_ALWAYS_EAGER=True     (tasks run inline, no Redis needed)
+  CHANNEL_LAYERS=InMemoryChannelLayer  (WebSockets work without Redis)
+  CORS_ALLOW_ALL_ORIGINS=True
+
+All migrations applied (checked with showmigrations):
+  accounts, news, interactions, notifications, regions, token_blacklist ✅
+
+
+================================================================================
+STEP 3 — BACKEND API ENDPOINT TESTS (curl from Mac)
+================================================================================
+
+All tests run against http://127.0.0.1:8000
+
+[PASS] GET  /health/
+       → {"status": "ok", "app": "Canada In Real Time"}
+
+[PASS] POST /api/v1/auth/send-otp/
+       Body: {"email": "test@example.com"}
+       → {"detail": "Verification code sent.", "dev_code": "351928"}
+       Note: dev_code is returned in DEBUG mode — app shows it in an Alert
+
+[PASS] POST /api/v1/auth/verify-otp/
+       Body: {"email": "test@example.com", "code": "351928"}
+       → {
+           "access": "<JWT access token>",
+           "refresh": "<JWT refresh token>",
+           "is_new_user": false,
+           "user": {
+             "id": 3, "email": "test@example.com",
+             "display_name": "Test", "is_verified": true,
+             "joined_at": "2026-04-17T04:49:04.987173-04:00"
+           }
+         }
+
+[PASS] POST /api/v1/auth/token/refresh/
+       → New access token returned ✅
+
+[PASS] GET  /api/v1/auth/bootstrap/    (requires Bearer token)
+       → user profile, regions[], region_slugs[], alerts{}, saved_articles[], my_posts[]
+
+[PASS] GET  /api/v1/auth/me/           (requires Bearer token)
+       → user object
+
+[PASS] GET  /api/v1/news/top-stories/
+       → count=2, paginated results with full article schema
+
+[PASS] GET  /api/v1/news/sections/
+       → 23 sections: Politics, Business, World, Environment, Science,
+         Indigenous, Opinion, Jobs & Careers, Scholarships, Grants,
+         Immigration, Real Estate, Health, Education, Technology,
+         Travel, Food, Events, Government, Sports, Entertainment, Arts, Music
+
+[PASS] GET  /api/v1/news/sections/politics/
+       → count=0 (no articles ingested yet for this section)
+
+[PASS] GET  /api/v1/news/local/?regions=calgary
+       → count=1
+
+[PASS] GET  /api/v1/news/community/    (requires Bearer token)
+       → count=0 (no approved community posts yet)
+
+[PASS] GET  /api/v1/regions/
+       → 12 Canadian regions: Calgary, Edmonton, Winnipeg,
+         Kitchener-Waterloo, + 8 more
+
+[PASS] GET  /api/v1/news/search/?q=canada
+       → count=0 (no matching articles in test DB)
+
+[PASS] GET  /api/v1/interactions/articles/1/reactions/
+       → {"likes": 1, "dislikes": 0, "user_reaction": null}
+
+[PASS] GET  /api/v1/interactions/articles/1/comments/
+       → 4 comments returned
+
+[PASS] POST /api/v1/interactions/articles/1/react/
+       Body: {"reaction_type": "like"}
+       → {"likes": ..., "dislikes": ..., "user_reaction": "like"}
+       Toggle: posting same type again removes the reaction
+
+[PASS] POST /api/v1/interactions/articles/1/save/
+       → {"saved": true}  (toggles on subsequent calls)
+
+[PASS] POST /api/v1/interactions/articles/1/repost/
+       → {"reposted": true}
+
+[PASS] GET  /api/v1/notifications/alerts/  (requires Bearer token)
+       → {breaking_news: true, top_stories: true, local_news: true,
+          health: false, sports: false, business: false, ...}
+
+[PASS] PATCH /api/v1/notifications/alerts/
+       Body: {"sports": true}
+       → Updated preferences returned
+
+[PASS] POST /api/v1/news/posts/         (requires Bearer token)
+       Body: {"headline":"...", "body":"...", "category":"GENERAL", "img_url":""}
+       → {id: 3, status: "PENDING", author_name: "Test", ...}
+
+
+Auth URL routes (no /register — OTP-only auth):
+  POST  /api/v1/auth/send-otp/
+  POST  /api/v1/auth/verify-otp/
+  POST  /api/v1/auth/token/refresh/
+  GET   /api/v1/auth/me/
+  GET   /api/v1/auth/bootstrap/
+  POST  /api/v1/auth/logout/
+
+
+================================================================================
+STEP 4 — ANDROID BUILD & DEVICE SETUP
+================================================================================
+
+Device detected:
+  adb devices → 144131557N013517   device
+  Model: TECNO KM5
+
+Build command:
+  npx expo run:android
+  (Gradle 8.14.3, Java 17, builds native APK)
+
+Build time: ~5 minutes (first build)
+
+Installed packages on device:
+  com.canada247.app
+  com.anonymous.canada247   ← active dev build
+
+App launched via:
+  adb shell monkey -p com.anonymous.canada247 -c android.intent.category.LAUNCHER 1
+
+
+================================================================================
+STEP 5 — NETWORK CONNECTIVITY ISSUE & FIX
+================================================================================
+
+PROBLEM:
+  Device network layout:
+    ap0 (hotspot) → 10.160.133.51   (phone acting as WiFi AP)
+    Mac IP        → 10.160.133.14   (Mac connected to phone hotspot)
+    ccmni1        → 10.126.166.155  (phone on cellular internet)
+
+  Django was started on 127.0.0.1:8000 → device could not reach it.
+  Restarted Django on 0.0.0.0:8000 → macOS firewall blocked port 8000
+  on the hotspot interface (Python.framework binary not whitelisted).
+
+  Test: adb shell wget http://10.160.133.14:8000/health/ → FAIL
+
+FIX — ADB Reverse Port Tunneling (bypasses firewall via USB):
+  adb reverse tcp:8000 tcp:8000
+  adb reverse tcp:8081 tcp:8081
+
+  This forwards device's localhost:8000 → Mac's localhost:8000
+  and device's localhost:8081 → Mac's localhost:8081 (Metro bundler)
+
+  .env updated:
+    BEFORE: EXPO_PUBLIC_API_BASE_URL=http://10.160.133.14:8000/api/v1
+    AFTER:  EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1
+
+  Metro bundler restarted to pick up new .env value.
+  App reloaded on device.
+
+  Test: curl http://127.0.0.1:8000/health/ → {"status":"ok",...} ✅
+
+
+================================================================================
+STEP 6 — LIVE INTEGRATION CONFIRMED (Django request log)
+================================================================================
+
+Requests received from device after app reload:
+
+  WebSocket HANDSHAKING /ws/news/             ✅ CONNECTED
+  HTTP GET  /api/v1/news/top-stories/   200   ✅
+  HTTP GET  /api/v1/news/community/     200   ✅
+  HTTP GET  /api/v1/regions/            200   ✅
+  HTTP GET  /api/v1/interactions/articles/2/reactions/  200  ✅
+  HTTP GET  /api/v1/interactions/articles/2/comments/   200  ✅
+
+After user signed in on the app (OTP flow triggered from phone):
+
+  HTTP POST /api/v1/auth/send-otp/      200   ✅  (3.99s — email sent)
+  HTTP POST /api/v1/auth/verify-otp/    200   ✅  (0.50s — JWT returned)
+  HTTP GET  /api/v1/auth/bootstrap/     200   ✅  (user + prefs hydrated)
+  HTTP GET  /api/v1/interactions/articles/1/reactions/  200  ✅
+  HTTP GET  /api/v1/interactions/articles/1/comments/   200  ✅
+
+WebSocket reconnects automatically on each app reload ✅
+Zero JS errors in adb logcat from com.anonymous.canada247 ✅
+
+
+================================================================================
+FINAL STATUS
+================================================================================
+
+Component          Status    Notes
+-----------        ------    -----
+Django backend     RUNNING   0.0.0.0:8000, SQLite, in-memory channels
+Metro bundler      RUNNING   port 8081
+ADB tunnels        ACTIVE    tcp:8000 + tcp:8081 via USB
+App on device      RUNNING   com.anonymous.canada247 (TECNO KM5)
+API integration    PASSING   All endpoints responding 200
+WebSocket          PASSING   /ws/news/ connects and holds
+Auth (OTP flow)    PASSING   send-otp → verify-otp → bootstrap works end-to-end
+JS errors          NONE      Clean logcat for canada247 process
+
+
+NOTES FOR NEXT SESSION
+----------------------
+1. Keep .env as http://127.0.0.1:8000/api/v1 when using USB/ADB dev setup.
+2. Re-run ADB reverse tunnels after each USB reconnect:
+     adb reverse tcp:8000 tcp:8000
+     adb reverse tcp:8081 tcp:8081
+3. Start backend with:
+     cd backend
+     DJANGO_SETTINGS_MODULE=config.settings.development python3 manage.py runserver 0.0.0.0:8000
+4. Start Metro with:
+     npx expo start --port 8081
+5. To switch back to hotspot mode (no USB), change .env back to the Mac's
+   hotspot IP and allow Python through macOS firewall:
+     sudo /usr/libexec/ApplicationFirewall/socketfilterfw --add \
+       "/Library/Frameworks/Python.framework/Versions/3.12/Resources/Python.app/Contents/MacOS/Python"
+     sudo /usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp \
+       "/Library/Frameworks/Python.framework/Versions/3.12/Resources/Python.app/Contents/MacOS/Python"
+
+================================================================================
+END OF WALKTHROUGH
+================================================================================

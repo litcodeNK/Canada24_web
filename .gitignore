@@ -30,8 +30,16 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# Editor swap files
+*.swp
+*.swo
+
 # local env files
 .env*.local
+.env
+
+# Next.js
+.next/
 
 # typescript
 *.tsbuildinfo
@@ -39,3 +47,10 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+# Python backend
+__pycache__/
+*.py[cod]
+backend/.env
+backend/db.sqlite3
+.pytest_cache/
+
