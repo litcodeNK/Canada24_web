@@ -37,8 +37,14 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   if (body && !(body instanceof FormData) && !rh.has('Content-Type'))
     rh.set('Content-Type', 'application/json');
   const np = path.startsWith('/') ? path : `/${path}`;
-  const res = await fetch(`${API_BASE_URL}${np}`, { ...init, body, headers: rh });
-  return parseResponse<T>(res);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10_000);
+  try {
+    const res = await fetch(`${API_BASE_URL}${np}`, { ...init, body, headers: rh, signal: controller.signal });
+    return parseResponse<T>(res);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export function extractList<T>(payload: T[] | PaginatedResponse<T>): T[] {

@@ -205,11 +205,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     topStoriesRef.current = topStories;
   }, [topStories]);
 
-  // WebSocket for real-time updates
+  // WebSocket for real-time updates (only if WS URL is configured and not in dev without daphne)
   useEffect(() => {
     if (!loaded || !state.onboardingComplete) return;
-    const wsBase = (process.env.NEXT_PUBLIC_WS_URL ?? 'ws://127.0.0.1:8000').replace(/\/+$/, '');
-    let ws: WebSocket;
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL;
+    if (!wsUrl) return; // skip if not explicitly configured
+    const wsBase = wsUrl.replace(/\/+$/, '');
+    let ws: WebSocket | null = null;
     try {
       ws = new WebSocket(`${wsBase}/ws/news/`);
       ws.onmessage = (e) => {
@@ -317,8 +319,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
     })();
   };
-
-  if (!loaded) return null;
 
   return (
     <AppContext.Provider value={{

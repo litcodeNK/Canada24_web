@@ -1,4 +1,5 @@
 import re
+import time
 from datetime import datetime, timezone as dt_timezone
 from email.utils import parsedate_to_datetime
 from html import unescape
@@ -32,18 +33,40 @@ def strip_html(value):
     return re.sub(r"\s+", " ", value).strip()
 
 
+_JUNK_IMAGE_DOMAINS = {"example.com", "placeholder.com", "via.placeholder.com", "lorempixel.com"}
+
+
+def _is_absolute_url(url: str) -> bool:
+    if not url.startswith(("http://", "https://")):
+        return False
+    try:
+        from urllib.parse import urlparse
+        host = urlparse(url).netloc.lower().lstrip("www.")
+        return host not in _JUNK_IMAGE_DOMAINS
+    except Exception:
+        return True
+
+
 def extract_image_url(item, raw_description):
     for tag_name in (f"{MEDIA_NAMESPACE}content", f"{MEDIA_NAMESPACE}thumbnail"):
         media = item.find(tag_name)
-        if media is not None and media.attrib.get("url"):
-            return media.attrib["url"].strip()
+        if media is not None:
+            url = media.attrib.get("url", "").strip()
+            if url and _is_absolute_url(url):
+                return url
 
     enclosure = item.find("enclosure")
-    if enclosure is not None and enclosure.attrib.get("url"):
-        return enclosure.attrib["url"].strip()
+    if enclosure is not None:
+        url = enclosure.attrib.get("url", "").strip()
+        if url and _is_absolute_url(url):
+            return url
 
     match = IMG_TAG_RE.search(raw_description or "")
-    return match.group(1).strip() if match else ""
+    if match:
+        url = match.group(1).strip()
+        if _is_absolute_url(url):
+            return url
+    return ""
 
 
 def parse_published_at(value):
@@ -169,12 +192,19 @@ def parse_feed(xml_text, feed_key, default_category=None):
 
 
 def upsert_feed(url, feed_key, default_category=None, region: Optional[Region] = None):
-    response = requests.get(
-        url,
-        timeout=15,
-        headers={"User-Agent": USER_AGENT, "Accept": "application/rss+xml, application/xml, text/xml;q=0.9,*/*;q=0.8"},
-    )
-    response.raise_for_status()
+    for attempt in range(2):
+        try:
+            response = requests.get(
+                url,
+                timeout=30,
+                headers={"User-Agent": USER_AGENT, "Accept": "application/rss+xml, application/xml, text/xml;q=0.9,*/*;q=0.8"},
+            )
+            response.raise_for_status()
+            break
+        except requests.RequestException:
+            if attempt == 1:
+                raise
+            time.sleep(3)
     entries = parse_feed(response.text, feed_key=feed_key, default_category=default_category)
 
     created_count = 0

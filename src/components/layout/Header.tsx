@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { Search, User, Menu } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-import { MapleLeaf } from '@/components/news/MapleLeaf';
 import { Badge } from '@/components/news/Badge';
 import { clsx } from 'clsx';
 
@@ -39,63 +39,51 @@ export function Header({ onMenuToggle }: HeaderProps) {
   const pathname = usePathname();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 w-full font-sans">
-      {/* Skip link target — visually hidden, referenced by layout.tsx skip link */}
+    <header className="fixed top-0 left-0 right-0 z-50 w-full font-sans shadow-sm">
 
-      {/* ── Main Red Bar ── */}
-      <div className="bg-canadaRed text-white">
-        <div className="max-w-[1400px] mx-auto px-4 h-[72px] flex items-center justify-between gap-4">
+      {/* ── Top White Bar: Logo + Actions ── */}
+      <div className="bg-white dark:bg-[#1A1A1A] border-b border-gray-200 dark:border-[#2A2A2A]">
+        <div className="max-w-[1400px] mx-auto px-4 h-[80px] sm:h-[120px] flex items-center justify-between gap-4">
 
           {/* Left: hamburger (mobile) + Logo */}
           <div className="flex items-center gap-3">
             <button
               onClick={onMenuToggle}
-              className="lg:hidden text-white p-1 -ml-1 hover:text-white/80 transition-colors flex-shrink-0"
+              className="lg:hidden text-[#1a1a1a] dark:text-white p-1 -ml-1 hover:text-canadaRed transition-colors flex-shrink-0"
               aria-label="Open navigation menu"
             >
-              <Menu className="w-7 h-7" />
+              <Menu className="w-6 h-6" />
             </button>
+
             <Link
               href="/"
-              className="flex items-center gap-3 cursor-pointer flex-shrink-0"
-              aria-label="Canada News — home"
+              className="flex items-center gap-3 flex-shrink-0"
+              aria-label="Canada 247 — home"
             >
-              <MapleLeaf className="w-10 h-10 flex-shrink-0" />
-              <span className="font-display font-black text-3xl tracking-tight text-white mt-0.5 leading-none">
-                CANADA NEWS
-              </span>
+              <div className="relative h-[60px] w-[160px] sm:h-[100px] sm:w-[400px]">
+                <Image
+                  src="/canada247-logo.jpg"
+                  alt="Canada 247"
+                  fill
+                  className="object-contain object-left"
+                  priority
+                  sizes="400px"
+                />
+              </div>
+              <div className="hidden sm:block border-l-2 border-canadaRed pl-5">
+                <span className="block text-[22px] sm:text-[42px] font-black tracking-[0.08em] text-canadaRed uppercase leading-none">
+                  CANADA IN REAL TIME
+                </span>
+              </div>
             </Link>
           </div>
 
-          {/* Center: Primary nav (xl+ only) */}
-          <nav
-            className="hidden xl:flex items-center gap-5 text-[13px] font-bold tracking-wide"
-            aria-label="Primary navigation"
-          >
-            {PRIMARY_NAV.map(({ href, label }) => {
-              const isActive = pathname === href || pathname.startsWith(href + '/');
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  aria-current={isActive ? 'page' : undefined}
-                  className={clsx(
-                    'hover:text-white/70 transition-colors whitespace-nowrap',
-                    isActive && 'underline underline-offset-4 decoration-1',
-                  )}
-                >
-                  {label}
-                </Link>
-              );
-            })}
-          </nav>
-
           {/* Right: actions */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            {/* Dark mode toggle — desktop only */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            {/* Dark mode toggle */}
             <button
               onClick={toggleDarkMode}
-              className="hidden lg:flex items-center text-white/80 hover:text-white transition-colors"
+              className="hidden md:flex items-center text-gray-500 dark:text-gray-400 hover:text-canadaRed transition-colors p-1.5"
               aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {darkMode ? (
@@ -107,42 +95,88 @@ export function Header({ onMenuToggle }: HeaderProps) {
 
             <button
               onClick={() => router.push('/search')}
-              className="hidden md:flex items-center text-white hover:text-white/70 transition-colors p-1"
+              className="flex items-center text-gray-600 dark:text-gray-300 hover:text-canadaRed transition-colors p-1.5"
               aria-label="Search"
             >
               <Search className="w-5 h-5" />
             </button>
 
             <Link
-              href="/auth/email"
-              className="bg-white text-canadaRed text-[13px] font-bold px-4 py-2 rounded-sm tracking-wide hover:bg-gray-100 transition-colors whitespace-nowrap"
+              href="/profile"
+              className="hidden sm:flex items-center gap-1.5 text-gray-600 dark:text-gray-300 hover:text-canadaRed transition-colors p-1.5 text-sm font-medium"
+              aria-label="Profile / Sign in"
             >
-              SUBSCRIBE
+              <User className="w-5 h-5" />
+              <span className="hidden lg:inline">Sign In</span>
             </Link>
 
             <Link
-              href="/auth/email"
-              className="text-white hover:text-white/70 transition-colors"
-              aria-label="Sign in or account"
+              href="/subscribe"
+              className="hidden sm:flex bg-canadaRed text-white text-[12px] font-bold px-4 py-2 rounded-sm tracking-wide hover:bg-canadaRedDark transition-colors whitespace-nowrap"
             >
-              <User className="w-6 h-6" />
+              SUBSCRIBE
             </Link>
           </div>
         </div>
       </div>
 
-      {/* ── Secondary Topic Nav (white bar) ── */}
+      {/* ── Red Primary Nav Bar ── */}
+      <nav
+        className="bg-canadaRed text-white"
+        aria-label="Primary navigation"
+      >
+        <div className="max-w-[1400px] mx-auto px-4 h-10 flex items-center justify-between gap-4">
+          {/* Primary nav links — xl+ */}
+          <div className="hidden xl:flex items-center gap-1 text-[12px] font-bold tracking-wide h-full overflow-x-auto scrollbar-hide">
+            {PRIMARY_NAV.map(({ href, label }) => {
+              const isActive = pathname === href || pathname.startsWith(href + '/');
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={clsx(
+                    'px-3 h-full flex items-center hover:bg-white/10 transition-colors whitespace-nowrap',
+                    isActive && 'bg-white/20 underline underline-offset-4 decoration-1',
+                  )}
+                >
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Mobile: show all sections scrollable */}
+          <div className="xl:hidden flex items-center gap-1 text-[12px] font-bold tracking-wide h-full overflow-x-auto scrollbar-hide flex-1">
+            {PRIMARY_NAV.map(({ href, label }) => {
+              const isActive = pathname === href || pathname.startsWith(href + '/');
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={clsx(
+                    'px-3 h-full flex items-center hover:bg-white/10 transition-colors whitespace-nowrap flex-shrink-0',
+                    isActive && 'bg-white/20',
+                  )}
+                >
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </nav>
+
+      {/* ── White Secondary Topic Bar ── */}
       <nav
         className="bg-white dark:bg-[#1A1A1A] border-b border-gray-300 dark:border-[#2A2A2A]"
         aria-label="Topic navigation"
       >
-        <div className="max-w-[1400px] mx-auto px-4 h-12 flex items-center gap-6 overflow-x-auto whitespace-nowrap scrollbar-hide text-[14px] font-medium">
-          <Link
-            href="/"
-            className="flex items-center gap-2 cursor-pointer group flex-shrink-0"
-          >
+        <div className="max-w-[1400px] mx-auto px-4 h-10 flex items-center gap-5 overflow-x-auto whitespace-nowrap scrollbar-hide text-[13px] font-medium">
+          <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
             <Badge type="live" />
-            <span className="group-hover:underline font-bold text-gray-900 dark:text-white decoration-1 underline-offset-2">
+            <span className="font-bold text-gray-900 dark:text-white group-hover:text-canadaRed group-hover:underline transition-colors decoration-1 underline-offset-2">
               Breaking News
             </span>
           </Link>
@@ -150,7 +184,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
             <Link
               key={label}
               href={href}
-              className="hover:text-canadaRed hover:underline transition-colors flex-shrink-0 text-gray-700 dark:text-[#CCC] decoration-1 underline-offset-2"
+              className="hover:text-canadaRed hover:underline transition-colors flex-shrink-0 text-gray-600 dark:text-[#CCC] decoration-1 underline-offset-2"
             >
               {label}
             </Link>

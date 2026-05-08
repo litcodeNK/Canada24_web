@@ -406,22 +406,24 @@ export default function ArticleDetailPage() {
                 <div className="w-8 h-8 rounded-full bg-[#D52B1E] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                   {user.displayName?.[0]?.toUpperCase() ?? user.email[0].toUpperCase()}
                 </div>
-                <div className="flex-1 flex gap-2">
-                  <input
-                    type="text"
+                <div className="flex-1 flex flex-col gap-2">
+                  <textarea
                     value={commentText}
                     onChange={e => setCommentText(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') handleAddComment(); }}
                     placeholder="Join the discussion…"
-                    className="flex-1 px-3 py-2 bg-gray-50 dark:bg-[#1C1C1C] border border-[#E8E8E8] dark:border-[#2A2A2A] text-sm outline-none focus:border-[#D52B1E] dark:text-white placeholder:text-[#999] transition-colors"
+                    rows={4}
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#1C1C1C] border border-[#E8E8E8] dark:border-[#2A2A2A] text-sm outline-none focus:border-[#D52B1E] dark:text-white placeholder:text-[#999] transition-colors resize-none"
                   />
-                  <button
-                    onClick={handleAddComment}
-                    disabled={!commentText.trim()}
-                    className="px-4 py-2 bg-[#D52B1E] text-white text-sm font-bold bebas tracking-wider disabled:opacity-40 hover:bg-[#B02010] transition-colors"
-                  >
-                    POST
-                  </button>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-[#999]">{commentText.length}/500 characters</span>
+                    <button
+                      onClick={handleAddComment}
+                      disabled={!commentText.trim()}
+                      className="px-5 py-2 bg-[#D52B1E] text-white text-sm font-bold bebas tracking-wider disabled:opacity-40 hover:bg-[#B02010] transition-colors"
+                    >
+                      POST COMMENT
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (

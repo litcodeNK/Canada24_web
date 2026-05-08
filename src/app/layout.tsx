@@ -1,7 +1,14 @@
 import type { Metadata } from 'next';
-import { Inter, Source_Serif_4 } from 'next/font/google';
+import { Bebas_Neue, Inter, Source_Serif_4 } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
+
+const bebasNeue = Bebas_Neue({
+  subsets: ['latin'],
+  variable: '--font-bebas',
+  weight: '400',
+  display: 'swap',
+});
 
 const inter = Inter({
   subsets: ['latin'],
@@ -55,12 +62,8 @@ const websiteJsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${sourceSerif.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${sourceSerif.variable} ${bebasNeue.variable}`}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Bebas Neue for brand font */}
-        <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}

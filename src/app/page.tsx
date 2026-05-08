@@ -40,10 +40,14 @@ export default function TopStoriesPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!onboardingComplete) router.replace('/onboarding/regions');
+    if (!onboardingComplete) router.replace('/onboarding/alerts');
   }, [onboardingComplete, router]);
 
-  if (!onboardingComplete) return null;
+  if (!onboardingComplete) return (
+    <div className="flex items-center justify-center min-h-screen bg-white dark:bg-[#0D0D0D]">
+      <div className="w-8 h-8 border-2 border-canadaRed border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
 
   const [hero, ...rest] = topStories;
   const sectionChunks = chunk(rest.slice(0, 20), 5);
@@ -175,7 +179,7 @@ export default function TopStoriesPage() {
 
         {/* ── RIGHT COLUMN — sticky rail, hidden below lg ── */}
         <aside className="hidden lg:block">
-          <div className="sticky top-[136px]">
+          <div className="sticky top-[176px] sm:top-[216px]">
             <LatestNewsRail />
           </div>
         </aside>

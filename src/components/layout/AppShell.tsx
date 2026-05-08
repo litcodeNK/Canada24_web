@@ -21,7 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       */}
       <main
         id="main-content"
-        className="pt-[120px] pb-16 lg:pb-0 min-h-screen bg-white dark:bg-[#0D0D0D]"
+        className="pt-[160px] sm:pt-[200px] pb-16 lg:pb-0 min-h-screen bg-white dark:bg-[#0D0D0D]"
       >
         {children}
         <Footer />

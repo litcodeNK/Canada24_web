@@ -61,15 +61,17 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         {/* Header */}
         <div className="bg-[#D52B1E] p-5 pt-12">
           <div className="flex items-center justify-between">
-            <span className="bebas text-white text-2xl tracking-widest">CANADA 247</span>
-            <button onClick={onClose} className="text-white/80 hover:text-white p-1">
+            <div>
+              <span className="bebas text-white text-2xl tracking-widest block leading-none">CANADA 247</span>
+              <span className="text-white/70 text-[10px] tracking-widest font-medium">CANADA IN REAL TIME</span>
+            </div>
+            <button onClick={onClose} className="text-white/80 hover:text-white p-1" aria-label="Close menu">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
           </div>
-          <p className="text-white/70 text-xs mt-1 tracking-widest font-medium">CANADA IN REAL TIME</p>
         </div>
 
         {/* Nav items */}
