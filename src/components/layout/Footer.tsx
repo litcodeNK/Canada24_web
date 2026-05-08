@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { MapleLeaf } from '@/components/news/MapleLeaf';
 
 const FOOTER_COLS = [
   {
@@ -41,16 +42,19 @@ const FOOTER_COLS = [
 
 export function Footer() {
   return (
-    <footer className="bg-white dark:bg-[#1A1A1A] border-t border-[#E8E8E8] dark:border-[#2A2A2A] mt-12">
-      <div className="max-w-[1180px] mx-auto px-4 sm:px-6 py-10">
+    <footer className="bg-white dark:bg-[#1A1A1A] border-t border-gray-300 dark:border-[#2A2A2A] mt-12">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-10">
+
         {/* Logo row */}
-        <div className="flex items-center gap-3 mb-8 pb-6 border-b border-[#E8E8E8] dark:border-[#2A2A2A]">
-          <div className="w-8 h-8 bg-[#D52B1E] flex items-center justify-center flex-shrink-0">
-            <span className="bebas text-white text-base leading-none">C</span>
-          </div>
+        <div className="flex items-center gap-3 mb-8 pb-6 border-b border-gray-300 dark:border-[#2A2A2A]">
+          <MapleLeaf className="w-10 h-10 flex-shrink-0" />
           <div>
-            <span className="bebas text-[#1a1a1a] dark:text-white text-2xl tracking-widest block leading-none">CANADA 247</span>
-            <span className="text-[10px] text-[#999] font-medium tracking-widest uppercase">Canada in Real Time</span>
+            <span className="font-display font-black text-2xl tracking-tight text-[#1a1a1a] dark:text-white block leading-none">
+              CANADA NEWS
+            </span>
+            <span className="text-[10px] text-gray-500 font-medium tracking-widest uppercase font-sans">
+              Canada in Real Time
+            </span>
           </div>
         </div>
 
@@ -58,13 +62,15 @@ export function Footer() {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 mb-8">
           {FOOTER_COLS.map(col => (
             <div key={col.heading}>
-              <h3 className="text-[10px] font-bold tracking-[0.12em] text-[#999] uppercase mb-3">{col.heading}</h3>
+              <h3 className="text-[10px] font-bold tracking-[0.12em] text-gray-500 uppercase mb-3 font-sans">
+                {col.heading}
+              </h3>
               <ul className="space-y-2">
                 {col.links.map(link => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-[13px] text-[#3a3a3a] dark:text-[#CCC] hover:text-[#D52B1E] dark:hover:text-[#D52B1E] transition-colors"
+                      className="text-[13px] text-[#3a3a3a] dark:text-[#CCC] hover:text-canadaRed dark:hover:text-canadaRed transition-colors font-sans"
                     >
                       {link.label}
                     </Link>
@@ -76,15 +82,20 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="pt-6 border-t border-[#E8E8E8] dark:border-[#2A2A2A] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <p className="text-[12px] text-[#999]">
-            © {new Date().getFullYear()} Canada 247. All rights reserved.
+        <div className="pt-6 border-t border-gray-300 dark:border-[#2A2A2A] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <p className="text-[12px] text-gray-500 font-sans">
+            © {new Date().getFullYear()} Canada News. All rights reserved.
           </p>
-          <div className="flex items-center gap-4">
+          <nav aria-label="Legal links" className="flex items-center gap-4">
             {['Privacy Policy', 'Terms of Service', 'Contact'].map(label => (
-              <span key={label} className="text-[12px] text-[#999] hover:text-[#D52B1E] cursor-pointer transition-colors">{label}</span>
+              <span
+                key={label}
+                className="text-[12px] text-gray-500 hover:text-canadaRed cursor-pointer transition-colors font-sans"
+              >
+                {label}
+              </span>
             ))}
-          </div>
+          </nav>
         </div>
       </div>
     </footer>
