@@ -9,6 +9,8 @@ ALLOWED_HOSTS = config(
     default="",
     cast=lambda value: [item.strip() for item in value.split(",") if item.strip()],
 )
+if "healthcheck.railway.app" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append("healthcheck.railway.app")
 RAILWAY_PUBLIC_DOMAIN = config("RAILWAY_PUBLIC_DOMAIN", default="")
 if RAILWAY_PUBLIC_DOMAIN and RAILWAY_PUBLIC_DOMAIN not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(RAILWAY_PUBLIC_DOMAIN)
