@@ -129,7 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const sendOTP = async (email: string): Promise<{ devCode?: string }> => {
     const payload = await apiRequest<SendOtpResponse>('/auth/send-otp/', {
-      method: 'POST', body: JSON.stringify({ email }),
+      method: 'POST', body: JSON.stringify({ email }), timeoutMs: 20_000,
     });
     return { devCode: payload.dev_code };
   };
@@ -137,7 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const verifyOTP = async (email: string, code: string): Promise<{ ok: boolean; error?: string }> => {
     try {
       const payload = await apiRequest<VerifyOtpResponse>('/auth/verify-otp/', {
-        method: 'POST', body: JSON.stringify({ email, code: code.trim() }),
+        method: 'POST', body: JSON.stringify({ email, code: code.trim() }), timeoutMs: 20_000,
       });
       const nextSession: StoredSession = {
         accessToken: payload.access, refreshToken: payload.refresh, user: mapBackendUser(payload.user),

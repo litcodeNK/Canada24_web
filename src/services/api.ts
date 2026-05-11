@@ -1,5 +1,5 @@
 export type PaginatedResponse<T> = { results: T[] };
-export type ApiRequestOptions = RequestInit & { token?: string };
+export type ApiRequestOptions = RequestInit & { token?: string; timeoutMs?: number };
 
 export class ApiError extends Error {
   status: number;
@@ -45,7 +45,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
 }
 
 export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
-  const { token, headers, body, ...init } = options;
+  const { token, headers, body, timeoutMs = 10_000, ...init } = options;
   const rh = new Headers(headers);
   rh.set('Accept', 'application/json');
   if (token) rh.set('Authorization', `Bearer ${token}`);
@@ -53,11 +53,17 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
     rh.set('Content-Type', 'application/json');
   const np = path.startsWith('/') ? path : `/${path}`;
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 10_000);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(`${API_BASE_URL}${np}`, { ...init, body, headers: rh, signal: controller.signal });
     return parseResponse<T>(res);
   } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      const timeoutSeconds = Math.ceil(timeoutMs / 1000);
+      const timeoutError = new Error(`Request timed out after ${timeoutSeconds} seconds.`);
+      console.error(`API request failed for ${np}`, timeoutError);
+      throw timeoutError;
+    }
     if (error instanceof Error) {
       console.error(`API request failed for ${np}`, error);
     }

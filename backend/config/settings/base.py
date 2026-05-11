@@ -155,7 +155,7 @@ SIMPLE_JWT = {
 
 EMAIL_BACKEND = config(
     "EMAIL_BACKEND",
-    default="apps.accounts.email_backend.CertifiSMTPBackend",
+    default="django.core.mail.backends.smtp.EmailBackend",
 )
 EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com")
 EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
@@ -165,7 +165,7 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 EMAIL_TIMEOUT = config("EMAIL_TIMEOUT", default=10, cast=int)
 DEFAULT_FROM_EMAIL = config(
     "DEFAULT_FROM_EMAIL",
-    default="Canada 24/7 <noreply@canada247.com>",
+    default=EMAIL_HOST_USER or "noreply@canada247.com",
 )
 
 CORS_ALLOWED_ORIGINS = config(

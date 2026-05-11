@@ -3,6 +3,7 @@ from django.core.mail import send_mail
 
 
 def send_otp_email(email, code):
+    from_email = settings.DEFAULT_FROM_EMAIL or settings.EMAIL_HOST_USER
     subject = "Your Canada In Real Time verification code"
     message = (
         f"Your Canada In Real Time verification code is {code}.\n\n"
@@ -27,7 +28,7 @@ def send_otp_email(email, code):
     send_mail(
         subject=subject,
         message=message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        from_email=from_email,
         recipient_list=[email],
         html_message=html_message,
         fail_silently=False,
