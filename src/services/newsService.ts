@@ -70,6 +70,10 @@ type BackendVideoFeed = {
   live: BackendVideoItem[];
 };
 
+const SECTION_NAME_ALIASES: Record<string, string> = {
+  education: 'Education in Canada',
+};
+
 function titleCase(value: string): string {
   return value
     .toLowerCase()
@@ -168,7 +172,8 @@ export async function fetchCategoryArticles(section: string): Promise<Article[]>
   const fallback = SECTION_FALLBACK_ARTICLES[section] ?? [];
   try {
     const sections = await apiRequest<BackendSection[]>('/news/sections/');
-    const match = sections.find(item => item.label.toLowerCase() === section.toLowerCase());
+    const requested = SECTION_NAME_ALIASES[section.toLowerCase()] ?? section;
+    const match = sections.find(item => item.label.toLowerCase() === requested.toLowerCase());
     if (!match) return fallback;
 
     const articles = await fetchArticleList(`/news/sections/${match.slug}/`);

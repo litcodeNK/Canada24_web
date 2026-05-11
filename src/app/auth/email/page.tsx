@@ -25,8 +25,8 @@ export default function AuthEmailPage() {
         alert(`[DEV] Your OTP code: ${devCode}`);
       }
       router.push(`/auth/otp?email=${encodeURIComponent(email)}`);
-    } catch {
-      setError('Failed to send code. Please try again.');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to send code. Please try again.');
     } finally {
       setLoading(false);
     }

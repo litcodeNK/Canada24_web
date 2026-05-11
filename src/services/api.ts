@@ -12,9 +12,24 @@ export class ApiError extends Error {
   }
 }
 
-export const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:8000/api/v1'
-).replace(/\/+$/, '');
+const DEFAULT_LOCAL_API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
+const DEFAULT_PRODUCTION_API_BASE_URL = 'https://canada24web-production.up.railway.app/api/v1';
+
+function resolveApiBaseUrl(): string {
+  const configuredBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+  if (configuredBaseUrl) return configuredBaseUrl.replace(/\/+$/, '');
+
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    console.warn(
+      'NEXT_PUBLIC_API_BASE_URL is not set. Falling back to the Railway production API.',
+    );
+    return DEFAULT_PRODUCTION_API_BASE_URL;
+  }
+
+  return DEFAULT_LOCAL_API_BASE_URL;
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
 
 async function parseResponse<T>(response: Response): Promise<T> {
   const ct = response.headers.get('content-type') ?? '';
@@ -42,6 +57,11 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   try {
     const res = await fetch(`${API_BASE_URL}${np}`, { ...init, body, headers: rh, signal: controller.signal });
     return parseResponse<T>(res);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(`API request failed for ${np}`, error);
+    }
+    throw error;
   } finally {
     clearTimeout(timer);
   }

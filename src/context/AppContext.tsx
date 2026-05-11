@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchCommunityStories, fetchTopStories, mapBackendArticle } from '../services/newsService';
 import { TOP_STORIES } from '../data/newsData';
-import { apiRequest } from '../services/api';
+import { ApiError, apiRequest } from '../services/api';
 import { readStoredSession, requestWithStoredSession } from '../services/sessionService';
 import { Colors } from '../theme';
 
@@ -129,10 +129,13 @@ const defaultState: AppState = {
 const ALERT_KEY_MAP: Partial<Record<string, keyof ServerAlertPreferences>> = {
   'Breaking News': 'breaking_news',
   'Top Stories': 'top_stories',
+  Politics: 'politics',
   Business: 'business',
+  Sports: 'sports',
   Entertainment: 'entertainment',
   Health: 'health',
-  'Climate Change': 'environment',
+  Technology: 'science',
+  World: 'environment',
 };
 
 const STORAGE_KEY = '@canada247_state';
@@ -164,6 +167,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [loadingNews, setLoadingNews] = useState(false);
   const [regionCatalog, setRegionCatalog] = useState<ServerRegion[]>([]);
   const topStoriesRef = useRef<Article[]>(TOP_STORIES);
+  const canManageRegionsRef = useRef(true);
 
   // Load from localStorage
   useEffect(() => {
@@ -264,14 +268,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     void (async () => {
       const session = readStoredSession();
-      if (!session || regionCatalog.length === 0) return;
+      if (!session || regionCatalog.length === 0 || !canManageRegionsRef.current) return;
       const regionSlugs = regionCatalog.filter(r => next.includes(r.name)).map(r => r.slug);
       try {
         const { data } = await requestWithStoredSession<{ regions: ServerRegion[]; slugs: string[] }>(
           session, '/regions/me/', { method: 'PUT', body: JSON.stringify({ regions: regionSlugs }) },
         );
         update({ selectedRegions: data.regions.map(r => r.name) });
-      } catch {}
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) {
+          canManageRegionsRef.current = false;
+        }
+      }
     })();
   };
 

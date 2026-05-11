@@ -71,7 +71,7 @@ interface AuthContextType {
   isAuthLoading: boolean;
   userPosts: UserPost[];
   sendOTP: (email: string) => Promise<{ devCode?: string }>;
-  verifyOTP: (email: string, code: string) => Promise<boolean>;
+  verifyOTP: (email: string, code: string) => Promise<{ ok: boolean; error?: string }>;
   signOut: () => Promise<void>;
   addPost: (post: CreatePostInput) => Promise<UserPost>;
 }
@@ -134,7 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { devCode: payload.dev_code };
   };
 
-  const verifyOTP = async (email: string, code: string): Promise<boolean> => {
+  const verifyOTP = async (email: string, code: string): Promise<{ ok: boolean; error?: string }> => {
     try {
       const payload = await apiRequest<VerifyOtpResponse>('/auth/verify-otp/', {
         method: 'POST', body: JSON.stringify({ email, code: code.trim() }),
@@ -143,8 +143,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         accessToken: payload.access, refreshToken: payload.refresh, user: mapBackendUser(payload.user),
       };
       await syncBootstrap(nextSession);
-      return true;
-    } catch { return false; }
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        error: error instanceof Error ? error.message : 'Failed to verify code.',
+      };
+    }
   };
 
   const signOut = async () => {

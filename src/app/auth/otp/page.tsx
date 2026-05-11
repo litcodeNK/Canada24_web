@@ -49,11 +49,11 @@ function OTPForm() {
     if (code.length !== 6) return;
     setLoading(true);
     setError('');
-    const ok = await verifyOTP(email, code);
-    if (ok) {
+    const result = await verifyOTP(email, code);
+    if (result.ok) {
       router.replace('/');
     } else {
-      setError('Invalid or expired code. Please try again.');
+      setError(result.error ?? 'Invalid or expired code. Please try again.');
       setDigits(['', '', '', '', '', '']);
       inputs.current[0]?.focus();
     }

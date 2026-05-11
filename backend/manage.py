@@ -3,8 +3,16 @@ import os
 import sys
 
 
+def default_settings_module() -> str:
+    return (
+        "config.settings.production"
+        if any(key.startswith("RAILWAY_") for key in os.environ)
+        else "config.settings.development"
+    )
+
+
 def main():
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.development")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", default_settings_module())
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
