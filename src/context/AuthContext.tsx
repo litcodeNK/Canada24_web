@@ -128,10 +128,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const sendOTP = async (email: string): Promise<{ devCode?: string }> => {
-    const payload = await apiRequest<SendOtpResponse>('/auth/send-otp/', {
-      method: 'POST', body: JSON.stringify({ email }), timeoutMs: 20_000,
-    });
-    return { devCode: payload.dev_code };
+    try {
+      const payload = await apiRequest<SendOtpResponse>('/auth/send-otp/', {
+        method: 'POST', body: JSON.stringify({ email }), timeoutMs: 20_000,
+      });
+      return { devCode: payload.dev_code };
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Failed to send verification email. Please try again shortly.') {
+        throw new Error('Email delivery failed. Check the backend SMTP settings and Railway logs, then try again.');
+      }
+      throw error;
+    }
   };
 
   const verifyOTP = async (email: string, code: string): Promise<{ ok: boolean; error?: string }> => {

@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.db import transaction
 from rest_framework import generics, permissions, status
@@ -30,6 +32,8 @@ from .serializers import (
 )
 from .utils import send_otp_email
 
+logger = logging.getLogger(__name__)
+
 
 @extend_schema(request=SendOTPSerializer)
 @api_view(["POST"])
@@ -52,6 +56,7 @@ def send_otp(request):
         send_otp_email(email=email, code=raw_code)
     except Exception as exc:
         email_error = str(exc)
+        logger.exception("Failed to send OTP email to %s", email)
         if not settings.DEBUG:
             return Response(
                 {"detail": "Failed to send verification email. Please try again shortly."},
