@@ -1,10 +1,14 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { VolumeX, Pause, PictureInPicture, Maximize, Sparkles } from 'lucide-react';
+import { LoaderCircle, Sparkles } from 'lucide-react';
 import { MapleLeaf } from '@/components/news/MapleLeaf';
 import { useApp } from '@/context/AppContext';
 import type { Article } from '@/context/AppContext';
+import { fetchVideoFeed } from '@/services/newsService';
+import { buildWatchHref, getEmbeddedVideoUrl } from '@/lib/video';
+import type { VideoItem } from '@/types/video';
 
 const SPONSORED = [
   {
@@ -30,9 +34,22 @@ const SPONSORED = [
 ];
 
 export function LatestNewsRail() {
-  // TODO: Wire to backend — GET /api/news/live-stream — live video stream URL and metadata
   const { topStories } = useApp();
   const latestItems = topStories.slice(0, 16);
+  const [featuredVideo, setFeaturedVideo] = useState<VideoItem | null>(null);
+  const [loadingVideo, setLoadingVideo] = useState(true);
+
+  useEffect(() => {
+    fetchVideoFeed()
+      .then(feed => {
+        setFeaturedVideo(feed.live[0] ?? feed.trending[0] ?? null);
+      })
+      .catch(() => setFeaturedVideo(null))
+      .finally(() => setLoadingVideo(false));
+  }, []);
+
+  const embeddedVideoUrl = featuredVideo ? getEmbeddedVideoUrl(featuredVideo) : null;
+  const watchHref = featuredVideo ? buildWatchHref(featuredVideo) : '/videos';
 
   return (
     <aside className="w-full" aria-label="Latest news">
@@ -45,38 +62,41 @@ export function LatestNewsRail() {
         <div className="w-2 h-2 rounded-full bg-canadaRed ml-auto pulse-dot flex-shrink-0" aria-label="Live indicator" />
       </div>
 
-      {/* Video player placeholder */}
-      {/* TODO: Wire to backend — GET /api/news/live-video — returns HLS stream URL for live broadcast */}
-      <div
-        className="bg-black aspect-video relative group cursor-pointer"
-        role="region"
-        aria-label="Live video player"
-      >
-        <div className="absolute top-2 left-2 bg-blue-500 p-2">
-          <VolumeX className="w-5 h-5 text-white" aria-hidden="true" />
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button aria-label="Mute video"><VolumeX className="w-5 h-5 text-white" /></button>
-            <button aria-label="Pause video"><Pause className="w-5 h-5 text-white fill-white" /></button>
+      <div className="bg-black aspect-video relative overflow-hidden" role="region" aria-label="Live video player">
+        {loadingVideo ? (
+          <div className="absolute inset-0 flex items-center justify-center text-white">
+            <LoaderCircle className="w-8 h-8 animate-spin" />
           </div>
-          <div className="flex items-center gap-4">
-            <button aria-label="Picture in picture"><PictureInPicture className="w-5 h-5 text-white" /></button>
-            <button aria-label="Fullscreen"><Maximize className="w-5 h-5 text-white" /></button>
-          </div>
-        </div>
-        {/* Progress bar */}
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-800" role="progressbar" aria-valuenow={33} aria-valuemin={0} aria-valuemax={100}>
-          <div className="h-full bg-blue-500 w-1/3" />
-        </div>
+        ) : embeddedVideoUrl ? (
+          <iframe
+            src={embeddedVideoUrl}
+            title={featuredVideo?.title ?? 'Canada News video'}
+            className="absolute inset-0 w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        ) : (
+          <Link
+            href="/videos"
+            className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#1b1b1b] to-black text-center px-6"
+          >
+            <div>
+              <p className="text-white font-bold text-lg">No featured video yet</p>
+              <p className="text-gray-400 text-sm mt-2">Open the video feed for the latest coverage</p>
+            </div>
+          </Link>
+        )}
       </div>
 
       {/* Live status */}
       <div className="mt-3 mb-6">
         <p className="font-serif font-bold text-[17px] leading-snug text-[#1a1a1a] dark:text-white">
-          <span className="text-red-600 mr-1">• Live /</span>
-          Stay Tuned — Canada News Now
+          <span className="text-red-600 mr-1">• {featuredVideo?.isLive ? 'Live /' : 'Video /'}</span>
+          {featuredVideo?.title ?? 'Stay Tuned — Canada News Now'}
         </p>
+        <Link href={watchHref} className="inline-block mt-2 text-sm font-semibold text-blue-500 hover:underline">
+          Open player
+        </Link>
       </div>
 
       {/* Blue accent divider */}

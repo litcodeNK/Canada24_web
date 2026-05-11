@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { fetchVideoFeed } from '@/services/newsService';
 import type { VideoFeed, VideoItem } from '@/types/video';
-import { clsx } from 'clsx';
+import { buildWatchHref } from '@/lib/video';
 
 export default function VideoFeedPage() {
   const [feed, setFeed] = useState<VideoFeed>({ trending: [], live: [] });
@@ -68,13 +68,11 @@ export default function VideoFeedPage() {
 }
 
 function VideoCard({ item, live = false }: { item: VideoItem; live?: boolean }) {
-  const href = item.videoUrl ?? item.sourceUrl ?? '#';
+  const href = buildWatchHref(item);
 
   return (
-    <a
+    <Link
       href={href}
-      target={href !== '#' ? '_blank' : undefined}
-      rel="noopener noreferrer"
       className="flex-shrink-0 w-52 group"
     >
       <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-[#2A2A2A]">
@@ -104,6 +102,6 @@ function VideoCard({ item, live = false }: { item: VideoItem; live?: boolean }) 
       </div>
       <p className="mt-1.5 text-sm font-semibold dark:text-white line-clamp-2 leading-tight">{item.title}</p>
       <p className="text-xs text-gray-400 mt-0.5">{item.date}</p>
-    </a>
+    </Link>
   );
 }
