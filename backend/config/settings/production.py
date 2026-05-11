@@ -17,7 +17,7 @@ if RAILWAY_PUBLIC_DOMAIN and RAILWAY_PUBLIC_DOMAIN not in ALLOWED_HOSTS:
 
 CSRF_TRUSTED_ORIGINS = config(
     "CSRF_TRUSTED_ORIGINS",
-    default="https://canada247.vercel.app,https://canada247.news",
+    default="https://canada247.vercel.app,https://canada247.news,https://canada247.ca,https://www.canada247.ca",
     cast=lambda value: [item.strip() for item in value.split(",") if item.strip()],
 )
 if RAILWAY_PUBLIC_DOMAIN:

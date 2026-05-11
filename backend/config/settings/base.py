@@ -169,7 +169,7 @@ DEFAULT_FROM_EMAIL = config(
 
 CORS_ALLOWED_ORIGINS = config(
     "CORS_ALLOWED_ORIGINS",
-    default="http://localhost:3000,http://localhost:8081,http://127.0.0.1:8081,https://canada247.vercel.app,https://canada247.news",
+    default="http://localhost:3000,http://localhost:8081,http://127.0.0.1:8081,https://canada247.vercel.app,https://canada247.news,https://canada247.ca,https://www.canada247.ca",
     cast=lambda value: [item.strip() for item in value.split(",") if item.strip()],
 )
 CORS_ALLOWED_ORIGIN_REGEXES = [
