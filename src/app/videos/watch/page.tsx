@@ -1,25 +1,34 @@
-'use client';
-
-import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { getEmbeddedVideoUrl } from '@/lib/video';
 import type { VideoItem } from '@/types/video';
 
-export default function WatchVideoPage() {
-  const params = useSearchParams();
+type WatchVideoPageProps = {
+  searchParams?: Record<string, string | string[] | undefined>;
+};
+
+function readParam(
+  searchParams: WatchVideoPageProps['searchParams'],
+  key: string,
+): string | undefined {
+  const value = searchParams?.[key];
+  if (Array.isArray(value)) return value[0];
+  return value;
+}
+
+export default function WatchVideoPage({ searchParams }: WatchVideoPageProps) {
   const item: VideoItem = {
     id: 'watch',
-    title: params.get('title') ?? 'Canada News Video',
-    description: params.get('description') ?? undefined,
+    title: readParam(searchParams, 'title') ?? 'Canada News Video',
+    description: readParam(searchParams, 'description'),
     duration: undefined,
     showDuration: false,
-    date: params.get('date') ?? '',
-    imgUrl: params.get('img') ?? undefined,
-    isLive: params.get('live') === '1',
-    liveText: params.get('liveText') ?? undefined,
-    sourceUrl: params.get('source') ?? undefined,
-    videoUrl: params.get('video') ?? undefined,
+    date: readParam(searchParams, 'date') ?? '',
+    imgUrl: readParam(searchParams, 'img'),
+    isLive: readParam(searchParams, 'live') === '1',
+    liveText: readParam(searchParams, 'liveText'),
+    sourceUrl: readParam(searchParams, 'source'),
+    videoUrl: readParam(searchParams, 'video'),
   };
 
   const embedUrl = getEmbeddedVideoUrl(item);
