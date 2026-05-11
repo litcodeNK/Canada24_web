@@ -3,6 +3,8 @@ import { AppShell } from '@/components/layout/AppShell';
 import { getEmbeddedVideoUrl } from '@/lib/video';
 import type { VideoItem } from '@/types/video';
 
+export const dynamic = 'force-dynamic';
+
 type WatchVideoPageProps = {
   searchParams?: Record<string, string | string[] | undefined>;
 };
