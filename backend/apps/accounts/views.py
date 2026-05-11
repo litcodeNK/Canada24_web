@@ -54,7 +54,7 @@ def send_otp(request):
         email_error = str(exc)
         if not settings.DEBUG:
             return Response(
-                {"detail": "Failed to send verification email. Please try again."},
+                {"detail": "Failed to send verification email. Please try again shortly."},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
