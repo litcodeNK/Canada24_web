@@ -202,3 +202,28 @@ class NewsVideo(models.Model):
 
         self.thumbnail.save(generated_thumbnail.name, generated_thumbnail, save=False)
         super().save(update_fields=["thumbnail", "updated_at"])
+
+
+class ExternalVideo(models.Model):
+    external_id = models.CharField(max_length=255, unique=True)
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    thumbnail_url = models.URLField(blank=True)
+    source_url = models.URLField()
+    channel_name = models.CharField(max_length=255, blank=True)
+    published_at = models.DateTimeField()
+    is_live = models.BooleanField(default=False)
+    is_published = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "external_videos"
+        ordering = ["-published_at", "-id"]
+        indexes = [
+            models.Index(fields=["-published_at"]),
+            models.Index(fields=["is_published", "-published_at"]),
+        ]
+
+    def __str__(self):
+        return self.title

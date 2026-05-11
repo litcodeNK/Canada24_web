@@ -10,7 +10,7 @@ from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
 from .constants import SECTION_BY_SLUG, SECTION_DEFINITIONS
-from .models import Article, NewsVideo, UserPost
+from .models import Article, ExternalVideo, NewsVideo, UserPost
 from .querysets import annotate_article_queryset
 from .serializers import (
     ArticleSerializer,
@@ -40,6 +40,22 @@ def build_uploaded_video_item(video: NewsVideo, request) -> dict:
         "live_text": "",
         "source_url": "",
         "video_url": video_url,
+    }
+
+
+def build_external_video_item(video: ExternalVideo) -> dict:
+    return {
+        "id": f"external-video-{video.pk}",
+        "title": video.title,
+        "description": video.description,
+        "duration": "",
+        "show_duration": False,
+        "date": format_relative_time(video.published_at),
+        "img_url": video.thumbnail_url,
+        "is_live": video.is_live,
+        "live_text": "LIVE" if video.is_live else "",
+        "source_url": video.source_url,
+        "video_url": "",
     }
 
 
@@ -156,11 +172,29 @@ class VideoListView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
-        trending_videos = list(NewsVideo.objects.filter(is_published=True)[:10])
+        uploaded_videos = [
+            {
+                "sort_at": video.created_at,
+                "payload": build_uploaded_video_item(video, request),
+            }
+            for video in NewsVideo.objects.filter(is_published=True)[:10]
+        ]
+        external_videos = [
+            {
+                "sort_at": video.published_at,
+                "payload": build_external_video_item(video),
+            }
+            for video in ExternalVideo.objects.filter(is_published=True)[:10]
+        ]
+        combined = sorted(
+            uploaded_videos + external_videos,
+            key=lambda item: item["sort_at"],
+            reverse=True,
+        )[:10]
 
         payload = {
             "trending": VideoItemSerializer(
-                [build_uploaded_video_item(video, request) for video in trending_videos],
+                [item["payload"] for item in combined],
                 many=True,
             ).data,
             "live": [],

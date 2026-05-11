@@ -12,7 +12,7 @@ from rest_framework.test import APITestCase
 from apps.accounts.models import User
 from apps.interactions.models import Comment, Reaction, Repost, SavedArticle
 
-from .models import Article, NewsVideo, UserPost
+from .models import Article, ExternalVideo, NewsVideo, UserPost
 
 
 class NewsApiTests(APITestCase):
@@ -165,3 +165,23 @@ class NewsApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["trending"], [])
+
+    def test_video_feed_includes_external_seeded_videos(self):
+        external_video = ExternalVideo.objects.create(
+            external_id="youtube:test123",
+            title="CBC News evening briefing",
+            description="Latest reporting from an official channel feed.",
+            thumbnail_url="https://i.ytimg.com/vi/test123/hqdefault.jpg",
+            source_url="https://www.youtube.com/watch?v=test123",
+            channel_name="CBC News",
+            published_at=timezone.now(),
+        )
+
+        response = self.client.get("/api/v1/news/videos/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["trending"]), 1)
+        self.assertEqual(response.data["trending"][0]["id"], f"external-video-{external_video.pk}")
+        self.assertEqual(response.data["trending"][0]["title"], external_video.title)
+        self.assertEqual(response.data["trending"][0]["source_url"], external_video.source_url)
+        self.assertEqual(response.data["trending"][0]["video_url"], "")

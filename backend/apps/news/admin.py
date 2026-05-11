@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Article, NewsVideo, UserPost
+from .models import Article, ExternalVideo, NewsVideo, UserPost
 
 
 @admin.register(Article)
@@ -48,3 +48,10 @@ class NewsVideoAdmin(admin.ModelAdmin):
             '<img src="{}" style="max-width: 240px; border-radius: 8px; border: 1px solid #ddd;" />',
             obj.thumbnail.url,
         )
+
+
+@admin.register(ExternalVideo)
+class ExternalVideoAdmin(admin.ModelAdmin):
+    list_display = ("title", "channel_name", "published_at", "is_live", "is_published")
+    list_filter = ("is_live", "is_published", "channel_name")
+    search_fields = ("title", "description", "channel_name", "external_id")
