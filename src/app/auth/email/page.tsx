@@ -47,13 +47,13 @@ export default function AuthEmailPage() {
       <div className="flex-1 flex flex-col items-center justify-center px-8 pb-12">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#D52B1E]/20 shadow-md bg-white flex items-center justify-center mx-auto mb-3">
+          <div className="h-14 w-36 rounded-full overflow-hidden border-2 border-[#D52B1E]/20 shadow-md bg-white mx-auto mb-3">
             <Image
               src="/canada247-logo.jpg"
               alt="Canada 247"
-              width={80}
-              height={80}
-              className="w-full h-full object-contain p-1.5"
+              width={144}
+              height={56}
+              className="w-full h-full object-cover"
             />
           </div>
           <h1 className="bebas text-2xl tracking-widest dark:text-white">CANADA 247</h1>

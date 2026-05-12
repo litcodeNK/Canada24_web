@@ -83,13 +83,13 @@ export default function AlertSetupPage() {
 
       {/* ── Header ── */}
       <div className="bg-white dark:bg-[#1A1A1A] border-b border-gray-200 dark:border-[#2A2A2A] px-4 py-4 flex flex-col items-center gap-3">
-        <div className="w-14 h-14 rounded-full overflow-hidden border border-gray-200 dark:border-[#333] bg-white flex items-center justify-center">
+        <div className="h-12 w-32 rounded-full overflow-hidden border border-gray-200 dark:border-[#333] bg-white">
           <Image
             src="/canada247-logo.jpg"
             alt="Canada 247"
-            width={56}
-            height={56}
-            className="w-full h-full object-contain p-1"
+            width={128}
+            height={48}
+            className="w-full h-full object-cover"
             priority
           />
         </div>

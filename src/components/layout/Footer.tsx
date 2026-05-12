@@ -47,13 +47,13 @@ export function Footer() {
 
         {/* Logo row */}
         <div className="flex items-center gap-3 mb-8 pb-6 border-b border-gray-300 dark:border-[#2A2A2A]">
-          <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-200 dark:border-[#333] bg-white flex-shrink-0 flex items-center justify-center">
+          <div className="h-10 w-28 rounded-full overflow-hidden border border-gray-200 dark:border-[#333] bg-white flex-shrink-0">
             <Image
               src="/canada247-logo.jpg"
               alt="Canada 247"
-              width={48}
-              height={48}
-              className="w-full h-full object-contain p-1"
+              width={112}
+              height={40}
+              className="w-full h-full object-cover"
             />
           </div>
           <div>
