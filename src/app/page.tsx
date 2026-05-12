@@ -16,8 +16,6 @@ import { fetchVideoFeed } from '@/services/newsService';
 import type { Article } from '@/context/AppContext';
 import type { VideoItem } from '@/types/video';
 
-const WELCOME_DISMISSED_KEY = '@canada247_welcome_dismissed';
-
 const CATEGORY_COLORS: Record<string, string> = {
   POLITICS: '#1565C0', WORLD: '#00695C', BUSINESS: '#E65100',
   HEALTH: '#1B5E20', SPORTS: '#D52B1E', TECHNOLOGY: '#01579B',
@@ -46,16 +44,11 @@ export default function TopStoriesPage() {
   const { topStories, communityStories, loadingNews, refreshNews, onboardingComplete } = useApp();
   const { user, isAuthLoading } = useAuth();
   const router = useRouter();
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    setShowWelcome(localStorage.getItem(WELCOME_DISMISSED_KEY) !== '1');
-  }, []);
-
-  useEffect(() => {
-    if (!isAuthLoading && user && !onboardingComplete) router.replace('/onboarding/regions');
-  }, [isAuthLoading, user, onboardingComplete, router]);
+    if (!showWelcome && !isAuthLoading && user && !onboardingComplete) router.replace('/onboarding/regions');
+  }, [showWelcome, isAuthLoading, user, onboardingComplete, router]);
 
   if (isAuthLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-white dark:bg-[#0D0D0D]">
@@ -63,11 +56,13 @@ export default function TopStoriesPage() {
     </div>
   );
 
-  if (!user && showWelcome) {
-    return <WelcomeScreen onSkip={() => {
-      localStorage.setItem(WELCOME_DISMISSED_KEY, '1');
-      setShowWelcome(false);
-    }} />;
+  if (showWelcome) {
+    return (
+      <WelcomeScreen
+        isAuthenticated={Boolean(user)}
+        onContinue={() => setShowWelcome(false)}
+      />
+    );
   }
 
   if (user && !onboardingComplete) return (
@@ -221,7 +216,13 @@ export default function TopStoriesPage() {
   );
 }
 
-function WelcomeScreen({ onSkip }: { onSkip: () => void }) {
+function WelcomeScreen({
+  isAuthenticated,
+  onContinue,
+}: {
+  isAuthenticated: boolean;
+  onContinue: () => void;
+}) {
   const [backgroundVideo, setBackgroundVideo] = useState<VideoItem | null>(null);
 
   useEffect(() => {
@@ -290,26 +291,35 @@ function WelcomeScreen({ onSkip }: { onSkip: () => void }) {
           </div>
         </div>
 
-        <div className="space-y-4">
-          <Link
-            href="/auth/email"
+        {isAuthenticated ? (
+          <button
+            onClick={onContinue}
             className="block w-full rounded-[18px] bg-[#ff2b23] px-6 py-4 text-center text-[18px] font-bold text-white transition-colors hover:bg-[#e2251e]"
           >
-            Sign in
-          </Link>
-          <Link
-            href="/auth/email"
-            className="block w-full rounded-[18px] bg-white px-6 py-4 text-center text-[18px] font-bold text-[#111111] transition-colors hover:bg-[#f1f1f1]"
-          >
-            Create a free account
-          </Link>
-          <button
-            onClick={onSkip}
-            className="pt-2 text-sm font-medium text-white/62 transition-colors hover:text-white"
-          >
-            Skip for now
+            Continue to view news
           </button>
-        </div>
+        ) : (
+          <div className="space-y-4">
+            <Link
+              href="/auth/email"
+              className="block w-full rounded-[18px] bg-[#ff2b23] px-6 py-4 text-center text-[18px] font-bold text-white transition-colors hover:bg-[#e2251e]"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/auth/email"
+              className="block w-full rounded-[18px] bg-white px-6 py-4 text-center text-[18px] font-bold text-[#111111] transition-colors hover:bg-[#f1f1f1]"
+            >
+              Create a free account
+            </Link>
+            <button
+              onClick={onContinue}
+              className="pt-2 text-sm font-medium text-white/62 transition-colors hover:text-white"
+            >
+              Skip for now
+            </button>
+          </div>
+        )}
       </section>
     </main>
   );
