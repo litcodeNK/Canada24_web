@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useApp } from '@/context/AppContext';
@@ -59,18 +60,53 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         )}
       >
         {/* Header */}
-        <div className="bg-[#D52B1E] p-5 pt-12">
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="bebas text-white text-2xl tracking-widest block leading-none">CANADA 247</span>
-              <span className="text-white/70 text-[10px] tracking-widest font-medium">CANADA IN REAL TIME</span>
+        <div
+          className="relative overflow-hidden px-5 pt-10 pb-6"
+          style={{
+            backgroundImage: 'url(/sidebar-bg.avif)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          {/* Dark overlay so text stays legible */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'linear-gradient(160deg, rgba(0,0,0,0.72) 0%, rgba(20,0,0,0.65) 60%, rgba(213,43,30,0.55) 100%)',
+            }}
+          />
+
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 text-white/60 hover:text-white p-1.5 z-10"
+            aria-label="Close menu"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+
+          {/* Logo + branding */}
+          <div className="relative z-10 flex flex-col items-start gap-3">
+            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/25 shadow-xl bg-white">
+              <Image
+                src="/canada247-logo.jpg"
+                alt="Canada 247 Logo"
+                width={64}
+                height={64}
+                className="w-full h-full object-cover"
+              />
             </div>
-            <button onClick={onClose} className="text-white/80 hover:text-white p-1" aria-label="Close menu">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
+            <div>
+              <span className="bebas text-white text-3xl tracking-widest block leading-none drop-shadow-md">
+                CANADA 247
+              </span>
+              <span className="text-white/55 text-[10px] tracking-[0.18em] font-medium uppercase">
+                Canada in real time
+              </span>
+            </div>
           </div>
         </div>
 
