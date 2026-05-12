@@ -61,14 +61,14 @@ export function Header({ onMenuToggle }: HeaderProps) {
               className="flex items-center gap-3 flex-shrink-0"
               aria-label="Canada 247 — home"
             >
-              <div className="relative h-[60px] w-[160px] sm:h-[100px] sm:w-[400px]">
+              <div className="h-[44px] w-[110px] sm:h-[56px] sm:w-[140px] rounded-full overflow-hidden flex-shrink-0">
                 <Image
                   src="/canada247-logo.jpg"
                   alt="Canada 247"
-                  fill
-                  className="object-contain object-left"
+                  width={140}
+                  height={56}
+                  className="w-full h-full object-cover"
                   priority
-                  sizes="400px"
                 />
               </div>
               <div className="hidden sm:block border-l-2 border-canadaRed pl-5">

@@ -266,14 +266,14 @@ function WelcomeScreen({
 
       <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-md flex-col px-7 pb-10 pt-12 text-center">
         <div className="flex-1">
-          <div className="mx-auto h-[72px] w-[180px] relative">
+          <div className="mx-auto h-[72px] w-[180px] rounded-full overflow-hidden">
             <Image
               src="/canada247-logo.jpg"
               alt="Canada 24/7"
-              fill
+              width={180}
+              height={72}
               priority
-              className="object-contain"
-              sizes="180px"
+              className="w-full h-full object-cover"
             />
           </div>
 
