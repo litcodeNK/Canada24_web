@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useApp } from '@/context/AppContext';
 import { Suspense } from 'react';
 
 function OTPForm() {
@@ -10,6 +11,7 @@ function OTPForm() {
   const email = searchParams.get('email') ?? '';
   const router = useRouter();
   const { verifyOTP } = useAuth();
+  const { onboardingComplete } = useApp();
 
   const [digits, setDigits] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
@@ -51,7 +53,7 @@ function OTPForm() {
     setError('');
     const result = await verifyOTP(email, code);
     if (result.ok) {
-      router.replace('/');
+      router.replace(onboardingComplete ? '/' : '/onboarding/regions');
     } else {
       setError(result.error ?? 'Invalid or expired code. Please try again.');
       setDigits(['', '', '', '', '', '']);

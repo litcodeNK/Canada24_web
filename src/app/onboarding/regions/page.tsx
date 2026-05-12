@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { clsx } from 'clsx';
 
 const ALL_REGIONS = [
@@ -15,7 +16,20 @@ const ALL_REGIONS = [
 
 export default function RegionSelectionPage() {
   const { selectedRegions, toggleRegion, completeOnboarding } = useApp();
+  const { user, isAuthLoading } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isAuthLoading && !user) router.replace('/auth/email');
+  }, [isAuthLoading, user, router]);
+
+  if (isAuthLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#0D0D0D]">
+        <div className="w-8 h-8 border-2 border-[#D52B1E] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const handleNext = () => {
     router.push('/onboarding/alerts');

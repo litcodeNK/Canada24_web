@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { clsx } from 'clsx';
 import {
   Zap, Star, Sun, Landmark, Briefcase, Heart, Film,
@@ -54,7 +56,20 @@ const PREFERENCE_GROUPS = [
 
 export default function AlertSetupPage() {
   const { alerts, toggleAlert, completeOnboarding } = useApp();
+  const { user, isAuthLoading } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isAuthLoading && !user) router.replace('/auth/email');
+  }, [isAuthLoading, user, router]);
+
+  if (isAuthLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0D0D0D]">
+        <div className="w-8 h-8 border-2 border-canadaRed border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const selectedCount = Object.values(alerts).filter(Boolean).length;
 
