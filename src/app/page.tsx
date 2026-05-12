@@ -5,13 +5,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
+import { getEmbeddedVideoUrl } from '@/lib/video';
 import { AppShell } from '@/components/layout/AppShell';
 import { LatestNewsRail } from '@/components/layout/LatestNewsRail';
 import { HeroCard } from '@/components/news/HeroCard';
 import { BreakingTicker } from '@/components/news/BreakingTicker';
 import { SectionBlock } from '@/components/news/SectionBlock';
 import { useRouter } from 'next/navigation';
+import { fetchVideoFeed } from '@/services/newsService';
 import type { Article } from '@/context/AppContext';
+import type { VideoItem } from '@/types/video';
 
 const WELCOME_DISMISSED_KEY = '@canada247_welcome_dismissed';
 
@@ -219,9 +222,47 @@ export default function TopStoriesPage() {
 }
 
 function WelcomeScreen({ onSkip }: { onSkip: () => void }) {
+  const [backgroundVideo, setBackgroundVideo] = useState<VideoItem | null>(null);
+
+  useEffect(() => {
+    fetchVideoFeed()
+      .then(feed => {
+        setBackgroundVideo(feed.trending[0] ?? feed.live[0] ?? null);
+      })
+      .catch(() => setBackgroundVideo(null));
+  }, []);
+
+  const embedUrl = backgroundVideo ? getBackgroundVideoUrl(backgroundVideo) : null;
+
   return (
-    <main className="flex min-h-screen flex-col bg-[#060606] text-white">
-      <section className="mx-auto flex min-h-screen w-full max-w-md flex-col px-7 pb-10 pt-12 text-center">
+    <main className="relative flex min-h-screen flex-col overflow-hidden bg-[#060606] text-white">
+      <div className="absolute inset-0">
+        {backgroundVideo?.videoUrl ? (
+          <video
+            src={backgroundVideo.videoUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={backgroundVideo.imgUrl}
+            className="h-full w-full object-cover opacity-30"
+          />
+        ) : embedUrl ? (
+          <iframe
+            src={embedUrl}
+            title={backgroundVideo?.title ?? 'Canada 24/7 background video'}
+            className="h-full w-full scale-[1.35] opacity-25 pointer-events-none"
+            allow="autoplay; encrypted-media; picture-in-picture"
+          />
+        ) : backgroundVideo?.imgUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={backgroundVideo.imgUrl} alt="" className="h-full w-full object-cover opacity-25" />
+        ) : null}
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,4,4,0.46)_0%,rgba(5,5,5,0.78)_34%,rgba(5,5,5,0.96)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(213,43,30,0.28),transparent_38%)]" />
+      </div>
+
+      <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-md flex-col px-7 pb-10 pt-12 text-center">
         <div className="flex-1">
           <div className="mx-auto h-[72px] w-[180px] relative">
             <Image
@@ -236,14 +277,14 @@ function WelcomeScreen({ onSkip }: { onSkip: () => void }) {
 
           <div className="mt-16">
             <h1 className="font-sans text-[42px] font-black leading-[1.02] tracking-[-0.04em] text-white">
-              The news you want,
+              Stay close to
               <br />
-              when you
+              the stories
               <br />
-              need it
+              shaping Canada
             </h1>
             <p className="mx-auto mt-6 max-w-[310px] text-lg leading-7 text-white/82">
-              Get the latest from your region, across the country, and around the world.
+              Welcome to a sharper daily briefing built for readers who want clarity, urgency, and a stronger sense of what matters next.
             </p>
           </div>
         </div>
@@ -271,6 +312,38 @@ function WelcomeScreen({ onSkip }: { onSkip: () => void }) {
       </section>
     </main>
   );
+}
+
+function getBackgroundVideoUrl(item: VideoItem): string | null {
+  const embedUrl = getEmbeddedVideoUrl(item);
+  if (!embedUrl) return null;
+
+  try {
+    const parsed = new URL(embedUrl);
+
+    if (parsed.hostname.includes('youtube.com')) {
+      const videoId = parsed.pathname.split('/').filter(Boolean).pop();
+      parsed.searchParams.set('autoplay', '1');
+      parsed.searchParams.set('mute', '1');
+      parsed.searchParams.set('controls', '0');
+      parsed.searchParams.set('loop', '1');
+      parsed.searchParams.set('playsinline', '1');
+      if (videoId) parsed.searchParams.set('playlist', videoId);
+      return parsed.toString();
+    }
+
+    if (parsed.hostname.includes('tiktok.com')) {
+      parsed.searchParams.set('autoplay', '1');
+      parsed.searchParams.set('description', '0');
+      parsed.searchParams.set('controls', '0');
+      parsed.searchParams.set('music_info', '0');
+      return parsed.toString();
+    }
+
+    return parsed.toString();
+  } catch {
+    return embedUrl;
+  }
 }
 
 function LatestItem({ article }: { article: Article }) {
