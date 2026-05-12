@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
@@ -10,8 +11,9 @@ import { HeroCard } from '@/components/news/HeroCard';
 import { BreakingTicker } from '@/components/news/BreakingTicker';
 import { SectionBlock } from '@/components/news/SectionBlock';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Bell, Globe2, Newspaper, ShieldCheck } from 'lucide-react';
 import type { Article } from '@/context/AppContext';
+
+const WELCOME_DISMISSED_KEY = '@canada247_welcome_dismissed';
 
 const CATEGORY_COLORS: Record<string, string> = {
   POLITICS: '#1565C0', WORLD: '#00695C', BUSINESS: '#E65100',
@@ -41,6 +43,12 @@ export default function TopStoriesPage() {
   const { topStories, communityStories, loadingNews, refreshNews, onboardingComplete } = useApp();
   const { user, isAuthLoading } = useAuth();
   const router = useRouter();
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setShowWelcome(localStorage.getItem(WELCOME_DISMISSED_KEY) !== '1');
+  }, []);
 
   useEffect(() => {
     if (!isAuthLoading && user && !onboardingComplete) router.replace('/onboarding/regions');
@@ -52,8 +60,11 @@ export default function TopStoriesPage() {
     </div>
   );
 
-  if (!user) {
-    return <WelcomeScreen />;
+  if (!user && showWelcome) {
+    return <WelcomeScreen onSkip={() => {
+      localStorage.setItem(WELCOME_DISMISSED_KEY, '1');
+      setShowWelcome(false);
+    }} />;
   }
 
   if (!onboardingComplete) return (
@@ -207,113 +218,58 @@ export default function TopStoriesPage() {
   );
 }
 
-function WelcomeScreen() {
+function WelcomeScreen({ onSkip }: { onSkip: () => void }) {
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(213,43,30,0.16),_transparent_34%),linear-gradient(180deg,_#f8f1eb_0%,_#f2ece4_38%,_#ffffff_100%)] text-[#161616]">
-      <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-8 lg:px-10">
-        <header className="flex items-center justify-between border-b border-black/10 pb-5">
-          <div>
-            <p className="font-sans text-[10px] font-bold uppercase tracking-[0.32em] text-[#9d3a2e]">Canada 24/7</p>
-            <h1 className="mt-2 font-serif text-2xl font-black tracking-tight sm:text-3xl">The classic front page, rebuilt for live news.</h1>
+    <main className="flex min-h-screen flex-col bg-[#060606] text-white">
+      <section className="mx-auto flex min-h-screen w-full max-w-md flex-col px-7 pb-10 pt-12 text-center">
+        <div className="flex-1">
+          <div className="mx-auto h-[72px] w-[180px] relative">
+            <Image
+              src="/canada247-logo.jpg"
+              alt="Canada 24/7"
+              fill
+              priority
+              className="object-contain"
+              sizes="180px"
+            />
           </div>
+
+          <div className="mt-16">
+            <h1 className="font-sans text-[42px] font-black leading-[1.02] tracking-[-0.04em] text-white">
+              The news you want,
+              <br />
+              when you
+              <br />
+              need it
+            </h1>
+            <p className="mx-auto mt-6 max-w-[310px] text-lg leading-7 text-white/82">
+              Get the latest from your region, across the country, and around the world.
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
           <Link
             href="/auth/email"
-            className="inline-flex items-center gap-2 rounded-full bg-[#d52b1e] px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-white transition-colors hover:bg-[#b82418]"
+            className="block w-full rounded-[18px] bg-[#ff2b23] px-6 py-4 text-center text-[18px] font-bold text-white transition-colors hover:bg-[#e2251e]"
           >
-            Log In
-            <ArrowRight className="h-4 w-4" />
+            Sign in
           </Link>
-        </header>
-
-        <div className="grid flex-1 gap-8 py-10 lg:grid-cols-[1.35fr_0.9fr] lg:items-center">
-          <div>
-            <p className="mb-4 font-sans text-[11px] font-bold uppercase tracking-[0.28em] text-[#9d3a2e]">Morning Edition</p>
-            <h2 className="max-w-3xl font-serif text-5xl font-black leading-[0.95] sm:text-6xl lg:text-7xl">
-              Welcome to a cleaner, sharper Canada news briefing.
-            </h2>
-            <p className="mt-6 max-w-2xl text-base leading-7 text-[#4e4a45] sm:text-lg">
-              Sign in first, then choose the regions and topics you actually care about. Your alerts and home feed will be configured after authentication, not before it.
-            </p>
-
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/auth/email"
-                className="inline-flex items-center justify-center gap-2 rounded-none border border-[#d52b1e] bg-[#d52b1e] px-6 py-4 font-sans text-sm font-bold uppercase tracking-[0.18em] text-white transition-colors hover:bg-[#b82418]"
-              >
-                Start With Email
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/videos"
-                className="inline-flex items-center justify-center rounded-none border border-black/15 bg-white/70 px-6 py-4 font-sans text-sm font-bold uppercase tracking-[0.18em] text-[#161616] backdrop-blur transition-colors hover:bg-white"
-              >
-                Watch Video Feed
-              </Link>
-            </div>
-
-            <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              <WelcomeFeature icon={Newspaper} label="Curated Front Page" text="A more classic editorial layout instead of a generic app splash." />
-              <WelcomeFeature icon={Bell} label="Alerts After Login" text="Preferences move to the right moment: after the user is authenticated." />
-              <WelcomeFeature icon={Globe2} label="Region-first Setup" text="Select cities, provinces, and topics only once the account session exists." />
-            </div>
-          </div>
-
-          <div className="border border-black/10 bg-[#fffdf9] p-5 shadow-[0_30px_80px_rgba(28,23,20,0.10)]">
-            <div className="border-b border-black/10 pb-4">
-              <p className="font-sans text-[10px] font-bold uppercase tracking-[0.24em] text-[#9d3a2e]">Top Story</p>
-              <h3 className="mt-3 font-serif text-3xl font-black leading-tight">
-                A more engineered welcome flow for readers, not a settings wall.
-              </h3>
-            </div>
-
-            <div className="grid gap-4 py-5">
-              <div className="border-l-4 border-[#d52b1e] pl-4">
-                <p className="font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-[#9d3a2e]">What changed</p>
-                <p className="mt-2 text-sm leading-6 text-[#403c37]">
-                  Visitors now land on a proper welcome screen. Preferences and region selection only happen after successful email authentication.
-                </p>
-              </div>
-              <div className="rounded-none border border-black/10 bg-[#f4efe9] p-4">
-                <div className="flex items-start gap-3">
-                  <ShieldCheck className="mt-0.5 h-5 w-5 text-[#d52b1e]" />
-                  <div>
-                    <p className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-[#161616]">Post-auth setup</p>
-                    <p className="mt-2 text-sm leading-6 text-[#4e4a45]">
-                      The app now asks for preferences only after a valid account session exists, so selections can be attached to the user flow instead of an anonymous visitor.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-black/10 pt-4">
-              <p className="font-sans text-[10px] font-bold uppercase tracking-[0.24em] text-[#9d3a2e]">Edition Note</p>
-              <p className="mt-2 text-sm leading-6 text-[#403c37]">
-                This is the new top-level entry screen. After login, the user is taken into region and alert setup before the personalized feed opens.
-              </p>
-            </div>
-          </div>
+          <Link
+            href="/auth/email"
+            className="block w-full rounded-[18px] bg-white px-6 py-4 text-center text-[18px] font-bold text-[#111111] transition-colors hover:bg-[#f1f1f1]"
+          >
+            Create a free account
+          </Link>
+          <button
+            onClick={onSkip}
+            className="pt-2 text-sm font-medium text-white/62 transition-colors hover:text-white"
+          >
+            Skip for now
+          </button>
         </div>
       </section>
     </main>
-  );
-}
-
-function WelcomeFeature({
-  icon: Icon,
-  label,
-  text,
-}: {
-  icon: typeof Newspaper;
-  label: string;
-  text: string;
-}) {
-  return (
-    <div className="border border-black/10 bg-white/75 p-4 backdrop-blur">
-      <Icon className="h-5 w-5 text-[#d52b1e]" />
-      <p className="mt-3 font-sans text-xs font-bold uppercase tracking-[0.18em] text-[#161616]">{label}</p>
-      <p className="mt-2 text-sm leading-6 text-[#4e4a45]">{text}</p>
-    </div>
   );
 }
 
