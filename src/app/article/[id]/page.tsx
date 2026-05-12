@@ -46,6 +46,7 @@ export default function ArticleDetailPage() {
   const [speaking, setSpeaking] = useState(false);
   const [shareTooltip, setShareTooltip] = useState(false);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const resumeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const commentsSectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -57,38 +58,73 @@ export default function ArticleDetailPage() {
     }
   }, [id, topStories, communityStories, savedArticles]);
 
-  const toggleSpeech = () => {
-    if (speaking) {
-      window.speechSynthesis.cancel();
-      setSpeaking(false);
-      return;
+  const stopSpeech = () => {
+    window.speechSynthesis.cancel();
+    if (resumeIntervalRef.current) {
+      clearInterval(resumeIntervalRef.current);
+      resumeIntervalRef.current = null;
     }
+    setSpeaking(false);
+  };
+
+  const toggleSpeech = async () => {
+    if (speaking) { stopSpeech(); return; }
     if (!article) return;
 
     window.speechSynthesis.cancel();
 
-    const text = [article.headline, ...(article.body ? [article.body] : FALLBACK_BODY)].join('. ');
-    const utt = new SpeechSynthesisUtterance(text);
+    // Android: getVoices() is empty until voiceschanged fires — wait for it
+    const loadVoices = (): Promise<SpeechSynthesisVoice[]> =>
+      new Promise(resolve => {
+        const v = window.speechSynthesis.getVoices();
+        if (v.length > 0) return resolve(v);
+        window.speechSynthesis.onvoiceschanged = () =>
+          resolve(window.speechSynthesis.getVoices());
+      });
 
-    // iOS/Android: en-CA voice is rarely available — pick any English voice
-    const voices = window.speechSynthesis.getVoices();
+    const voices = await loadVoices();
     const voice = voices.find(v => v.lang.startsWith('en-CA'))
       ?? voices.find(v => v.lang.startsWith('en'));
+
+    const text = [article.headline, ...(article.body ? [article.body] : FALLBACK_BODY)].join('. ');
+    const utt = new SpeechSynthesisUtterance(text);
     if (voice) utt.voice = voice;
     utt.lang = voice?.lang ?? 'en-US';
 
-    utt.onend = () => setSpeaking(false);
-    utt.onerror = () => setSpeaking(false);
+    const cleanup = () => {
+      if (resumeIntervalRef.current) {
+        clearInterval(resumeIntervalRef.current);
+        resumeIntervalRef.current = null;
+      }
+      setSpeaking(false);
+    };
+    utt.onend = cleanup;
+    utt.onerror = cleanup;
     speechRef.current = utt;
 
-    // iOS requires resume() to un-pause the synthesis engine
+    // iOS: wake up the synthesis engine
     window.speechSynthesis.resume();
     window.speechSynthesis.speak(utt);
     setSpeaking(true);
+
+    // Android Chrome cuts synthesis off after ~15s — keep it alive with pause/resume
+    resumeIntervalRef.current = setInterval(() => {
+      if (!window.speechSynthesis.speaking) {
+        clearInterval(resumeIntervalRef.current!);
+        resumeIntervalRef.current = null;
+        setSpeaking(false);
+        return;
+      }
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+    }, 14_000);
   };
 
   useEffect(() => {
-    return () => { window.speechSynthesis?.cancel(); };
+    return () => {
+      window.speechSynthesis?.cancel();
+      if (resumeIntervalRef.current) clearInterval(resumeIntervalRef.current);
+    };
   }, []);
 
   const handleShare = async () => {
