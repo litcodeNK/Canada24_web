@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import Image from 'next/image';
 import Link from 'next/link';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -46,8 +47,14 @@ export default function AuthEmailPage() {
       <div className="flex-1 flex flex-col items-center justify-center px-8 pb-12">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-[#D52B1E] flex items-center justify-center mx-auto mb-3">
-            <span className="bebas text-white text-2xl">C</span>
+          <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#D52B1E]/20 shadow-md bg-white flex items-center justify-center mx-auto mb-3">
+            <Image
+              src="/canada247-logo.jpg"
+              alt="Canada 247"
+              width={80}
+              height={80}
+              className="w-full h-full object-contain p-1.5"
+            />
           </div>
           <h1 className="bebas text-2xl tracking-widest dark:text-white">CANADA 247</h1>
           <p className="text-gray-400 text-sm mt-1">Enter your email to get a verification code</p>

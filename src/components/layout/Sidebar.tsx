@@ -90,13 +90,13 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
           {/* Logo + branding */}
           <div className="relative z-10 flex flex-col items-start gap-3">
-            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/25 shadow-xl bg-white">
+            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white/25 shadow-xl bg-white flex items-center justify-center">
               <Image
                 src="/canada247-logo.jpg"
                 alt="Canada 247 Logo"
-                width={64}
-                height={64}
-                className="w-full h-full object-cover"
+                width={96}
+                height={96}
+                className="w-full h-full object-contain p-1.5"
               />
             </div>
             <div>

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { MapleLeaf } from '@/components/news/MapleLeaf';
+import Image from 'next/image';
 
 const FOOTER_COLS = [
   {
@@ -47,7 +47,15 @@ export function Footer() {
 
         {/* Logo row */}
         <div className="flex items-center gap-3 mb-8 pb-6 border-b border-gray-300 dark:border-[#2A2A2A]">
-          <MapleLeaf className="w-10 h-10 flex-shrink-0" />
+          <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-200 dark:border-[#333] bg-white flex-shrink-0 flex items-center justify-center">
+            <Image
+              src="/canada247-logo.jpg"
+              alt="Canada 247"
+              width={48}
+              height={48}
+              className="w-full h-full object-contain p-1"
+            />
+          </div>
           <div>
             <span className="font-display font-black text-2xl tracking-tight text-[#1a1a1a] dark:text-white block leading-none">
               CANADA NEWS
