@@ -192,7 +192,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [state.darkMode, loaded]);
 
   useEffect(() => {
-    if (loaded && state.onboardingComplete) refreshNews();
+    if (!loaded) return;
+    void refreshNews();
   }, [loaded, state.onboardingComplete]);
 
   useEffect(() => {
