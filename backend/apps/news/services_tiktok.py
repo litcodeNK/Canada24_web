@@ -28,6 +28,13 @@ def _fallback_title(username: str) -> str:
     return f"TikTok video from @{username}" if username else "TikTok video"
 
 
+def _fit_url(value: str, max_length: int = 200) -> str:
+    value = value.strip()
+    if not value:
+        return ""
+    return value if len(value) <= max_length else ""
+
+
 def _fetch_oembed(url: str) -> dict:
     try:
         response = requests.get(
@@ -56,13 +63,13 @@ def fetch_curated_tiktok_videos() -> list[dict]:
         oembed = _fetch_oembed(source_url)
         title = str(oembed.get("title") or "").strip()[:255] or _fallback_title(username)
         channel_name = str(oembed.get("author_name") or "").strip()[:255] or username[:255]
-        thumbnail_url = str(oembed.get("thumbnail_url") or "").strip()
+        thumbnail_url = _fit_url(str(oembed.get("thumbnail_url") or ""))
 
         defaults = {
             "title": title,
             "description": "",
             "thumbnail_url": thumbnail_url,
-            "source_url": source_url,
+            "source_url": _fit_url(source_url),
             "channel_name": channel_name,
             "published_at": datetime.now(tz=timezone.utc),
             "is_live": False,
