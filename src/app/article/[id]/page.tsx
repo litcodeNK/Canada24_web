@@ -38,6 +38,7 @@ export default function ArticleDetailPage() {
     toggleDislike,
     toggleRepost,
     addComment,
+    promptSignIn,
   } = useInteractions();
 
   const [article, setArticle] = useState<Article | null>(null);
@@ -45,6 +46,7 @@ export default function ArticleDetailPage() {
   const [speaking, setSpeaking] = useState(false);
   const [shareTooltip, setShareTooltip] = useState(false);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const commentsSectionRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const all = [...topStories, ...communityStories, ...savedArticles];
@@ -89,9 +91,21 @@ export default function ArticleDetailPage() {
   };
 
   const handleAddComment = () => {
-    if (!commentText.trim() || !user || !article) return;
+    if (!article || !commentText.trim()) return;
+    if (!user) {
+      promptSignIn('comment on stories');
+      return;
+    }
     addComment(article.id, commentText, user);
     setCommentText('');
+  };
+
+  const handleCommentIntent = () => {
+    if (!user) {
+      promptSignIn('comment on stories');
+      return;
+    }
+    commentsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   if (!article) {
@@ -372,6 +386,18 @@ export default function ArticleDetailPage() {
               </svg>
             </EngageButton>
 
+            <EngageButton
+              active={false}
+              activeClass=""
+              onClick={handleCommentIntent}
+              count={commentCount}
+              label="Comment"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </EngageButton>
+
             <div className="flex-1" />
 
             <button
@@ -391,7 +417,7 @@ export default function ArticleDetailPage() {
           </div>
 
           {/* 9. Comments section */}
-          <section>
+          <section ref={commentsSectionRef}>
             <h2 className="bebas tracking-widest text-[15px] dark:text-white mb-5 flex items-center gap-2">
               <span>COMMENTS</span>
               {commentCount > 0 && (

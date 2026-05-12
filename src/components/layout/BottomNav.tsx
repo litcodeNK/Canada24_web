@@ -16,7 +16,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-[#1A1A1A] border-t border-gray-200 dark:border-[#333] flex h-16 safe-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/98 dark:bg-[#141414]/98 backdrop-blur-sm border-t border-gray-200 dark:border-[#333] flex h-20 safe-bottom">
       {tabs.map(({ href, label, icon: Icon }) => {
         const active = href === '/' ? pathname === '/' : pathname.startsWith(href);
         return (
@@ -24,12 +24,12 @@ export function BottomNav() {
             key={href}
             href={href}
             className={clsx(
-              'flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors',
+              'flex-1 flex flex-col items-center justify-center gap-1 transition-colors pt-1',
               active ? 'text-[#D52B1E]' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300',
             )}
           >
-            <Icon className="w-5 h-5" />
-            <span className="bebas text-[9px] tracking-widest">{label}</span>
+            <Icon className="w-6 h-6" />
+            <span className="bebas text-[11px] tracking-[0.18em]">{label}</span>
           </Link>
         );
       })}

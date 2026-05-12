@@ -1,10 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { apiRequest, extractList } from '../services/api';
 import { readStoredSession, requestWithStoredSession } from '../services/sessionService';
 import type { Article } from './AppContext';
 import type { AuthUser } from './AuthContext';
+import { useAuth } from './AuthContext';
 
 const REACTIONS_KEY = '@canada247_reactions';
 const COMMENTS_KEY = '@canada247_comments';
@@ -51,6 +53,7 @@ interface InteractionsContextType {
   toggleDislike: (articleId: string) => void;
   addComment: (articleId: string, text: string, user: AuthUser) => void;
   toggleRepost: (articleId: string, currentReposted?: boolean) => void;
+  promptSignIn: (action?: string) => void;
 }
 
 const InteractionsContext = createContext<InteractionsContextType | null>(null);
@@ -62,11 +65,16 @@ function mapBackendComment(c: BackendComment): Comment {
 }
 
 export function InteractionsProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   const [state, setState] = useState<InteractionsState>({
     reactions: {}, comments: {}, reposts: {},
     likeCounts: {}, dislikeCounts: {}, commentCounts: {}, repostCounts: {},
   });
   const [loaded, setLoaded] = useState(false);
+  const [authPrompt, setAuthPrompt] = useState<{ visible: boolean; action: string }>({
+    visible: false,
+    action: 'interact with this story',
+  });
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -90,6 +98,14 @@ export function InteractionsProvider({ children }: { children: React.ReactNode }
     localStorage.setItem(COMMENTS_KEY, JSON.stringify(state.comments));
     localStorage.setItem(REPOSTS_KEY, JSON.stringify(state.reposts));
   }, [state.reactions, state.comments, state.reposts, loaded]);
+
+  useEffect(() => {
+    if (!authPrompt.visible) return;
+    const timeout = window.setTimeout(() => {
+      setAuthPrompt(cur => ({ ...cur, visible: false }));
+    }, 2800);
+    return () => window.clearTimeout(timeout);
+  }, [authPrompt.visible]);
 
   const hydrateArticleInteractions = async (article: Article) => {
     setState(cur => ({
@@ -130,6 +146,10 @@ export function InteractionsProvider({ children }: { children: React.ReactNode }
   const getDislikeCount = (id: string) => state.dislikeCounts[id];
   const getRepostCount = (id: string) => state.repostCounts[id];
 
+  const promptSignIn = (action = 'interact with this story') => {
+    setAuthPrompt({ visible: true, action });
+  };
+
   const toggleReactionLocally = (articleId: string, type: 'like' | 'dislike') => {
     setState(cur => {
       const prev = cur.reactions[articleId] ?? null;
@@ -146,6 +166,10 @@ export function InteractionsProvider({ children }: { children: React.ReactNode }
   };
 
   const toggleLike = (articleId: string) => {
+    if (!user) {
+      promptSignIn('like stories');
+      return;
+    }
     toggleReactionLocally(articleId, 'like');
     if (!isBackendId(articleId)) return;
     void (async () => {
@@ -159,6 +183,10 @@ export function InteractionsProvider({ children }: { children: React.ReactNode }
   };
 
   const toggleDislike = (articleId: string) => {
+    if (!user) {
+      promptSignIn('dislike stories');
+      return;
+    }
     toggleReactionLocally(articleId, 'dislike');
     if (!isBackendId(articleId)) return;
     void (async () => {
@@ -191,6 +219,10 @@ export function InteractionsProvider({ children }: { children: React.ReactNode }
   };
 
   const toggleRepost = (articleId: string, currentReposted = false) => {
+    if (!user) {
+      promptSignIn('repost stories');
+      return;
+    }
     setState(cur => ({
       ...cur,
       reposts: { ...cur.reposts, [articleId]: !(cur.reposts[articleId] ?? currentReposted) },
@@ -208,8 +240,44 @@ export function InteractionsProvider({ children }: { children: React.ReactNode }
   };
 
   return (
-    <InteractionsContext.Provider value={{ hydrateArticleInteractions, getReaction, getComments, getCommentCount, isReposted, getLikeCount, getDislikeCount, getRepostCount, toggleLike, toggleDislike, addComment, toggleRepost }}>
+    <InteractionsContext.Provider value={{ hydrateArticleInteractions, getReaction, getComments, getCommentCount, isReposted, getLikeCount, getDislikeCount, getRepostCount, toggleLike, toggleDislike, addComment, toggleRepost, promptSignIn }}>
       {children}
+      {authPrompt.visible ? (
+        <div className="fixed inset-x-4 bottom-24 z-[70] sm:inset-x-auto sm:right-6 sm:w-[360px]">
+          <div className="rounded-2xl border border-[#E8E8E8] bg-white/96 px-4 py-3 shadow-2xl backdrop-blur dark:border-[#2A2A2A] dark:bg-[#171717]/96">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 h-2.5 w-2.5 rounded-full bg-[#D52B1E] flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-[#1A1A1A] dark:text-white">
+                  Sign in required
+                </p>
+                <p className="mt-0.5 text-[13px] leading-5 text-[#666] dark:text-[#B5B5B5]">
+                  Sign in to {authPrompt.action}.
+                </p>
+              </div>
+              <button
+                onClick={() => setAuthPrompt(cur => ({ ...cur, visible: false }))}
+                className="text-[#999] transition-colors hover:text-[#1A1A1A] dark:hover:text-white"
+                aria-label="Dismiss sign-in notice"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div className="mt-3 flex items-center justify-end">
+              <Link
+                href="/auth/email"
+                onClick={() => setAuthPrompt(cur => ({ ...cur, visible: false }))}
+                className="rounded-full bg-[#D52B1E] px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[#B02010]"
+              >
+                Sign in
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </InteractionsContext.Provider>
   );
 }

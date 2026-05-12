@@ -13,6 +13,7 @@ interface HeaderProps {
 }
 
 const PRIMARY_NAV = [
+  { href: '/videos', label: 'VIDEOS' },
   { href: '/sections/politics', label: 'POLITICS' },
   { href: '/sections/business', label: 'BUSINESS' },
   { href: '/sections/world', label: 'WORLD' },

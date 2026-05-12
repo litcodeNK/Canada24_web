@@ -1,5 +1,7 @@
 import type { VideoItem } from '@/types/video';
 
+const DIRECT_VIDEO_EXTENSIONS = ['.mp4', '.webm', '.ogg', '.mov', '.m3u8'];
+
 function parseYouTubeId(url: string): string | null {
   try {
     const parsed = new URL(url);
@@ -27,7 +29,26 @@ function parseTikTokId(url: string): string | null {
   }
 }
 
+function isDirectVideoUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    const pathname = parsed.pathname.toLowerCase();
+    return DIRECT_VIDEO_EXTENSIONS.some(ext => pathname.endsWith(ext));
+  } catch {
+    return false;
+  }
+}
+
+export function getDirectVideoUrl(item: VideoItem): string | null {
+  if (item.videoUrl && isDirectVideoUrl(item.videoUrl)) return item.videoUrl;
+  if (item.sourceUrl && isDirectVideoUrl(item.sourceUrl)) return item.sourceUrl;
+  return null;
+}
+
 export function getEmbeddedVideoUrl(item: VideoItem): string | null {
+  const directVideoUrl = getDirectVideoUrl(item);
+  if (directVideoUrl) return null;
+
   if (item.videoUrl) return item.videoUrl;
   if (!item.sourceUrl) return null;
 

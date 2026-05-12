@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
-import { getEmbeddedVideoUrl } from '@/lib/video';
+import { getDirectVideoUrl, getEmbeddedVideoUrl } from '@/lib/video';
 import type { VideoItem } from '@/types/video';
 
 export const dynamic = 'force-dynamic';
@@ -33,6 +33,7 @@ export default function WatchVideoPage({ searchParams }: WatchVideoPageProps) {
     videoUrl: readParam(searchParams, 'video'),
   };
 
+  const directVideoUrl = getDirectVideoUrl(item);
   const embedUrl = getEmbeddedVideoUrl(item);
 
   return (
@@ -43,24 +44,22 @@ export default function WatchVideoPage({ searchParams }: WatchVideoPageProps) {
         </Link>
 
         <div className="mt-4 bg-black rounded-lg overflow-hidden aspect-video">
-          {embedUrl ? (
-            item.videoUrl ? (
-              <video
-                src={embedUrl}
-                controls
-                playsInline
-                className="w-full h-full"
-                poster={item.imgUrl}
-              />
-            ) : (
-              <iframe
-                src={embedUrl}
-                title={item.title}
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            )
+          {directVideoUrl ? (
+            <video
+              src={directVideoUrl}
+              controls
+              playsInline
+              className="w-full h-full"
+              poster={item.imgUrl}
+            />
+          ) : embedUrl ? (
+            <iframe
+              src={embedUrl}
+              title={item.title}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-white">
               Video unavailable.

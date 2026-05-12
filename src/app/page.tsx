@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
-import { getEmbeddedVideoUrl } from '@/lib/video';
+import { getDirectVideoUrl, getEmbeddedVideoUrl } from '@/lib/video';
 import { AppShell } from '@/components/layout/AppShell';
 import { LatestNewsRail } from '@/components/layout/LatestNewsRail';
 import { HeroCard } from '@/components/news/HeroCard';
@@ -70,7 +70,7 @@ export default function TopStoriesPage() {
     }} />;
   }
 
-  if (!onboardingComplete) return (
+  if (user && !onboardingComplete) return (
     <div className="flex items-center justify-center min-h-screen bg-white dark:bg-[#0D0D0D]">
       <div className="w-8 h-8 border-2 border-canadaRed border-t-transparent rounded-full animate-spin" />
     </div>
@@ -232,34 +232,35 @@ function WelcomeScreen({ onSkip }: { onSkip: () => void }) {
       .catch(() => setBackgroundVideo(null));
   }, []);
 
+  const directVideoUrl = backgroundVideo ? getDirectVideoUrl(backgroundVideo) : null;
   const embedUrl = backgroundVideo ? getBackgroundVideoUrl(backgroundVideo) : null;
 
   return (
     <main className="relative flex min-h-screen flex-col overflow-hidden bg-[#060606] text-white">
       <div className="absolute inset-0">
-        {backgroundVideo?.videoUrl ? (
+        {directVideoUrl ? (
           <video
-            src={backgroundVideo.videoUrl}
+            src={directVideoUrl}
             autoPlay
             muted
             loop
             playsInline
-            poster={backgroundVideo.imgUrl}
-            className="h-full w-full object-cover opacity-30"
+            poster={backgroundVideo?.imgUrl}
+            className="h-full w-full object-cover opacity-55"
           />
         ) : embedUrl ? (
           <iframe
             src={embedUrl}
             title={backgroundVideo?.title ?? 'Canada 24/7 background video'}
-            className="h-full w-full scale-[1.35] opacity-25 pointer-events-none"
+            className="h-full w-full scale-[1.2] opacity-60 pointer-events-none"
             allow="autoplay; encrypted-media; picture-in-picture"
           />
         ) : backgroundVideo?.imgUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={backgroundVideo.imgUrl} alt="" className="h-full w-full object-cover opacity-25" />
+          <img src={backgroundVideo.imgUrl} alt="" className="h-full w-full object-cover opacity-55" />
         ) : null}
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,4,4,0.46)_0%,rgba(5,5,5,0.78)_34%,rgba(5,5,5,0.96)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(213,43,30,0.28),transparent_38%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,4,4,0.2)_0%,rgba(5,5,5,0.5)_38%,rgba(5,5,5,0.82)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(213,43,30,0.18),transparent_42%)]" />
       </div>
 
       <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-md flex-col px-7 pb-10 pt-12 text-center">
