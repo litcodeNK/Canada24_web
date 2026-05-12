@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 
 from apps.news.services import fetch_all_feeds
 from apps.news.services_external import fetch_gnews_canada, fetch_newsapi_canada
+from apps.news.services_tiktok import fetch_curated_tiktok_videos
 from apps.news.services_videos import fetch_official_news_videos
 
 
@@ -24,6 +25,9 @@ class Command(BaseCommand):
             self.stdout.write("=== Official news videos ===")
             for item in fetch_official_news_videos():
                 self.stdout.write(str(item))
+            self.stdout.write("=== Curated TikTok videos ===")
+            for item in fetch_curated_tiktok_videos():
+                self.stdout.write(str(item))
             return
 
         if not api_only:
@@ -43,4 +47,7 @@ class Command(BaseCommand):
         if include_videos:
             self.stdout.write("=== Official news videos ===")
             for item in fetch_official_news_videos():
+                self.stdout.write(str(item))
+            self.stdout.write("=== Curated TikTok videos ===")
+            for item in fetch_curated_tiktok_videos():
                 self.stdout.write(str(item))

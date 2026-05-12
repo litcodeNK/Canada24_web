@@ -13,6 +13,7 @@ from apps.accounts.models import User
 from apps.interactions.models import Comment, Reaction, Repost, SavedArticle
 
 from .models import Article, ExternalVideo, NewsVideo, UserPost
+from .services_tiktok import fetch_curated_tiktok_videos
 
 
 class NewsApiTests(APITestCase):
@@ -185,3 +186,20 @@ class NewsApiTests(APITestCase):
         self.assertEqual(response.data["trending"][0]["title"], external_video.title)
         self.assertEqual(response.data["trending"][0]["source_url"], external_video.source_url)
         self.assertEqual(response.data["trending"][0]["video_url"], "")
+
+    @patch("apps.news.services_tiktok.requests.get")
+    def test_curated_tiktok_video_seed_creates_external_video(self, mock_get):
+        mock_get.return_value.json.return_value = {
+            "title": "Canada247 TikTok update",
+            "author_name": "canada247.ca",
+            "thumbnail_url": "https://example.com/tiktok-thumb.jpg",
+        }
+        mock_get.return_value.raise_for_status.return_value = None
+
+        summary = fetch_curated_tiktok_videos()
+
+        self.assertEqual(summary[0]["created"], 1)
+        video = ExternalVideo.objects.get(external_id="tiktok:7625458244944727317")
+        self.assertEqual(video.source_url, "https://www.tiktok.com/@canada247.ca/video/7625458244944727317")
+        self.assertEqual(video.title, "Canada247 TikTok update")
+        self.assertEqual(video.thumbnail_url, "https://example.com/tiktok-thumb.jpg")

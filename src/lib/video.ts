@@ -15,6 +15,18 @@ function parseYouTubeId(url: string): string | null {
   }
 }
 
+function parseTikTokId(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const parts = parsed.pathname.split('/').filter(Boolean);
+    const videoIndex = parts.indexOf('video');
+    if (videoIndex === -1) return null;
+    return parts[videoIndex + 1] || null;
+  } catch {
+    return null;
+  }
+}
+
 export function getEmbeddedVideoUrl(item: VideoItem): string | null {
   if (item.videoUrl) return item.videoUrl;
   if (!item.sourceUrl) return null;
@@ -22,6 +34,11 @@ export function getEmbeddedVideoUrl(item: VideoItem): string | null {
   const youtubeId = parseYouTubeId(item.sourceUrl);
   if (youtubeId) {
     return `https://www.youtube.com/embed/${youtubeId}?rel=0&modestbranding=1`;
+  }
+
+  const tiktokId = parseTikTokId(item.sourceUrl);
+  if (tiktokId) {
+    return `https://www.tiktok.com/player/v1/${tiktokId}?description=1&controls=1&music_info=0`;
   }
 
   return item.sourceUrl;
