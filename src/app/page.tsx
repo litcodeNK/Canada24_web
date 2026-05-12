@@ -224,6 +224,7 @@ function WelcomeScreen({
   onContinue: () => void;
 }) {
   const [backgroundVideo, setBackgroundVideo] = useState<VideoItem | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     fetchVideoFeed()
@@ -241,13 +242,19 @@ function WelcomeScreen({
       <div className="absolute inset-0">
         {directVideoUrl ? (
           <video
+            ref={videoRef}
             src={directVideoUrl}
             autoPlay
             muted
             loop
             playsInline
+            preload="auto"
             poster={backgroundVideo?.imgUrl}
             className="h-full w-full object-cover opacity-55"
+            onCanPlay={() => {
+              const v = videoRef.current;
+              if (v && v.currentTime < 5) v.currentTime = 20;
+            }}
           />
         ) : embedUrl ? (
           <iframe
@@ -339,6 +346,7 @@ function getBackgroundVideoUrl(item: VideoItem): string | null {
       parsed.searchParams.set('controls', '0');
       parsed.searchParams.set('loop', '1');
       parsed.searchParams.set('playsinline', '1');
+      parsed.searchParams.set('start', '20');
       if (videoId) parsed.searchParams.set('playlist', videoId);
       return parsed.toString();
     }

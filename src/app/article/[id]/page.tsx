@@ -64,12 +64,25 @@ export default function ArticleDetailPage() {
       return;
     }
     if (!article) return;
+
+    window.speechSynthesis.cancel();
+
     const text = [article.headline, ...(article.body ? [article.body] : FALLBACK_BODY)].join('. ');
     const utt = new SpeechSynthesisUtterance(text);
-    utt.lang = 'en-CA';
+
+    // iOS/Android: en-CA voice is rarely available — pick any English voice
+    const voices = window.speechSynthesis.getVoices();
+    const voice = voices.find(v => v.lang.startsWith('en-CA'))
+      ?? voices.find(v => v.lang.startsWith('en'));
+    if (voice) utt.voice = voice;
+    utt.lang = voice?.lang ?? 'en-US';
+
     utt.onend = () => setSpeaking(false);
     utt.onerror = () => setSpeaking(false);
     speechRef.current = utt;
+
+    // iOS requires resume() to un-pause the synthesis engine
+    window.speechSynthesis.resume();
     window.speechSynthesis.speak(utt);
     setSpeaking(true);
   };
@@ -82,12 +95,20 @@ export default function ArticleDetailPage() {
     if (navigator.share && article) {
       try {
         await navigator.share({ title: article.headline, url: window.location.href });
-      } catch {}
-    } else {
-      navigator.clipboard?.writeText(window.location.href);
-      setShareTooltip(true);
-      setTimeout(() => setShareTooltip(false), 2000);
+        return;
+      } catch (err) {
+        // User dismissed the share sheet — no fallback needed
+        if (err instanceof Error && err.name === 'AbortError') return;
+      }
     }
+    // Fallback: copy link to clipboard
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+    } catch {
+      // clipboard not available — still show the tooltip so the user knows something happened
+    }
+    setShareTooltip(true);
+    setTimeout(() => setShareTooltip(false), 2000);
   };
 
   const handleAddComment = () => {
@@ -171,12 +192,12 @@ export default function ArticleDetailPage() {
             {speaking ? (
               <>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                <span className="hidden sm:inline">Stop</span>
+                <span>Stop</span>
               </>
             ) : (
               <>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21 5,3"/></svg>
-                <span className="hidden sm:inline">Listen</span>
+                <span>Listen</span>
               </>
             )}
           </button>
