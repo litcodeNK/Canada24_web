@@ -1,6 +1,7 @@
 from django.core.validators import FileExtensionValidator
 from django.conf import settings
 from django.db import models
+from django.db.models.signals import m2m_changed
 
 from . import video_utils
 
@@ -94,6 +95,7 @@ class UserPost(models.Model):
     category = models.CharField(max_length=32, choices=Article.Category.choices, default=Article.Category.GENERAL)
     img_url  = models.URLField(blank=True)
     status   = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING)
+    regions  = models.ManyToManyField("regions.Region", blank=True, related_name="user_posts")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -119,7 +121,7 @@ class UserPost(models.Model):
             ).delete()
             return
 
-        Article.objects.update_or_create(
+        article, _ = Article.objects.update_or_create(
             external_id=self.article_external_id,
             defaults={
                 "headline":     self.headline,
@@ -135,6 +137,12 @@ class UserPost(models.Model):
                 "feed_key":     "community",
             },
         )
+        # Regions are a many-to-many, so this only reflects whatever is already
+        # saved on `self.regions` — see the m2m_changed receiver below, which
+        # re-syncs after a M2M edit lands (e.g. Django admin saves M2M widgets
+        # *after* the instance's own save() call, so an in-save read here would
+        # otherwise miss regions assigned in the same admin edit).
+        article.regions.set(self.regions.all())
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -147,6 +155,14 @@ class UserPost(models.Model):
             external_id=article_external_id,
             source=Article.Source.USER,
         ).delete()
+
+
+def _resync_userpost_article_on_regions_changed(sender, instance, action, **kwargs):
+    if action in ("post_add", "post_remove", "post_clear"):
+        instance.sync_published_article()
+
+
+m2m_changed.connect(_resync_userpost_article_on_regions_changed, sender=UserPost.regions.through)
 
 
 class NewsVideo(models.Model):

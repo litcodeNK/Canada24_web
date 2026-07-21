@@ -1,6 +1,8 @@
 from django.utils import timezone
 from rest_framework import serializers
 
+from apps.regions.models import Region
+
 from .constants import SECTION_DEFINITIONS
 from .models import Article, UserPost
 
@@ -134,6 +136,10 @@ class UserPostSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source="user.display_name", read_only=True)
     author_email = serializers.CharField(source="user.email", read_only=True)
     time = serializers.SerializerMethodField()
+    region_slugs = serializers.SlugRelatedField(many=True, read_only=True, source="regions", slug_field="slug")
+    regions = serializers.SlugRelatedField(
+        many=True, queryset=Region.objects.all(), slug_field="slug", required=False
+    )
 
     class Meta:
         model = UserPost
@@ -144,6 +150,8 @@ class UserPostSerializer(serializers.ModelSerializer):
             "category",
             "img_url",
             "status",
+            "regions",
+            "region_slugs",
             "created_at",
             "updated_at",
             "time",
