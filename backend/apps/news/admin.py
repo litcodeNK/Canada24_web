@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Article, ExternalVideo, NewsVideo, UserPost
+from .models import Article, ExternalVideo, NewsVideo, TikTokCredential, UserPost
 
 
 @admin.register(Article)
@@ -55,3 +55,34 @@ class ExternalVideoAdmin(admin.ModelAdmin):
     list_display = ("title", "channel_name", "published_at", "is_live", "is_published")
     list_filter = ("is_live", "is_published", "channel_name")
     search_fields = ("title", "description", "channel_name", "external_id")
+
+
+@admin.register(TikTokCredential)
+class TikTokCredentialAdmin(admin.ModelAdmin):
+    """Read-only status view — the row here is created by the OAuth flow, not
+    by hand. To (re)connect the account, visit /api/v1/news/tiktok/oauth/start/
+    while logged into /admin/ in the same browser."""
+
+    list_display = ("account_username", "access_token_expires_at", "refresh_token_expires_at", "updated_at")
+    readonly_fields = (
+        "account_username",
+        "open_id",
+        "masked_access_token",
+        "masked_refresh_token",
+        "access_token_expires_at",
+        "refresh_token_expires_at",
+        "updated_at",
+        "created_at",
+    )
+    fields = readonly_fields
+
+    def has_add_permission(self, request):
+        return False
+
+    @admin.display(description="Access token")
+    def masked_access_token(self, obj):
+        return f"...{obj.access_token[-6:]}" if obj.access_token else "—"
+
+    @admin.display(description="Refresh token")
+    def masked_refresh_token(self, obj):
+        return f"...{obj.refresh_token[-6:]}" if obj.refresh_token else "—"

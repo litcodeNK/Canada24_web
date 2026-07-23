@@ -243,3 +243,28 @@ class ExternalVideo(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class TikTokCredential(models.Model):
+    """Single connected TikTok account (@canada247.ca) used to auto-sync its videos.
+
+    OAuth tokens are obtained via the admin-only "Connect TikTok Account" flow
+    (apps.news.tiktok_oauth) and refreshed automatically by the sync task —
+    TikTok rotates the refresh token on every use, so the latest one always
+    has to be persisted here or the connection silently breaks.
+    """
+
+    account_username = models.CharField(max_length=255, blank=True)
+    open_id = models.CharField(max_length=255, blank=True)
+    access_token = models.TextField()
+    refresh_token = models.TextField()
+    access_token_expires_at = models.DateTimeField()
+    refresh_token_expires_at = models.DateTimeField()
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "tiktok_credentials"
+
+    def __str__(self):
+        return self.account_username or f"TikTok credential #{self.pk}"

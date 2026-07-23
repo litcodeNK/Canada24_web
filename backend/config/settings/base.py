@@ -226,6 +226,13 @@ EXPO_PUSH_API_URL = config(
 NEWS_API_KEY = config("NEWS_API_KEY", default="")
 GNEWS_API_KEY = config("GNEWS_API_KEY", default="")
 
+TIKTOK_CLIENT_KEY = config("TIKTOK_CLIENT_KEY", default="")
+TIKTOK_CLIENT_SECRET = config("TIKTOK_CLIENT_SECRET", default="")
+TIKTOK_REDIRECT_URI = config(
+    "TIKTOK_REDIRECT_URI",
+    default="https://canada24web-production.up.railway.app/api/v1/news/tiktok/oauth/callback/",
+)
+
 OTP_EXPIRY_MINUTES = config("OTP_EXPIRY_MINUTES", default=10, cast=int)
 OTP_LENGTH = config("OTP_LENGTH", default=6, cast=int)
 OTP_MAX_ATTEMPTS = config("OTP_MAX_ATTEMPTS", default=5, cast=int)

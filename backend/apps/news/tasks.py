@@ -6,7 +6,7 @@ from .consumers import NewsFeedConsumer
 from .serializers import ArticleSerializer
 from .services import fetch_all_feeds, fetch_og_image
 from .services_external import fetch_gnews_canada, fetch_newsapi_canada
-from .services_tiktok import fetch_curated_tiktok_videos
+from .services_tiktok import fetch_account_tiktok_videos, fetch_curated_tiktok_videos
 from .services_videos import fetch_official_news_videos
 
 
@@ -31,10 +31,13 @@ def fetch_external_news():
 
 @shared_task
 def fetch_videos():
-    """Pull official news channel videos (CBC/CTV/Global) and curated TikTok clips."""
+    """Pull official news channel videos (CBC/CTV/Global), curated TikTok clips,
+    and — once an account is connected via /admin/ — new videos posted to
+    @canada247.ca's own TikTok automatically."""
     official_summary = fetch_official_news_videos()
-    tiktok_summary = fetch_curated_tiktok_videos()
-    return official_summary + tiktok_summary
+    curated_tiktok_summary = fetch_curated_tiktok_videos()
+    account_tiktok_summary = fetch_account_tiktok_videos()
+    return official_summary + curated_tiktok_summary + account_tiktok_summary
 
 
 @shared_task

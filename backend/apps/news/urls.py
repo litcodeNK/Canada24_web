@@ -1,5 +1,6 @@
 from django.urls import path
 
+from .tiktok_oauth import tiktok_oauth_callback, tiktok_oauth_start
 from .views import (
     ArticleDetailView,
     ArticleListView,
@@ -28,4 +29,6 @@ urlpatterns = [
     path("posts/", UserPostListCreateView.as_view(), name="user-post-list-create"),
     path("posts/<int:pk>/", UserPostDetailView.as_view(), name="user-post-detail"),
     path("upload-image/", ImageUploadView.as_view(), name="upload-image"),
+    path("tiktok/oauth/start/", tiktok_oauth_start, name="tiktok-oauth-start"),
+    path("tiktok/oauth/callback/", tiktok_oauth_callback, name="tiktok-oauth-callback"),
 ]
