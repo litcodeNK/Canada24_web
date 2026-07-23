@@ -23,15 +23,49 @@ DC_NAMESPACE = "{http://purl.org/dc/elements/1.1/}"
 CONTENT_NAMESPACE = "{http://purl.org/rss/1.0/modules/content/}"
 ATOM_NAMESPACE = "{http://www.w3.org/2005/Atom}"
 
+# WordPress/Jetpack feeds auto-append this attribution line to excerpt-only
+# content; it's boilerplate, not part of the story.
+_APPEARED_FIRST_ON_RE = re.compile(r"\s*The post .*? appeared first on .*?\.\s*$", re.IGNORECASE | re.DOTALL)
+
 
 def text_or_blank(element):
     return (element.text or "").strip() if element is not None else ""
 
 
+class _TextExtractor(HTMLParser):
+    """Pulls out only the text nodes, ignoring tags entirely.
+
+    A naive strip via unescape() + regex breaks on WordPress image markup:
+    attributes like data-image-caption embed *escaped* HTML
+    (data-image-caption="&lt;p&gt;caption&lt;/p&gt;"), and unescaping the
+    whole string before stripping tags turns that into a literal <p> mid
+    attribute — which fools a bracket-matching regex into thinking the
+    surrounding <img ...> tag already closed, spilling the rest of its
+    attributes into the visible body. A real parser respects attribute
+    quoting and never has this problem.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.chunks: list[str] = []
+
+    def handle_data(self, data):
+        self.chunks.append(data)
+
+
 def strip_html(value):
-    value = unescape(value or "")
-    value = TAG_RE.sub(" ", value)
-    return re.sub(r"\s+", " ", value).strip()
+    if not value:
+        return ""
+    try:
+        parser = _TextExtractor()
+        parser.feed(value)
+        parser.close()
+        text = "".join(parser.chunks)
+    except Exception:
+        text = unescape(value)
+        text = TAG_RE.sub(" ", text)
+    text = _APPEARED_FIRST_ON_RE.sub("", text)
+    return re.sub(r"\s+", " ", text).strip()
 
 
 _JUNK_IMAGE_DOMAINS = {"example.com", "placeholder.com", "via.placeholder.com", "lorempixel.com"}
