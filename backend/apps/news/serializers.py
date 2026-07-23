@@ -4,7 +4,7 @@ from rest_framework import serializers
 from apps.regions.models import Region
 
 from .constants import SECTION_DEFINITIONS
-from .models import Article, UserPost
+from .models import Article, NewsVideo, UserPost
 
 
 def format_relative_time(value):
@@ -174,3 +174,43 @@ class UserPostSerializer(serializers.ModelSerializer):
 
     def get_time(self, obj):
         return format_relative_time(obj.created_at)
+
+
+class UserVideoPostSerializer(serializers.ModelSerializer):
+    author_name = serializers.CharField(source="user.display_name", read_only=True)
+    thumbnail_url = serializers.SerializerMethodField()
+    video_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = NewsVideo
+        fields = [
+            "id",
+            "title",
+            "description",
+            "video_file",
+            "thumbnail_url",
+            "video_url",
+            "is_published",
+            "created_at",
+            "author_name",
+        ]
+        read_only_fields = ["id", "thumbnail_url", "video_url", "is_published", "created_at", "author_name"]
+        extra_kwargs = {"video_file": {"write_only": True}}
+
+    def validate_title(self, value):
+        value = value.strip()
+        if len(value) < 5:
+            raise serializers.ValidationError("Title must be at least 5 characters long.")
+        return value
+
+    def get_thumbnail_url(self, obj):
+        request = self.context.get("request")
+        if not obj.thumbnail or request is None:
+            return ""
+        return request.build_absolute_uri(obj.thumbnail.url)
+
+    def get_video_url(self, obj):
+        request = self.context.get("request")
+        if not obj.video_file or request is None:
+            return ""
+        return request.build_absolute_uri(obj.video_file.url)

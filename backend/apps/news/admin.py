@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Article, ExternalVideo, NewsVideo, TikTokCredential, UserPost
+from .models import Article, CuratedTikTokLink, ExternalVideo, NewsVideo, TikTokCredential, UserPost
 
 
 @admin.register(Article)
@@ -21,11 +21,11 @@ class UserPostAdmin(admin.ModelAdmin):
 
 @admin.register(NewsVideo)
 class NewsVideoAdmin(admin.ModelAdmin):
-    list_display = ("title", "short_description", "is_published", "has_thumbnail", "created_at")
+    list_display = ("title", "short_description", "user", "is_published", "has_thumbnail", "created_at")
     list_filter = ("is_published", "created_at")
-    search_fields = ("title", "description")
-    fields = ("title", "description", "video_file", "thumbnail", "thumbnail_preview", "is_published")
-    readonly_fields = ("thumbnail_preview",)
+    search_fields = ("title", "description", "user__email", "user__display_name")
+    fields = ("title", "description", "video_file", "thumbnail", "thumbnail_preview", "user", "is_published")
+    readonly_fields = ("thumbnail_preview", "user")
 
     @admin.display(boolean=True, description="Thumbnail")
     def has_thumbnail(self, obj):
@@ -55,6 +55,20 @@ class ExternalVideoAdmin(admin.ModelAdmin):
     list_display = ("title", "channel_name", "published_at", "is_live", "is_published")
     list_filter = ("is_live", "is_published", "channel_name")
     search_fields = ("title", "description", "channel_name", "external_id")
+
+
+@admin.register(CuratedTikTokLink)
+class CuratedTikTokLinkAdmin(admin.ModelAdmin):
+    """Paste a TikTok video URL here — title/thumbnail/author get filled in
+    automatically via oEmbed on the next scheduled video fetch (every 30 min)."""
+
+    list_display = ("url", "added_by", "created_at")
+    fields = ("url",)
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.added_by = request.user
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(TikTokCredential)

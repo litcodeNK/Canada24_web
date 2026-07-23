@@ -4,7 +4,7 @@ from urllib.parse import urlencode, urlparse, urlunparse
 import requests
 from django.conf import settings
 
-from .models import ExternalVideo, TikTokCredential
+from .models import CuratedTikTokLink, ExternalVideo, TikTokCredential
 
 USER_AGENT = "Canada247Bot/1.0 (+https://canada247.local)"
 TIKTOK_OEMBED_URL = "https://www.tiktok.com/oembed"
@@ -81,7 +81,9 @@ def _fetch_oembed(url: str) -> dict:
 def fetch_curated_tiktok_videos() -> list[dict]:
     summary = []
 
-    for item in CURATED_TIKTOK_VIDEOS:
+    admin_added_urls = [{"url": url} for url in CuratedTikTokLink.objects.values_list("url", flat=True)]
+
+    for item in CURATED_TIKTOK_VIDEOS + admin_added_urls:
         source_url = _canonicalize_url(item["url"])
         video_id, username = _parse_tiktok_video(source_url)
         if not video_id:

@@ -16,12 +16,16 @@ from .serializers import (
     ArticleSerializer,
     SectionSerializer,
     UserPostSerializer,
+    UserVideoPostSerializer,
     VideoItemSerializer,
     format_relative_time,
 )
 
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
 MAX_IMAGE_BYTES = 10 * 1024 * 1024  # 10 MB
+
+ALLOWED_VIDEO_TYPES = {"video/mp4", "video/quicktime", "video/x-m4v", "video/webm"}
+MAX_VIDEO_BYTES = 100 * 1024 * 1024  # 100 MB
 
 
 def build_uploaded_video_item(video: NewsVideo, request) -> dict:
@@ -224,6 +228,44 @@ class UserPostDetailView(generics.RetrieveUpdateDestroyAPIView):
                 return queryset.filter(Q(status=UserPost.Status.APPROVED) | Q(user=self.request.user))
             return queryset.filter(status=UserPost.Status.APPROVED)
         return queryset.filter(user=self.request.user)
+
+
+class UserVideoPostListCreateView(generics.ListCreateAPIView):
+    """Lets a signed-in user submit their own video, same moderation gate as
+    UserPost: it's created unpublished and only shows up in /videos/ once an
+    admin approves it (flips is_published) in Django admin."""
+
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser]
+    serializer_class = UserVideoPostSerializer
+
+    def get_queryset(self):
+        return NewsVideo.objects.filter(user=self.request.user).order_by("-created_at")
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
+
+    def create(self, request, *args, **kwargs):
+        file = request.FILES.get("video_file")
+        if not file:
+            return Response(
+                {"detail": "No video provided. Send as multipart field 'video_file'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if file.size > MAX_VIDEO_BYTES:
+            return Response({"detail": "Video must be under 100 MB."}, status=status.HTTP_400_BAD_REQUEST)
+        content_type = getattr(file, "content_type", "") or ""
+        if content_type not in ALLOWED_VIDEO_TYPES:
+            return Response(
+                {"detail": "Unsupported video type. Use MP4, MOV, M4V, or WebM."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return super().create(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user, is_published=False)
 
 
 class ImageUploadView(APIView):

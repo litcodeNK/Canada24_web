@@ -178,6 +178,16 @@ class NewsVideo(models.Model):
         blank=True,
         help_text="Optional thumbnail image. If omitted, the app will show a placeholder card.",
     )
+    # Null for official/admin uploads (unchanged behaviour). Set when a user
+    # submits their own video via the app — those default to unpublished
+    # until an admin flips is_published, same moderation gate UserPost uses.
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="video_posts",
+    )
     is_published = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -243,6 +253,25 @@ class ExternalVideo(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class CuratedTikTokLink(models.Model):
+    """A TikTok URL an admin pasted in manually — metadata (title, thumbnail,
+    author) is filled in automatically via oEmbed on the next scheduled video
+    fetch, same as the hardcoded CURATED_TIKTOK_VIDEOS list."""
+
+    url = models.URLField(max_length=1000, unique=True)
+    added_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "curated_tiktok_links"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.url
 
 
 class TikTokCredential(models.Model):

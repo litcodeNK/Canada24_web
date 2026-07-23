@@ -13,6 +13,7 @@ from .views import (
     TopStoriesView,
     UserPostDetailView,
     UserPostListCreateView,
+    UserVideoPostListCreateView,
     VideoListView,
 )
 
@@ -28,6 +29,7 @@ urlpatterns = [
     path("videos/", VideoListView.as_view(), name="video-list"),
     path("posts/", UserPostListCreateView.as_view(), name="user-post-list-create"),
     path("posts/<int:pk>/", UserPostDetailView.as_view(), name="user-post-detail"),
+    path("video-posts/", UserVideoPostListCreateView.as_view(), name="user-video-post-list-create"),
     path("upload-image/", ImageUploadView.as_view(), name="upload-image"),
     path("tiktok/oauth/start/", tiktok_oauth_start, name="tiktok-oauth-start"),
     path("tiktok/oauth/callback/", tiktok_oauth_callback, name="tiktok-oauth-callback"),
