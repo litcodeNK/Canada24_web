@@ -3,6 +3,7 @@ import time
 from datetime import datetime, timezone as dt_timezone
 from email.utils import parsedate_to_datetime
 from html import unescape
+from html.parser import HTMLParser
 from typing import Optional
 from xml.etree import ElementTree as ET
 
@@ -67,6 +68,57 @@ def extract_image_url(item, raw_description):
         if _is_absolute_url(url):
             return url
     return ""
+
+
+class _OpenGraphMetaParser(HTMLParser):
+    """Pulls og:image/twitter:image out of a page's <meta> tags without needing a full HTML parser dependency."""
+
+    def __init__(self):
+        super().__init__()
+        self.meta: dict[str, str] = {}
+        self.head_closed = False
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "head":
+            return
+        if self.head_closed:
+            return
+        if tag != "meta":
+            return
+        attrs_dict = dict(attrs)
+        key = (attrs_dict.get("property") or attrs_dict.get("name") or "").lower()
+        content = attrs_dict.get("content")
+        if key and content and key not in self.meta:
+            self.meta[key] = content
+
+    def handle_endtag(self, tag):
+        if tag == "head":
+            self.head_closed = True
+
+
+def fetch_og_image(url: str, timeout: int = 10) -> str:
+    if not url:
+        return ""
+    try:
+        response = requests.get(
+            url,
+            timeout=timeout,
+            headers={"User-Agent": USER_AGENT, "Accept": "text/html"},
+        )
+        response.raise_for_status()
+    except requests.RequestException:
+        return ""
+
+    parser = _OpenGraphMetaParser()
+    try:
+        # Meta tags always live in <head>, so this stops parsing as soon as it closes
+        # rather than churning through the full article body.
+        parser.feed(response.text)
+    except Exception:
+        pass
+
+    image_url = parser.meta.get("og:image") or parser.meta.get("twitter:image", "")
+    return image_url if _is_absolute_url(image_url) else ""
 
 
 def parse_published_at(value):

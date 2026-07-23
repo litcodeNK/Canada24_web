@@ -204,6 +204,14 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.news.tasks.fetch_external_news",
         "schedule": crontab(minute="*/30"),
     },
+    "fetch-videos-every-30-minutes": {
+        "task": "apps.news.tasks.fetch_videos",
+        "schedule": crontab(minute="15,45"),
+    },
+    "backfill-article-images-every-10-minutes": {
+        "task": "apps.news.tasks.backfill_article_images",
+        "schedule": crontab(minute="*/10"),
+    },
     "cleanup-expired-otps": {
         "task": "apps.accounts.tasks.cleanup_expired_otps",
         "schedule": crontab(minute=0, hour="*/1"),
