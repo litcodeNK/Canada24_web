@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
     "channels",
+    "anymail",
 
     "apps.accounts",
     "apps.news",
@@ -167,6 +168,13 @@ DEFAULT_FROM_EMAIL = config(
     "DEFAULT_FROM_EMAIL",
     default="Canada 24/7 <noreply@canada24.ca>",
 )
+
+# Sent over HTTPS instead of raw SMTP — some hosts (Railway included) block
+# outbound SMTP ports (465/587) at the network level, so direct SMTP (Gmail,
+# Resend's SMTP relay, etc.) never completes the TCP handshake there.
+ANYMAIL = {
+    "SENDGRID_API_KEY": config("SENDGRID_API_KEY", default=""),
+}
 
 CORS_ALLOWED_ORIGINS = config(
     "CORS_ALLOWED_ORIGINS",
