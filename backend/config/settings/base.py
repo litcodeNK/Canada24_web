@@ -24,7 +24,9 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "cloudinary_storage",
     "django.contrib.staticfiles",
+    "cloudinary",
     "django.contrib.humanize",
 
     "corsheaders",
@@ -107,6 +109,38 @@ STATICFILES_DIRS = []
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Railway's filesystem is ephemeral (wiped on every redeploy), so uploaded
+# media (avatars, post images, videos) is stored on Cloudinary instead of
+# local disk whenever credentials are configured. Falls back to local disk
+# (works for dev, breaks on Railway) when unset.
+CLOUDINARY_CLOUD_NAME = config("CLOUDINARY_CLOUD_NAME", default="")
+CLOUDINARY_API_KEY = config("CLOUDINARY_API_KEY", default="")
+CLOUDINARY_API_SECRET = config("CLOUDINARY_API_SECRET", default="")
+
+if CLOUDINARY_CLOUD_NAME:
+    CLOUDINARY_STORAGE = {
+        "CLOUD_NAME": CLOUDINARY_CLOUD_NAME,
+        "API_KEY": CLOUDINARY_API_KEY,
+        "API_SECRET": CLOUDINARY_API_SECRET,
+    }
+
+# Django 5.1 dropped the DEFAULT_FILE_STORAGE/STATICFILES_STORAGE shim, so the
+# STORAGES dict is the only thing Django actually reads now. Both keys must
+# always be present — production.py mutates STORAGES["staticfiles"] in place
+# to swap in whitenoise.
+STORAGES = {
+    "default": {
+        "BACKEND": (
+            "cloudinary_storage.storage.MediaCloudinaryStorage"
+            if CLOUDINARY_CLOUD_NAME
+            else "django.core.files.storage.FileSystemStorage"
+        ),
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 APPEND_SLASH = True

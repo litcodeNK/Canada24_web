@@ -319,6 +319,6 @@ class ImageUploadView(APIView):
         safe_ext = ext if ext in {".jpg", ".jpeg", ".png", ".gif", ".webp"} else ".jpg"
         filename = f"uploads/{uuid.uuid4().hex}{safe_ext}"
         saved_path = default_storage.save(filename, file)
-        url = request.build_absolute_uri(f"/media/{saved_path}")
+        url = request.build_absolute_uri(default_storage.url(saved_path))
 
         return Response({"url": url}, status=status.HTTP_201_CREATED)

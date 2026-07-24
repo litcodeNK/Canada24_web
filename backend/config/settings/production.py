@@ -27,7 +27,7 @@ if RAILWAY_PUBLIC_DOMAIN:
 
 # WhiteNoise — serve static files directly from gunicorn
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STORAGES["staticfiles"]["BACKEND"] = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Security headers
 SECURE_HSTS_SECONDS = 31536000
