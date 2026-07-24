@@ -24,8 +24,13 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "cloudinary_storage",
     "django.contrib.staticfiles",
+    # Only "cloudinary" (the SDK) is installed, not "cloudinary_storage" —
+    # that app's collectstatic command silently no-ops real file copying
+    # unless static files are ALSO served from Cloudinary, which ours aren't
+    # (only media/uploads use cloudinary_storage.storage.MediaCloudinaryStorage,
+    # referenced by dotted path in STORAGES below — that doesn't need the app
+    # registered).
     "cloudinary",
     "django.contrib.humanize",
 
@@ -141,6 +146,13 @@ STORAGES = {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
+
+# Some third-party packages (e.g. django-cloudinary-storage's collectstatic
+# override — why "cloudinary_storage" is deliberately NOT in INSTALLED_APPS
+# above, it disables real static file copying otherwise) still read the
+# legacy STATICFILES_STORAGE name directly instead of STORAGES, so keep both
+# in sync (production.py updates both when swapping in whitenoise).
+STATICFILES_STORAGE = STORAGES["staticfiles"]["BACKEND"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 APPEND_SLASH = True
