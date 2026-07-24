@@ -1,14 +1,28 @@
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.news.models import Article
+from apps.news.models import Article, ExternalVideo, NewsVideo
 from apps.news.serializers import ArticleSerializer
 
-from .models import Comment, Reaction, Repost, SavedArticle
+from .models import Comment, Reaction, Repost, SavedArticle, VideoRepost
 from .serializers import CommentSerializer, ReactionSummarySerializer, ReactionToggleSerializer
+
+VIDEO_KEY_PREFIXES = {
+    "uploaded-video-": (VideoRepost.VideoType.UPLOADED, NewsVideo),
+    "external-video-": (VideoRepost.VideoType.EXTERNAL, ExternalVideo),
+}
+
+
+def _parse_video_key(video_key):
+    for prefix, (video_type, model) in VIDEO_KEY_PREFIXES.items():
+        if video_key.startswith(prefix):
+            raw_id = video_key[len(prefix):]
+            if raw_id.isdigit():
+                return video_type, model, int(raw_id)
+    return None, None, None
 
 
 class ReactionToggleView(APIView):
@@ -86,6 +100,27 @@ class RepostToggleView(APIView):
             Repost.objects.create(user=request.user, article=article)
             reposted = True
         reposts = Repost.objects.filter(article=article).count()
+        return Response({"reposted": reposted, "reposts": reposts})
+
+
+class VideoRepostToggleView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, video_key):
+        video_type, model, video_id = _parse_video_key(video_key)
+        if video_type is None:
+            return Response({"detail": "Unrecognized video id."}, status=status.HTTP_400_BAD_REQUEST)
+
+        generics.get_object_or_404(model, pk=video_id, is_published=True)
+
+        repost = VideoRepost.objects.filter(user=request.user, video_type=video_type, video_id=video_id).first()
+        if repost:
+            repost.delete()
+            reposted = False
+        else:
+            VideoRepost.objects.create(user=request.user, video_type=video_type, video_id=video_id)
+            reposted = True
+        reposts = VideoRepost.objects.filter(video_type=video_type, video_id=video_id).count()
         return Response({"reposted": reposted, "reposts": reposts})
 
 

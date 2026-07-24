@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { apiRequest } from '../services/api';
+import { API_BASE_URL, apiRequest } from '../services/api';
 import { useApp, type ServerAlertPreferences, type ServerRegion } from './AppContext';
 import { mapBackendArticle, mapBackendUserPost } from '../services/newsService';
 import {
@@ -42,6 +42,8 @@ type BackendAuthUser = {
   id: number; email: string; display_name: string; avatar: string; bio: string; joined_at: string;
 };
 
+type BackendProfileUpdate = { display_name: string; avatar: string; bio: string };
+
 type BackendUserPost = {
   id: number; headline: string; body: string; category: string; img_url: string;
   status: UserPostStatus; created_at: string; updated_at: string; time: string;
@@ -74,6 +76,7 @@ interface AuthContextType {
   verifyOTP: (email: string, code: string) => Promise<{ ok: boolean; error?: string }>;
   signOut: () => Promise<void>;
   addPost: (post: CreatePostInput) => Promise<UserPost>;
+  updateAvatar: (file: File) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -189,8 +192,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return created;
   };
 
+  const updateAvatar = async (file: File): Promise<void> => {
+    const cur = readStoredSession<StoredSession>() ?? session;
+    if (!cur) throw new Error('Authentication required');
+
+    const form = new FormData();
+    form.append('image', file);
+
+    const uploadResponse = await fetch(`${API_BASE_URL}/news/upload-image/`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${cur.accessToken}` },
+      body: form,
+    });
+    if (!uploadResponse.ok) {
+      const err = await uploadResponse.json().catch(() => ({}));
+      throw new Error((err as { detail?: string }).detail ?? 'Avatar upload failed');
+    }
+    const { url } = (await uploadResponse.json()) as { url: string };
+
+    const { data, session: nextSession } = await requestWithStoredSession<BackendProfileUpdate, StoredSession>(
+      cur,
+      '/auth/me/',
+      { method: 'PATCH', body: JSON.stringify({ avatar: url }) },
+    );
+
+    const updatedUser: AuthUser = {
+      ...cur.user,
+      displayName: data.display_name,
+      avatar: data.avatar || undefined,
+      bio: data.bio || undefined,
+    };
+    persistSession({ ...nextSession, user: updatedUser });
+  };
+
   return (
-    <AuthContext.Provider value={{ user: session?.user ?? null, isAuthLoading, userPosts, sendOTP, verifyOTP, signOut, addPost }}>
+    <AuthContext.Provider value={{ user: session?.user ?? null, isAuthLoading, userPosts, sendOTP, verifyOTP, signOut, addPost, updateAvatar }}>
       {children}
     </AuthContext.Provider>
   );

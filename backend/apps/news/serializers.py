@@ -33,6 +33,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     user_reaction = serializers.SerializerMethodField()
     is_saved = serializers.SerializerMethodField()
     is_reposted = serializers.SerializerMethodField()
+    author_avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = Article
@@ -45,6 +46,7 @@ class ArticleSerializer(serializers.ModelSerializer):
             "img_url",
             "source_url",
             "author",
+            "author_avatar",
             "published_at",
             "time",
             "is_live",
@@ -110,6 +112,16 @@ class ArticleSerializer(serializers.ModelSerializer):
             return False
         return getattr(obj, "is_reposted", obj.reposts.filter(user=request.user).exists())
 
+    def get_author_avatar(self, obj):
+        if obj.source != Article.Source.USER or not obj.external_id.startswith("user-post-"):
+            return ""
+        try:
+            post_pk = int(obj.external_id.removeprefix("user-post-"))
+        except ValueError:
+            return ""
+        user_post = UserPost.objects.filter(pk=post_pk).select_related("user").first()
+        return user_post.user.avatar if user_post and user_post.user.avatar else ""
+
 
 class SectionSerializer(serializers.Serializer):
     slug = serializers.CharField()
@@ -130,11 +142,14 @@ class VideoItemSerializer(serializers.Serializer):
     live_text = serializers.CharField(allow_blank=True)
     source_url = serializers.URLField(allow_blank=True, required=False)
     video_url = serializers.URLField(allow_blank=True, required=False)
+    reposts_count = serializers.IntegerField(default=0)
+    is_reposted = serializers.BooleanField(default=False)
 
 
 class UserPostSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source="user.display_name", read_only=True)
     author_email = serializers.CharField(source="user.email", read_only=True)
+    author_avatar = serializers.CharField(source="user.avatar", read_only=True)
     time = serializers.SerializerMethodField()
     region_slugs = serializers.SlugRelatedField(many=True, read_only=True, source="regions", slug_field="slug")
     regions = serializers.SlugRelatedField(
@@ -157,8 +172,12 @@ class UserPostSerializer(serializers.ModelSerializer):
             "time",
             "author_name",
             "author_email",
+            "author_avatar",
         ]
-        read_only_fields = ["id", "status", "created_at", "updated_at", "time", "author_name", "author_email"]
+        read_only_fields = [
+            "id", "status", "created_at", "updated_at", "time",
+            "author_name", "author_email", "author_avatar",
+        ]
 
     def validate_headline(self, value):
         value = value.strip()

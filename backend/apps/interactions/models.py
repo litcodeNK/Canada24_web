@@ -45,6 +45,28 @@ class Repost(models.Model):
         ]
 
 
+class VideoRepost(models.Model):
+    """Repost of a video (NewsVideo upload or ExternalVideo). Videos aren't
+    Article rows, so they can't use Repost — video_type + video_id together
+    match the composite ids the API already hands out ("uploaded-video-12",
+    "external-video-7")."""
+
+    class VideoType(models.TextChoices):
+        UPLOADED = "uploaded", "Uploaded"
+        EXTERNAL = "external", "External"
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="video_reposts")
+    video_type = models.CharField(max_length=16, choices=VideoType.choices)
+    video_id = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "video_reposts"
+        constraints = [
+            models.UniqueConstraint(fields=["user", "video_type", "video_id"], name="unique_user_video_repost"),
+        ]
+
+
 class SavedArticle(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="saved_articles")
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name="saved_by")

@@ -28,9 +28,24 @@ ALLOWED_VIDEO_TYPES = {"video/mp4", "video/quicktime", "video/x-m4v", "video/web
 MAX_VIDEO_BYTES = 100 * 1024 * 1024  # 100 MB
 
 
+def _video_repost_stats(video_type, video_id, user) -> tuple[int, bool]:
+    from apps.interactions.models import VideoRepost
+
+    reposts_count = VideoRepost.objects.filter(video_type=video_type, video_id=video_id).count()
+    is_reposted = bool(
+        user
+        and user.is_authenticated
+        and VideoRepost.objects.filter(user=user, video_type=video_type, video_id=video_id).exists()
+    )
+    return reposts_count, is_reposted
+
+
 def build_uploaded_video_item(video: NewsVideo, request) -> dict:
+    from apps.interactions.models import VideoRepost
+
     thumbnail_url = request.build_absolute_uri(video.thumbnail.url) if video.thumbnail else ""
     video_url = request.build_absolute_uri(video.video_file.url)
+    reposts_count, is_reposted = _video_repost_stats(VideoRepost.VideoType.UPLOADED, video.pk, request.user)
 
     return {
         "id": f"uploaded-video-{video.pk}",
@@ -44,10 +59,16 @@ def build_uploaded_video_item(video: NewsVideo, request) -> dict:
         "live_text": "",
         "source_url": "",
         "video_url": video_url,
+        "reposts_count": reposts_count,
+        "is_reposted": is_reposted,
     }
 
 
-def build_external_video_item(video: ExternalVideo) -> dict:
+def build_external_video_item(video: ExternalVideo, request) -> dict:
+    from apps.interactions.models import VideoRepost
+
+    reposts_count, is_reposted = _video_repost_stats(VideoRepost.VideoType.EXTERNAL, video.pk, request.user)
+
     return {
         "id": f"external-video-{video.pk}",
         "title": video.title,
@@ -60,6 +81,8 @@ def build_external_video_item(video: ExternalVideo) -> dict:
         "live_text": "LIVE" if video.is_live else "",
         "source_url": video.source_url,
         "video_url": "",
+        "reposts_count": reposts_count,
+        "is_reposted": is_reposted,
     }
 
 
@@ -186,7 +209,7 @@ class VideoListView(APIView):
         external_videos = [
             {
                 "sort_at": video.published_at,
-                "payload": build_external_video_item(video),
+                "payload": build_external_video_item(video, request),
             }
             for video in ExternalVideo.objects.filter(is_published=True)[:10]
         ]

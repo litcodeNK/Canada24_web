@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { useApp } from '@/context/AppContext';
 import { AppShell } from '@/components/layout/AppShell';
@@ -11,13 +12,15 @@ import { readStoredSession } from '@/services/sessionService';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, isAuthLoading, signOut } = useAuth();
+  const { user, isAuthLoading, signOut, updateAvatar } = useAuth();
   const { savedArticles } = useApp();
 
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // Populate form when user loads
   useEffect(() => {
@@ -60,6 +63,23 @@ export default function ProfilePage() {
     router.replace('/');
   };
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setUploadingAvatar(true);
+    setFeedback(null);
+    try {
+      await updateAvatar(file);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to update profile picture.';
+      setFeedback({ type: 'error', message });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   // Show spinner while auth is loading or while redirecting (user is null after load)
   if (isAuthLoading || (!isAuthLoading && !user)) {
     return (
@@ -84,12 +104,46 @@ export default function ProfilePage() {
 
         {/* ── Avatar + Name header ── */}
         <div className="flex flex-col items-center text-center mb-8">
-          <div
-            className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold mb-4 select-none"
-            style={{ backgroundColor: '#D52B1E' }}
+          <button
+            type="button"
+            onClick={() => avatarInputRef.current?.click()}
+            disabled={uploadingAvatar}
+            className="relative w-20 h-20 rounded-full mb-4 group"
+            aria-label="Change profile picture"
           >
-            {initials}
-          </div>
+            {safeUser.avatar ? (
+              <Image
+                src={safeUser.avatar}
+                alt={safeUser.displayName || safeUser.email}
+                width={80}
+                height={80}
+                className="w-20 h-20 rounded-full object-cover select-none"
+              />
+            ) : (
+              <div
+                className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold select-none"
+                style={{ backgroundColor: '#D52B1E' }}
+              >
+                {initials}
+              </div>
+            )}
+            <div className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+              {uploadingAvatar ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <span className="opacity-0 group-hover:opacity-100 text-white text-xs font-semibold transition-opacity">
+                  Change
+                </span>
+              )}
+            </div>
+          </button>
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
           <h1 className="font-serif font-bold text-2xl text-[#1a1a1a] dark:text-white leading-tight">
             {safeUser.displayName || 'Anonymous'}
           </h1>
