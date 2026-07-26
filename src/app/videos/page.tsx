@@ -23,7 +23,7 @@ export default function VideoFeedPage() {
     <AppShell>
       <div className="px-4 pt-4 pb-2 flex items-center gap-3">
         <div className="w-1 h-4 bg-[#D52B1E] rounded" />
-        <h1 className="bebas tracking-widest text-base dark:text-white">VIDEO FEED</h1>
+        <h1 className="bebas tracking-widest text-base dark:text-white">CANADA247 SHOTS</h1>
       </div>
 
       {loading ? (
