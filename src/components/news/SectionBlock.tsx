@@ -15,6 +15,8 @@ interface SectionBlockProps {
   className?: string;
 }
 
+const CARD = 'bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-[#2A2A2A] p-4';
+
 export function SectionBlock({
   title,
   color = '#D52B1E',
@@ -29,32 +31,28 @@ export function SectionBlock({
     const mid = rest.slice(0, 2);
     const thumbs = rest.slice(2, 4);
     return (
-      <section className={clsx('py-6 border-b border-dashed border-gray-300 dark:border-[#2A2A2A]', className)}>
+      <section className={clsx('py-6', className)}>
         <SectionHeader title={title} color={color} />
-        <div className="grid grid-cols-1 lg:grid-cols-[45fr_27.5fr_27.5fr] gap-0 lg:gap-6">
-          <div className="lg:border-r border-gray-300 dark:border-[#2A2A2A] lg:pr-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[45fr_27.5fr_27.5fr] gap-4 lg:gap-6">
+          <div className={CARD}>
             <FeaturedCard article={featured} headlineSize="large" />
           </div>
           {mid.length > 0 && (
-            <div className="border-t lg:border-t-0 lg:border-r border-gray-300 dark:border-[#2A2A2A] pt-4 lg:pt-0 lg:pr-6">
-              <div className="divide-y divide-dashed divide-gray-300 dark:divide-[#2A2A2A]">
-                {mid.map(a => (
-                  <div key={a.id} className="py-3 first:pt-0">
-                    <MediumCard article={a} />
-                  </div>
-                ))}
-              </div>
+            <div className="flex flex-col gap-4">
+              {mid.map(a => (
+                <div key={a.id} className={CARD}>
+                  <MediumCard article={a} />
+                </div>
+              ))}
             </div>
           )}
           {thumbs.length > 0 && (
-            <div className="border-t lg:border-t-0 border-gray-300 dark:border-[#2A2A2A] pt-4 lg:pt-0">
-              <div className="divide-y divide-dashed divide-gray-300 dark:divide-[#2A2A2A]">
-                {thumbs.map(a => (
-                  <div key={a.id} className="py-3 first:pt-0">
-                    <ThumbCard article={a} />
-                  </div>
-                ))}
-              </div>
+            <div className="flex flex-col gap-4">
+              {thumbs.map(a => (
+                <div key={a.id} className={CARD}>
+                  <ThumbCard article={a} />
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -68,11 +66,13 @@ export function SectionBlock({
 
   if (articles.length < 3) {
     return (
-      <section className={clsx('py-6 border-b border-dashed border-gray-300 dark:border-[#2A2A2A]', className)}>
+      <section className={clsx('py-6', className)}>
         <SectionHeader title={title} color={color} />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {articles.map(a => (
-            <ArticleVerticalCard key={a.id} article={a} />
+            <div key={a.id} className={CARD}>
+              <ArticleVerticalCard article={a} />
+            </div>
           ))}
         </div>
       </section>
@@ -80,34 +80,32 @@ export function SectionBlock({
   }
 
   return (
-    <section className={clsx('py-6 border-b border-dashed border-gray-300 dark:border-[#2A2A2A]', className)}>
+    <section className={clsx('py-6', className)}>
       <SectionHeader title={title} color={color} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[28fr_44fr_28fr] gap-0">
+      <div className="grid grid-cols-1 lg:grid-cols-[28fr_44fr_28fr] gap-4 lg:gap-6">
         {/* Left: text-only */}
-        <div className="order-2 lg:order-1 lg:border-r border-gray-300 dark:border-[#2A2A2A] lg:pr-6 border-t lg:border-t-0 pt-4 lg:pt-0">
-          <div className="divide-y divide-dashed divide-gray-300 dark:divide-[#2A2A2A]">
-            {textStories.map(a => (
-              <TextOnlyCard key={a.id} article={a} />
-            ))}
-          </div>
+        <div className="order-2 lg:order-1 flex flex-col gap-4">
+          {textStories.map(a => (
+            <div key={a.id} className={CARD}>
+              <TextOnlyCard article={a} />
+            </div>
+          ))}
         </div>
 
         {/* Center: featured */}
-        <div className="order-1 lg:order-2 lg:px-6">
+        <div className={clsx('order-1 lg:order-2', CARD)}>
           <FeaturedCard article={featured} headlineSize="medium" />
         </div>
 
         {/* Right: secondary */}
         {secondary.length > 0 && (
-          <div className="order-3 lg:border-l border-gray-300 dark:border-[#2A2A2A] lg:pl-6 border-t lg:border-t-0 pt-4 lg:pt-0">
-            <div className="divide-y divide-dashed divide-gray-300 dark:divide-[#2A2A2A]">
-              {secondary.map((a, idx) => (
-                <div key={a.id} className="py-4 first:pt-0">
-                  <SecondaryCard article={a} exclusive={idx === 1 && !a.imgUrl} />
-                </div>
-              ))}
-            </div>
+          <div className="order-3 flex flex-col gap-4">
+            {secondary.map((a, idx) => (
+              <div key={a.id} className={CARD}>
+                <SecondaryCard article={a} exclusive={idx === 1 && !a.imgUrl} />
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -213,17 +211,15 @@ function FeaturedCard({ article, headlineSize }: { article: Article; headlineSiz
 /* ── Text-only card ── */
 function TextOnlyCard({ article }: { article: Article }) {
   return (
-    <div className="py-4 first:pt-0">
-      <Link href={`/article/${article.id}`} className="group block">
-        {article.category && (
-          <span className="category-label block mb-1">{article.category}</span>
-        )}
-        <h3 className="font-serif font-bold text-[17px] leading-snug text-[#1a1a1a] dark:text-[#F5F5F5] group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors mb-1.5">
-          {article.headline}
-        </h3>
-        <time className="text-[12px] text-[#999] font-sans" dateTime={article.time}>{article.time}</time>
-      </Link>
-    </div>
+    <Link href={`/article/${article.id}`} className="group block">
+      {article.category && (
+        <span className="category-label block mb-1">{article.category}</span>
+      )}
+      <h3 className="font-serif font-bold text-[17px] leading-snug text-[#1a1a1a] dark:text-[#F5F5F5] group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors mb-1.5">
+        {article.headline}
+      </h3>
+      <time className="text-[12px] text-[#999] font-sans" dateTime={article.time}>{article.time}</time>
+    </Link>
   );
 }
 

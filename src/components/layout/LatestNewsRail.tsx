@@ -107,12 +107,12 @@ export function LatestNewsRail() {
       </h2>
 
       {/* News items list */}
-      <div className="flex flex-col">
+      <div className="flex flex-col gap-3">
         {latestItems.length > 0 ? (
           latestItems.map((item: Article, i: number) => (
             <div
               key={item.id}
-              className="py-4 border-t border-dashed border-gray-300 dark:border-[#333] first:border-t-0"
+              className="p-4 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-[#2A2A2A]"
             >
               <div className="flex items-center gap-2 mb-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
@@ -134,7 +134,7 @@ export function LatestNewsRail() {
         ) : (
           /* Placeholder skeleton while loading */
           Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="py-4 border-t border-dashed border-gray-300 first:border-t-0">
+            <div key={i} className="p-4 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-[#2A2A2A]">
               <div className="skeleton h-3 w-16 mb-2 rounded" />
               <div className="skeleton h-4 w-full rounded mb-1" />
               <div className="skeleton h-4 w-3/4 rounded" />
@@ -155,13 +155,13 @@ export function LatestNewsRail() {
 
       {/* Sponsored items */}
       {/* TODO: Wire to backend — GET /api/sponsored — returns sponsored content items */}
-      <div className="flex flex-col">
+      <div className="flex flex-col gap-3">
         {SPONSORED.map((item, i) => (
           <div
             key={i}
-            className="py-4 border-t border-dashed border-gray-300 dark:border-[#333] flex gap-4 group cursor-pointer"
+            className="p-4 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-[#2A2A2A] flex gap-4 group cursor-pointer"
           >
-            <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden bg-gray-100">
+            <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden bg-gray-100 dark:bg-[#2A2A2A]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={item.img}

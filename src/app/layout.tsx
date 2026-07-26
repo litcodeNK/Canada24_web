@@ -62,7 +62,7 @@ const websiteJsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${sourceSerif.variable} ${bebasNeue.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`dark ${inter.variable} ${sourceSerif.variable} ${bebasNeue.variable}`}>
       <head>
         <script
           type="application/ld+json"

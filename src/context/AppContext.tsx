@@ -114,7 +114,7 @@ const defaultAlerts: Record<string, boolean> = {
 };
 
 const defaultState: AppState = {
-  darkMode: false,
+  darkMode: true,
   compactLayout: false,
   allowStorySwiping: true,
   useDefaultTextSize: true,
