@@ -95,14 +95,24 @@ export function Footer() {
             © {new Date().getFullYear()} Canada News. All rights reserved.
           </p>
           <nav aria-label="Legal links" className="flex items-center gap-4">
-            {['Privacy Policy', 'Terms of Service', 'Contact'].map(label => (
-              <span
-                key={label}
-                className="text-[12px] text-gray-500 hover:text-canadaRed cursor-pointer transition-colors font-sans"
-              >
-                {label}
-              </span>
-            ))}
+            <Link
+              href="/privacy"
+              className="text-[12px] text-gray-500 hover:text-canadaRed transition-colors font-sans"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              href="/terms"
+              className="text-[12px] text-gray-500 hover:text-canadaRed transition-colors font-sans"
+            >
+              Terms of Service
+            </Link>
+            <a
+              href="mailto:info@canada247.com"
+              className="text-[12px] text-gray-500 hover:text-canadaRed transition-colors font-sans"
+            >
+              Contact
+            </a>
           </nav>
         </div>
       </div>
