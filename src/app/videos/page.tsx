@@ -37,8 +37,8 @@ export default function VideoFeedPage() {
               <div className="px-4 py-2">
                 <h2 className="bebas tracking-widest text-sm text-gray-500 dark:text-gray-400">TRENDING VIDEO</h2>
               </div>
-              <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
-                {feed.trending.map(item => <VideoCard key={item.id} item={item} />)}
+              <div className="flex flex-col gap-4 px-4 pb-2">
+                {feed.trending.map(item => <VideoRow key={item.id} item={item} />)}
               </div>
             </section>
           )}
@@ -48,8 +48,8 @@ export default function VideoFeedPage() {
               <div className="px-4 py-2">
                 <h2 className="bebas tracking-widest text-sm text-gray-500 dark:text-gray-400">LIVE COVERAGE</h2>
               </div>
-              <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
-                {feed.live.map(item => <VideoCard key={item.id} item={item} live />)}
+              <div className="flex flex-col gap-4 px-4 pb-2">
+                {feed.live.map(item => <VideoRow key={item.id} item={item} live />)}
               </div>
             </section>
           )}
@@ -67,17 +67,15 @@ export default function VideoFeedPage() {
   );
 }
 
-function VideoCard({ item, live = false }: { item: VideoItem; live?: boolean }) {
+function VideoRow({ item, live = false }: { item: VideoItem; live?: boolean }) {
   const href = buildWatchHref(item);
 
   return (
-    <Link
-      href={href}
-      className="flex-shrink-0 w-52 group"
-    >
-      <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-[#2A2A2A]">
+    <Link href={href} className="flex gap-3 group">
+      {/* Left: thumbnail */}
+      <div className="relative w-36 sm:w-40 aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-[#2A2A2A] flex-shrink-0">
         {item.imgUrl ? (
-          <Image src={item.imgUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="208px" unoptimized />
+          <Image src={item.imgUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="160px" unoptimized />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-[#D52B1E]/20 to-black/40 flex items-center justify-center">
             <svg className="w-10 h-10 text-white/40" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21 5,3"/></svg>
@@ -100,8 +98,15 @@ function VideoCard({ item, live = false }: { item: VideoItem; live?: boolean }) 
           </div>
         )}
       </div>
-      <p className="mt-1.5 text-sm font-semibold dark:text-white line-clamp-2 leading-tight">{item.title}</p>
-      <p className="text-xs text-gray-400 mt-0.5">{item.date}</p>
+
+      {/* Right: title + description */}
+      <div className="flex-1 min-w-0 flex flex-col justify-center">
+        <p className="text-sm font-semibold text-[#1a1a1a] dark:text-[#F5F5F5] line-clamp-2 leading-snug">{item.title}</p>
+        {item.description && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-3 leading-relaxed">{item.description}</p>
+        )}
+        <p className="text-xs text-[#D52B1E] font-semibold mt-1.5">{item.date}</p>
+      </div>
     </Link>
   );
 }

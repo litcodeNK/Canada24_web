@@ -41,26 +41,25 @@ function groupLabel(articles: Article[]): string {
 }
 
 export default function TopStoriesPage() {
-  const { topStories, communityStories, loadingNews, refreshNews, onboardingComplete } = useApp();
+  const { topStories, communityStories, loadingNews, refreshNews, onboardingComplete, hasSeenWelcome, completeWelcome, appReady } = useApp();
   const { user, isAuthLoading } = useAuth();
   const router = useRouter();
-  const [showWelcome, setShowWelcome] = useState(true);
 
   useEffect(() => {
-    if (!showWelcome && !isAuthLoading && user && !onboardingComplete) router.replace('/onboarding/regions');
-  }, [showWelcome, isAuthLoading, user, onboardingComplete, router]);
+    if (appReady && hasSeenWelcome && !isAuthLoading && user && !onboardingComplete) router.replace('/onboarding/regions');
+  }, [appReady, hasSeenWelcome, isAuthLoading, user, onboardingComplete, router]);
 
-  if (isAuthLoading) return (
+  if (!appReady || isAuthLoading) return (
     <div className="flex items-center justify-center min-h-screen bg-white dark:bg-[#0D0D0D]">
       <div className="w-8 h-8 border-2 border-canadaRed border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
-  if (showWelcome) {
+  if (!hasSeenWelcome) {
     return (
       <WelcomeScreen
         isAuthenticated={Boolean(user)}
-        onContinue={() => setShowWelcome(false)}
+        onContinue={completeWelcome}
       />
     );
   }

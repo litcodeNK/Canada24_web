@@ -64,13 +64,16 @@ interface AppState {
   alerts: Record<string, boolean>;
   savedArticles: Article[];
   onboardingComplete: boolean;
+  hasSeenWelcome: boolean;
 }
 
 interface AppContextType extends AppState {
+  appReady: boolean;
   topStories: Article[];
   communityStories: Article[];
   loadingNews: boolean;
   refreshNews: () => Promise<void>;
+  completeWelcome: () => void;
   toggleDarkMode: () => void;
   toggleCompactLayout: () => void;
   toggleStorySwiping: () => void;
@@ -124,6 +127,7 @@ const defaultState: AppState = {
   alerts: defaultAlerts,
   savedArticles: [],
   onboardingComplete: false,
+  hasSeenWelcome: false,
 };
 
 const ALERT_KEY_MAP: Partial<Record<string, keyof ServerAlertPreferences>> = {
@@ -332,11 +336,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <AppContext.Provider value={{
       ...state,
+      appReady: loaded,
       topStories,
       communityStories,
       loadingNews,
       refreshNews,
       colors,
+      completeWelcome: () => update({ hasSeenWelcome: true }),
       toggleDarkMode: () => update({ darkMode: !state.darkMode }),
       toggleCompactLayout: () => update({ compactLayout: !state.compactLayout }),
       toggleStorySwiping: () => update({ allowStorySwiping: !state.allowStorySwiping }),
