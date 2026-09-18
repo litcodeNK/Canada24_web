@@ -154,7 +154,7 @@ function ToggleRow({ label, value, onToggle, disabled }: { label: string; value:
           value ? 'bg-[#D52B1E]' : 'bg-gray-200 dark:bg-[#333]',
         )}
       >
-        <span className={clsx('absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform', value ? 'translate-x-5' : 'translate-x-0.5')} />
+        <span className={clsx('absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform', value ? 'translate-x-5' : 'translate-x-0')} />
       </button>
     </div>
   );

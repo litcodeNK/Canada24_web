@@ -1,16 +1,13 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useApp } from '@/context/AppContext';
+import { fetchCategoryArticles } from '@/services/newsService';
 import { clsx } from 'clsx';
-
-interface SidebarProps {
-  open: boolean;
-  onClose: () => void;
-}
 
 const navItems = [
   { href: '/', label: 'TOP STORIES', icon: HomeIcon },
@@ -26,20 +23,38 @@ const secondaryItems = [
 ];
 
 const sectionLinks = [
-  { href: '/sections/politics', label: 'Politics', color: '#1565C0' },
-  { href: '/sections/world', label: 'World', color: '#00695C' },
-  { href: '/sections/business', label: 'Business', color: '#E65100' },
-  { href: '/sections/health', label: 'Health', color: '#1B5E20' },
-  { href: '/sections/sports', label: 'Sports', color: '#D52B1E' },
-  { href: '/sections/technology', label: 'Technology', color: '#01579B' },
-  { href: '/sections/entertainment', label: 'Entertainment', color: '#880E4F' },
-  { href: '/sections/immigration', label: 'Immigration', color: '#BF360C' },
+  { href: '/sections/politics', label: 'Politics' },
+  { href: '/sections/world', label: 'World' },
+  { href: '/sections/business', label: 'Business' },
+  { href: '/sections/health', label: 'Health' },
+  { href: '/sections/sports', label: 'Sports' },
+  { href: '/sections/technology', label: 'Technology' },
+  { href: '/sections/entertainment', label: 'Entertainment' },
+  { href: '/sections/immigration', label: 'Immigration' },
 ];
 
-export function Sidebar({ open, onClose }: SidebarProps) {
+export function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
-  const { darkMode } = useApp();
+  const { sidebarOpen: open, closeSidebar: onClose } = useApp();
+  const [sectionImages, setSectionImages] = useState<Record<string, string | undefined>>({});
+
+  // One representative image per section: the newest story from that section's
+  // own feed (/news/sections/<slug>/) — not the general top-stories/community
+  // feed, which is mostly tagged GENERAL and won't have a Politics/Health/etc. match.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const entries = await Promise.all(
+        sectionLinks.map(async ({ href, label }) => {
+          const articles = await fetchCategoryArticles(label);
+          return [href, articles.find(a => a.imgUrl)?.imgUrl] as const;
+        }),
+      );
+      if (!cancelled) setSectionImages(Object.fromEntries(entries));
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <>
@@ -55,31 +70,26 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       {/* Drawer */}
       <aside
         className={clsx(
-          'fixed top-0 left-0 z-50 h-full w-72 bg-white dark:bg-[#1A1A1A] shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col',
+          'fixed top-0 left-0 z-50 h-full w-72 bg-white dark:bg-[#1A1A1A] shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col overflow-hidden',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        {/* Header */}
+        {/* Background photo behind the whole drawer — kept barely visible, purely decorative */}
         <div
-          className="relative overflow-hidden px-5 pt-10 pb-6"
+          className="absolute inset-0 opacity-[0.07] dark:opacity-[0.09] pointer-events-none"
           style={{
             backgroundImage: 'url(/sidebar-bg.avif)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
-        >
-          {/* Dark overlay so text stays legible */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: 'linear-gradient(160deg, rgba(0,0,0,0.72) 0%, rgba(20,0,0,0.65) 60%, rgba(213,43,30,0.55) 100%)',
-            }}
-          />
+        />
 
+        {/* Header */}
+        <div className="relative px-5 pt-10 pb-6 border-b border-gray-200 dark:border-[#2A2A2A]">
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 text-white/60 hover:text-white p-1.5 z-10"
+            className="absolute top-3 right-3 text-[#1a1a1a]/50 dark:text-white/50 hover:text-[#1a1a1a] dark:hover:text-white p-1.5 z-10"
             aria-label="Close menu"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -89,19 +99,19 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           </button>
 
           {/* Logo + branding */}
-          <div className="relative z-10 flex flex-col items-start gap-3">
+          <div className="flex flex-col items-start gap-3">
             <Image
               src="/canada247-logo.png"
               alt="Canada 247 Logo"
               width={686}
               height={583}
-              className="h-16 w-auto object-contain drop-shadow-xl"
+              className="h-16 w-auto object-contain"
             />
             <div>
-              <span className="bebas text-white text-3xl tracking-widest block leading-none drop-shadow-md">
+              <span className="bebas text-[#1a1a1a] dark:text-white text-3xl tracking-widest block leading-none">
                 CANADA 247
               </span>
-              <span className="text-white/55 text-[10px] tracking-[0.18em] font-medium uppercase">
+              <span className="text-[#1a1a1a]/55 dark:text-white/55 text-[10px] tracking-[0.18em] font-medium uppercase">
                 Canada in real time
               </span>
             </div>
@@ -109,13 +119,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 overflow-y-auto py-4">
+        <nav className="relative flex-1 overflow-y-auto py-4">
           <div className="space-y-1 px-2">
             {navItems.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
-                onClick={onClose}
                 className={clsx(
                   'flex items-center gap-3 px-3 py-3 rounded-lg bebas tracking-wider text-sm transition-colors',
                   pathname === href
@@ -131,18 +140,26 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
           <div className="my-3 h-px bg-gray-200 dark:bg-[#333]" />
 
-          {/* Sections */}
-          <div className="px-4 mb-1">
-            <p className="text-[10px] font-bold tracking-[0.12em] text-[#999] uppercase mb-2">Sections</p>
-            <div className="grid grid-cols-2 gap-x-2 gap-y-0">
-              {sectionLinks.map(({ href, label, color }) => (
+          {/* Sections — one per row, with a thumbnail from a current story in that section */}
+          <div className="px-2 mb-1">
+            <p className="text-[10px] font-bold tracking-[0.12em] text-[#999] uppercase mb-2 px-3">Sections</p>
+            <div className="space-y-1">
+              {sectionLinks.map(({ href, label }) => (
                 <Link
                   key={href}
                   href={href}
-                  onClick={onClose}
-                  className="py-1.5 text-[13px] font-semibold hover:underline transition-colors"
-                  style={{ color }}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold text-[#1A1A1A] dark:text-[#F5F5F5] hover:bg-gray-100 dark:hover:bg-[#2A2A2A] transition-colors"
                 >
+                  {sectionImages[href] ? (
+                    <img
+                      src={sectionImages[href]}
+                      alt=""
+                      onError={() => setSectionImages(prev => ({ ...prev, [href]: undefined }))}
+                      className="w-9 h-9 rounded-md object-cover flex-shrink-0 bg-gray-200 dark:bg-[#2A2A2A]"
+                    />
+                  ) : (
+                    <span className="w-9 h-9 rounded-md flex-shrink-0 bg-gray-100 dark:bg-[#2A2A2A]" aria-hidden="true" />
+                  )}
                   {label}
                 </Link>
               ))}
@@ -156,12 +173,11 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               <Link
                 key={href}
                 href={href}
-                onClick={onClose}
                 className={clsx(
                   'flex items-center gap-3 px-3 py-3 rounded-lg bebas tracking-wider text-sm transition-colors',
                   pathname === href
                     ? 'bg-[#D52B1E] text-white'
-                    : 'text-[#444] dark:text-[#CCC] hover:bg-gray-100 dark:hover:bg-[#2A2A2A]',
+                    : 'text-[#1A1A1A] dark:text-[#F5F5F5] hover:bg-gray-100 dark:hover:bg-[#2A2A2A]',
                 )}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
@@ -172,21 +188,20 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         </nav>
 
         {/* Footer: user */}
-        <div className="p-4 border-t border-gray-200 dark:border-[#333]">
+        <div className="relative p-4 border-t border-gray-200 dark:border-[#333]">
           {user ? (
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-[#D52B1E] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                 {user.displayName?.[0]?.toUpperCase() ?? user.email[0].toUpperCase()}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold truncate dark:text-white">{user.displayName || 'User'}</p>
+                <p className="text-sm font-semibold truncate text-[#1A1A1A] dark:text-white">{user.displayName || 'User'}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
               </div>
             </div>
           ) : (
             <Link
               href="/auth/email"
-              onClick={onClose}
               className="block w-full text-center bebas tracking-widest text-sm text-[#D52B1E] border border-[#D52B1E] rounded-lg py-2 hover:bg-[#D52B1E] hover:text-white transition-colors"
             >
               SIGN IN

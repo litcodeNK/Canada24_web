@@ -47,11 +47,11 @@ export function Header({ onMenuToggle }: HeaderProps) {
       <div className="bg-white dark:bg-[#0D0D0D] px-4 pt-2.5 pb-2 sm:pt-3.5 sm:pb-3 h-[80px] sm:h-[120px] flex items-center border-b border-gray-200 dark:border-[#2A2A2A]">
         <div className="max-w-[1400px] mx-auto w-full h-full bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] shadow-md rounded-tl-[40px] sm:rounded-tl-[60px] rounded-br-[40px] sm:rounded-br-[60px] rounded-tr-lg rounded-bl-lg px-5 sm:px-8 flex items-center justify-between gap-4">
 
-          {/* Left: hamburger (mobile) + Logo */}
+          {/* Left: hamburger + Logo */}
           <div className="flex items-center gap-3">
             <button
               onClick={onMenuToggle}
-              className="lg:hidden text-[#1a1a1a] dark:text-white p-1 -ml-1 hover:text-canadaRed transition-colors flex-shrink-0"
+              className="text-[#1a1a1a] dark:text-white p-1 -ml-1 hover:text-canadaRed transition-colors flex-shrink-0"
               aria-label="Open navigation menu"
             >
               <Menu className="w-6 h-6" />

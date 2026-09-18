@@ -73,6 +73,9 @@ interface AppContextType extends AppState {
   communityStories: Article[];
   loadingNews: boolean;
   refreshNews: () => Promise<void>;
+  sidebarOpen: boolean;
+  openSidebar: () => void;
+  closeSidebar: () => void;
   completeWelcome: () => void;
   toggleDarkMode: () => void;
   toggleCompactLayout: () => void;
@@ -170,6 +173,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [communityStories, setCommunityStories] = useState<Article[]>([]);
   const [loadingNews, setLoadingNews] = useState(false);
   const [regionCatalog, setRegionCatalog] = useState<ServerRegion[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const topStoriesRef = useRef<Article[]>([]);
   const canManageRegionsRef = useRef(true);
 
@@ -348,6 +352,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       loadingNews,
       refreshNews,
       colors,
+      sidebarOpen,
+      openSidebar: () => setSidebarOpen(true),
+      closeSidebar: () => setSidebarOpen(false),
       completeWelcome: () => update({ hasSeenWelcome: true }),
       toggleDarkMode: () => update({ darkMode: !state.darkMode }),
       toggleCompactLayout: () => update({ compactLayout: !state.compactLayout }),

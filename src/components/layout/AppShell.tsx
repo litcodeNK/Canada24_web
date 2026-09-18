@@ -1,23 +1,21 @@
 'use client';
 
-import { useState } from 'react';
 import { Header } from './Header';
-import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 import { Footer } from './Footer';
 import { OfflineScreen } from './OfflineScreen';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { useApp } from '@/context/AppContext';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { openSidebar } = useApp();
   const isOnline = useOnlineStatus();
 
   if (!isOnline) return <OfflineScreen />;
 
   return (
     <>
-      <Header onMenuToggle={() => setSidebarOpen(true)} />
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Header onMenuToggle={openSidebar} />
 
       {/*
         Header height: 72px red bar + 48px secondary nav = 120px desktop
