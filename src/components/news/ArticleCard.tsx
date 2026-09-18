@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { clsx } from 'clsx';
 import type { Article } from '@/context/AppContext';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { useInteractions } from '@/context/InteractionsContext';
 import { PlayButton } from './PlayButton';
 
@@ -24,8 +25,18 @@ export function ArticleCard({
   className,
 }: ArticleCardProps) {
   const { isArticleSaved, toggleSaveArticle } = useApp();
-  const { getLikeCount, getCommentCount, getRepostCount } = useInteractions();
+  const { user } = useAuth();
+  const { getLikeCount, getCommentCount, getRepostCount, promptSignIn } = useInteractions();
   const saved = isArticleSaved(article.id);
+
+  const handleSave = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!user) {
+      promptSignIn('save articles');
+      return;
+    }
+    toggleSaveArticle(article);
+  };
 
   const likeCount = getLikeCount(article.id) ?? article.likesCount ?? 0;
   const commentCount = getCommentCount(article.id) ?? article.commentsCount ?? 0;
@@ -100,7 +111,7 @@ export function ArticleCard({
             <MiniEngagement icon="repost" count={repostCount} />
             <div className="flex-1" />
             <button
-              onClick={(e) => { e.preventDefault(); toggleSaveArticle(article); }}
+              onClick={handleSave}
               className={clsx('p-1.5 transition-colors', saved ? 'text-white' : 'text-white/60 hover:text-white')}
               aria-label={saved ? 'Unsave article' : 'Save article'}
             >
@@ -176,7 +187,7 @@ export function ArticleCard({
           <MiniEngagement icon="repost" count={repostCount} />
           <div className="flex-1" />
           <button
-            onClick={(e) => { e.preventDefault(); toggleSaveArticle(article); }}
+            onClick={handleSave}
             className={clsx('p-1.5 transition-colors', saved ? 'text-white' : 'text-white/60 hover:text-white')}
             aria-label={saved ? 'Unsave article' : 'Save article'}
           >

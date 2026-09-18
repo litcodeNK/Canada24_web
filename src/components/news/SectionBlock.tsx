@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { clsx } from 'clsx';
 import type { Article } from '@/context/AppContext';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
+import { useInteractions } from '@/context/InteractionsContext';
 import { PlayButton } from './PlayButton';
 
 interface SectionBlockProps {
@@ -106,7 +108,17 @@ function SectionHeader({ title, color }: { title: string; color: string }) {
 /* ── Featured card ── */
 function FeaturedCard({ article, headlineSize }: { article: Article; headlineSize: 'large' | 'medium' }) {
   const { isArticleSaved, toggleSaveArticle } = useApp();
+  const { user } = useAuth();
+  const { promptSignIn } = useInteractions();
   const saved = isArticleSaved(article.id);
+
+  const handleSave = () => {
+    if (!user) {
+      promptSignIn('save articles');
+      return;
+    }
+    toggleSaveArticle(article);
+  };
 
   return (
     <div className="group cursor-pointer">
@@ -168,7 +180,7 @@ function FeaturedCard({ article, headlineSize }: { article: Article; headlineSiz
       </Link>
 
       <button
-        onClick={() => toggleSaveArticle(article)}
+        onClick={handleSave}
         className={clsx('mt-2 text-[11px] flex items-center gap-1 transition-colors font-sans', saved ? 'text-white' : 'text-white/60 hover:text-white')}
         aria-label={saved ? 'Unsave article' : 'Save article'}
       >

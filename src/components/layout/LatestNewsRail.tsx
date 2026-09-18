@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { LoaderCircle, Sparkles } from 'lucide-react';
+import { LoaderCircle, BadgeCheck } from 'lucide-react';
 import { MapleLeaf } from '@/components/news/MapleLeaf';
 import { useApp } from '@/context/AppContext';
 import type { Article } from '@/context/AppContext';
@@ -147,7 +147,7 @@ export function LatestNewsRail() {
 
       {/* Select badge */}
       <div className="inline-flex items-center gap-1 border border-blue-500 rounded-full px-3 py-0.5 mb-4">
-        <Sparkles className="w-3.5 h-3.5 text-blue-500" aria-hidden="true" />
+        <BadgeCheck className="w-3.5 h-3.5 text-blue-500" aria-hidden="true" />
         <span className="text-blue-500 font-bold text-xs tracking-wider">select</span>
       </div>
 

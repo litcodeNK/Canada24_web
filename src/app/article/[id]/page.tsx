@@ -165,6 +165,15 @@ export default function ArticleDetailPage() {
     commentsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  const handleSave = () => {
+    if (!article) return;
+    if (!user) {
+      promptSignIn('save articles');
+      return;
+    }
+    toggleSaveArticle(article);
+  };
+
   if (!article) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#0D0D0D]">
@@ -186,14 +195,14 @@ export default function ArticleDetailPage() {
   /* Related articles: same category, exclude current */
   const related = [...topStories, ...communityStories]
     .filter(a => a.id !== article.id && a.category === article.category)
-    .slice(0, 4);
+    .slice(0, 6);
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#0D0D0D]">
 
       {/* ── STICKY TOP BAR ── */}
       <div className="sticky top-0 z-50 bg-white dark:bg-[#1A1A1A] border-b border-[#E8E8E8] dark:border-[#2A2A2A] shadow-sm">
-        <div className="max-w-[800px] mx-auto px-4 h-14 flex items-center gap-3">
+        <div className="max-w-[1100px] mx-auto px-4 h-14 flex items-center gap-3">
           <button
             onClick={() => router.back()}
             className="text-[#1a1a1a] dark:text-white p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-[#2A2A2A] rounded transition-colors flex-shrink-0"
@@ -259,8 +268,9 @@ export default function ArticleDetailPage() {
         </div>
       </div>
 
-      {/* ── ARTICLE CONTENT ── */}
-      <article className="max-w-[800px] mx-auto px-4 sm:px-6 pt-8 pb-12">
+      {/* ── ARTICLE CONTENT + SIDEBAR ── */}
+      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 pt-8 pb-12 lg:grid lg:grid-cols-[1fr_320px] lg:gap-10 lg:items-start">
+      <article className="min-w-0">
 
         {/* 1. Breadcrumb category */}
         {article.category && (
@@ -318,7 +328,7 @@ export default function ArticleDetailPage() {
           </button>
 
           <button
-            onClick={() => toggleSaveArticle(article)}
+            onClick={handleSave}
             className={clsx(
               'flex items-center gap-2 text-xs font-medium border rounded-full px-3.5 py-1.5 transition-colors',
               saved
@@ -458,7 +468,7 @@ export default function ArticleDetailPage() {
             <div className="flex-1" />
 
             <button
-              onClick={() => toggleSaveArticle(article)}
+              onClick={handleSave}
               className={clsx(
                 'flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium border transition-colors',
                 saved
@@ -539,55 +549,58 @@ export default function ArticleDetailPage() {
             </div>
           </section>
         </div>
-
-        {/* ── MORE IN [SECTION] ── */}
-        {related.length > 0 && (
-          <div className="mt-10 pt-6 border-t border-[#E8E8E8] dark:border-[#2A2A2A]">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="font-extrabold text-[1rem] tracking-tight">
-                More in{' '}
-                <Link
-                  href={`/sections/${encodeURIComponent((article.category ?? '').toLowerCase())}`}
-                  className="text-[#D52B1E] hover:underline"
-                >
-                  {article.category}
-                </Link>
-              </h2>
-              <Link
-                href={`/sections/${encodeURIComponent((article.category ?? '').toLowerCase())}`}
-                className="text-[12px] font-semibold text-[#D52B1E] hover:underline uppercase tracking-wide"
-              >
-                See all →
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-0 divide-y sm:divide-y-0 divide-[#E8E8E8] dark:divide-[#2A2A2A]">
-              {related.map(rel => (
-                <RelatedArticleItem key={rel.id} article={rel} />
-              ))}
-            </div>
-          </div>
-        )}
       </article>
+
+      {/* ── MORE IN [SECTION] — sidebar list, beside the article ── */}
+      {related.length > 0 && (
+        <aside className="mt-10 lg:mt-0 lg:sticky lg:top-20">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-sans font-bold text-base tracking-wide text-[#1a1a1a] dark:text-white">
+              More in <span className="text-canadaRed">{article.category}</span>
+            </h2>
+            <Link
+              href={`/sections/${encodeURIComponent((article.category ?? '').toLowerCase())}`}
+              className="text-[11px] font-semibold text-canadaRed hover:underline uppercase tracking-wide flex-shrink-0"
+            >
+              See all →
+            </Link>
+          </div>
+          <div className="flex flex-col gap-3">
+            {related.map(rel => (
+              <RelatedArticleItem key={rel.id} article={rel} />
+            ))}
+          </div>
+        </aside>
+      )}
+      </div>
     </div>
   );
 }
 
 function RelatedArticleItem({ article }: { article: Article }) {
   return (
-    <Link href={`/article/${article.id}`} className="group flex items-start gap-3 py-4 first:pt-0">
-      {article.imgUrl && (
-        <div className="flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden bg-gray-100 dark:bg-[#2A2A2A] hidden sm:block">
+    <Link
+      href={`/article/${article.id}`}
+      className="group flex items-center gap-3 p-3 rounded-xl bg-oxfordBlue dark:bg-oxfordBlueDark hover:opacity-90 transition-opacity"
+    >
+      <div className="relative flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden bg-black/10">
+        {article.imgUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img src={article.imgUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
-        </div>
-      )}
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-black/30 to-black/10 flex items-center justify-center">
+            <span className="font-display text-white/20 text-xs">CN</span>
+          </div>
+        )}
+      </div>
       <div className="flex-1 min-w-0">
         {article.category && (
-          <span className="category-label block mb-0.5">{article.category}</span>
+          <span className="text-[10px] font-bold tracking-[0.08em] uppercase text-white/80 block mb-0.5">{article.category}</span>
         )}
-        <h3 className="font-bold text-[#1a1a1a] dark:text-[#F5F5F5] text-[14px] leading-snug group-hover:text-[#D52B1E] transition-colors line-clamp-3">
+        <h3 className="font-serif font-bold text-white text-[13px] leading-snug line-clamp-3 group-hover:text-white/85 transition-colors">
           {article.headline}
         </h3>
-        <span className="text-[11px] text-[#999] block mt-1">{article.time}</span>
+        <span className="text-[10px] text-white/60 block mt-1">{article.time}</span>
       </div>
     </Link>
   );

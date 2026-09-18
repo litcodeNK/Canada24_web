@@ -4,12 +4,24 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { Article } from '@/context/AppContext';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
+import { useInteractions } from '@/context/InteractionsContext';
 import { clsx } from 'clsx';
 import { PlayButton } from './PlayButton';
 
 export function HeroCard({ article }: { article: Article }) {
   const { isArticleSaved, toggleSaveArticle } = useApp();
+  const { user } = useAuth();
+  const { promptSignIn } = useInteractions();
   const saved = isArticleSaved(article.id);
+
+  const handleSave = () => {
+    if (!user) {
+      promptSignIn('save articles');
+      return;
+    }
+    toggleSaveArticle(article);
+  };
 
   const excerpt = article.body
     ? article.body.slice(0, 180) + (article.body.length > 180 ? '…' : '')
@@ -109,7 +121,7 @@ export function HeroCard({ article }: { article: Article }) {
 
         {/* Save button */}
         <button
-          onClick={() => toggleSaveArticle(article)}
+          onClick={handleSave}
           className={clsx(
             'mt-3 lg:mt-1 flex items-center gap-1.5 text-[12px] font-medium border rounded-md px-3 py-1.5 transition-colors whitespace-nowrap self-start font-sans',
             saved

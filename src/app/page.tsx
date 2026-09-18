@@ -177,18 +177,28 @@ export default function TopStoriesPage() {
             </section>
           )}
 
-          {/* Newsletter sign-up promo */}
-          <div className="bg-[#F7F7F7] dark:bg-[#1C1C1C] border border-gray-300 dark:border-[#2A2A2A] p-5 mt-6">
-            <p className="text-[11px] font-bold tracking-[0.1em] uppercase text-canadaRed mb-1 font-sans">Stay Informed</p>
+          {/* Newsletter sign-up promo — classic framed newspaper call-out box */}
+          <div className="border-2 border-[#1a1a1a] dark:border-white/25 bg-white dark:bg-[#1C1C1C] p-6 mt-6 text-center">
+            <Image
+              src="/canada247-logo.png"
+              alt="Canada 247"
+              width={686}
+              height={583}
+              className="h-12 w-auto object-contain mx-auto mb-3"
+            />
+            <p className="text-[11px] font-bold tracking-[0.15em] uppercase text-canadaRed mb-2 font-sans">
+              Stay Informed
+            </p>
             <h3 className="font-serif font-black text-xl leading-tight text-[#1a1a1a] dark:text-white mb-2">
               Canada News Daily Briefing
             </h3>
-            <p className="font-sans text-[13px] text-[#666] dark:text-[#999] leading-snug mb-3">
+            <div className="w-10 h-px bg-canadaRed mx-auto mb-3" />
+            <p className="font-serif italic text-[14px] text-[#666] dark:text-[#999] leading-relaxed mb-5">
               The top Canadian stories, every morning.
             </p>
             <Link
               href="/auth/email"
-              className="block w-full text-center bg-canadaRed text-white text-[12px] font-bold tracking-wider uppercase py-2.5 hover:bg-canadaRedDark transition-colors font-sans"
+              className="inline-block border-2 border-canadaRed text-canadaRed text-[12px] font-bold tracking-[0.15em] uppercase px-8 py-2.5 hover:bg-canadaRed hover:text-white transition-colors font-sans"
             >
               Sign Up Free
             </Link>
