@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useApp } from '@/context/AppContext';
+import { useApp, DEFAULT_ARTICLE_IMAGE } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { AppShell } from '@/components/layout/AppShell';
 import { LatestNewsRail } from '@/components/layout/LatestNewsRail';
@@ -309,12 +309,10 @@ function LatestItem({ article }: { article: Article }) {
           {article.headline}
         </h3>
       </div>
-      {article.imgUrl && (
-        <div className="flex-shrink-0 w-16 h-11 overflow-hidden bg-gray-100 dark:bg-[#2A2A2A] hidden sm:block">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={article.imgUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
-        </div>
-      )}
+      <div className="flex-shrink-0 w-16 h-11 overflow-hidden bg-gray-100 dark:bg-[#2A2A2A] hidden sm:block">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={article.imgUrl || DEFAULT_ARTICLE_IMAGE} alt="" className="w-full h-full object-cover" loading="lazy" />
+      </div>
     </Link>
   );
 }

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { clsx } from 'clsx';
 import type { Article } from '@/context/AppContext';
-import { useApp } from '@/context/AppContext';
+import { useApp, DEFAULT_ARTICLE_IMAGE } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { useInteractions } from '@/context/InteractionsContext';
 import { PlayButton } from './PlayButton';
@@ -124,21 +124,15 @@ function FeaturedCard({ article, headlineSize }: { article: Article; headlineSiz
     <div className="group cursor-pointer">
       <Link href={`/article/${article.id}`} className="flex flex-col sm:flex-row sm:items-start gap-4">
         <div className="relative w-full sm:w-2/5 flex-shrink-0 aspect-[16/10] sm:aspect-[4/3] overflow-hidden rounded-lg bg-black/10">
-          {article.imgUrl ? (
-            <Image
-              src={article.imgUrl}
-              alt={article.headline}
-              fill
-              className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
-              sizes="(max-width:640px) 100vw, 260px"
-              loading="lazy"
-              unoptimized
-            />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-black/30 to-black/10 flex items-center justify-center">
-              <span className="font-display text-white/20 text-4xl">CN</span>
-            </div>
-          )}
+          <Image
+            src={article.imgUrl || DEFAULT_ARTICLE_IMAGE}
+            alt={article.headline}
+            fill
+            className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
+            sizes="(max-width:640px) 100vw, 260px"
+            loading="lazy"
+            unoptimized
+          />
           {(article.duration || article.isLive) && (
             <div className="absolute bottom-0 left-0 bg-black/70 text-white flex items-stretch max-w-[95%] rounded-tr-lg overflow-hidden">
               <PlayButton className="w-10 flex-shrink-0" />
@@ -198,21 +192,15 @@ function MediumCard({ article }: { article: Article }) {
   return (
     <Link href={`/article/${article.id}`} className="group flex gap-3">
       <div className="relative flex-shrink-0 w-28 aspect-[4/3] overflow-hidden rounded-lg bg-black/10">
-        {article.imgUrl ? (
-          <Image
-            src={article.imgUrl}
-            alt={article.headline}
-            fill
-            className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
-            sizes="112px"
-            loading="lazy"
-            unoptimized
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-black/30 to-black/10 flex items-center justify-center">
-            <span className="font-display text-white/20 text-lg">CN</span>
-          </div>
-        )}
+        <Image
+          src={article.imgUrl || DEFAULT_ARTICLE_IMAGE}
+          alt={article.headline}
+          fill
+          className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
+          sizes="112px"
+          loading="lazy"
+          unoptimized
+        />
         {article.isLive && (
           <div className="absolute bottom-1 left-1 flex items-center gap-1 bg-red-600 text-white px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase font-sans rounded">
             <span className="pulse-dot w-1 h-1 rounded-full bg-white flex-shrink-0" />
@@ -241,13 +229,7 @@ function ArticleVerticalCard({ article }: { article: Article }) {
   return (
     <Link href={`/article/${article.id}`} className="group block cursor-pointer">
       <div className="relative w-full aspect-[16/9] overflow-hidden rounded-lg mb-2 bg-black/10">
-        {article.imgUrl ? (
-          <Image src={article.imgUrl} alt={article.headline} fill className="object-cover group-hover:scale-[1.02] transition-transform duration-500" sizes="33vw" loading="lazy" unoptimized />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-black/30 to-black/10 flex items-center justify-center">
-            <span className="font-display text-white/20 text-3xl">CN</span>
-          </div>
-        )}
+        <Image src={article.imgUrl || DEFAULT_ARTICLE_IMAGE} alt={article.headline} fill className="object-cover group-hover:scale-[1.02] transition-transform duration-500" sizes="33vw" loading="lazy" unoptimized />
       </div>
       {article.category && <span className="text-[11px] font-bold tracking-[0.08em] uppercase text-white/80 block mb-1">{article.category}</span>}
       <h3 className="font-serif font-bold text-[17px] leading-snug text-white group-hover:text-white/85 transition-colors">

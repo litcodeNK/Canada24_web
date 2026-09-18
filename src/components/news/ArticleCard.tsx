@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { clsx } from 'clsx';
 import type { Article } from '@/context/AppContext';
-import { useApp } from '@/context/AppContext';
+import { useApp, DEFAULT_ARTICLE_IMAGE } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { useInteractions } from '@/context/InteractionsContext';
 import { PlayButton } from './PlayButton';
@@ -49,29 +49,21 @@ export function ArticleCard({
         <Link href={`/article/${article.id}`} className="block">
           {/* Image */}
           <div className="relative w-full aspect-[16/9] bg-black/10 overflow-hidden rounded-lg mb-3">
-            {article.imgUrl ? (
-              <>
-                <Image
-                  src={article.imgUrl}
-                  alt={article.headline}
-                  fill
-                  className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  loading="lazy"
-                  unoptimized
-                />
-                {(article.duration || article.isLive) && (
-                  <div className="absolute bottom-0 left-0 bg-black/70 text-white flex items-stretch max-w-[95%] rounded-tr-lg overflow-hidden">
-                    <PlayButton className="w-10 flex-shrink-0" />
-                    {article.duration && (
-                      <p className="text-xs font-bold p-2 leading-tight font-sans">{article.duration}</p>
-                    )}
-                  </div>
+            <Image
+              src={article.imgUrl || DEFAULT_ARTICLE_IMAGE}
+              alt={article.headline}
+              fill
+              className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              loading="lazy"
+              unoptimized
+            />
+            {(article.duration || article.isLive) && (
+              <div className="absolute bottom-0 left-0 bg-black/70 text-white flex items-stretch max-w-[95%] rounded-tr-lg overflow-hidden">
+                <PlayButton className="w-10 flex-shrink-0" />
+                {article.duration && (
+                  <p className="text-xs font-bold p-2 leading-tight font-sans">{article.duration}</p>
                 )}
-              </>
-            ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-black/30 to-black/10 flex items-center justify-center">
-                <span className="font-display text-white/20 text-4xl">CN</span>
               </div>
             )}
             {article.isLive && (
@@ -156,27 +148,23 @@ export function ArticleCard({
         </div>
 
         {/* Right: thumbnail */}
-        {article.imgUrl ? (
-          <div className="relative flex-shrink-0 w-[140px] aspect-[1.5] overflow-hidden rounded-lg bg-black/10">
-            <Image
-              src={article.imgUrl}
-              alt={article.headline}
-              fill
-              className="object-cover"
-              sizes="140px"
-              loading="lazy"
-              unoptimized
-            />
-            {article.isLive && (
-              <div className="absolute bottom-1 left-1 bg-red-600 text-white text-[7px] font-bold px-1 py-0.5 flex items-center gap-0.5 font-sans rounded">
-                <span className="pulse-dot w-1 h-1 rounded-full bg-white inline-block" />
-                LIVE
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="flex-shrink-0 w-1 self-stretch bg-white/30 rounded-r" />
-        )}
+        <div className="relative flex-shrink-0 w-[140px] aspect-[1.5] overflow-hidden rounded-lg bg-black/10">
+          <Image
+            src={article.imgUrl || DEFAULT_ARTICLE_IMAGE}
+            alt={article.headline}
+            fill
+            className="object-cover"
+            sizes="140px"
+            loading="lazy"
+            unoptimized
+          />
+          {article.isLive && (
+            <div className="absolute bottom-1 left-1 bg-red-600 text-white text-[7px] font-bold px-1 py-0.5 flex items-center gap-0.5 font-sans rounded">
+              <span className="pulse-dot w-1 h-1 rounded-full bg-white inline-block" />
+              LIVE
+            </div>
+          )}
+        </div>
       </Link>
 
       {/* Engagement */}

@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useApp } from '@/context/AppContext';
+import { useApp, DEFAULT_ARTICLE_IMAGE } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { useInteractions } from '@/context/InteractionsContext';
 import type { Article } from '@/context/AppContext';
@@ -371,31 +371,31 @@ export default function ArticleDetailPage() {
         </div>
 
         {/* 5. Hero image */}
-        {article.imgUrl && (
-          <figure className="mb-6">
-            <div className="relative w-full aspect-[16/9] rounded-2xl bg-gray-100 dark:bg-[#1C1C1C] overflow-hidden shadow-sm">
-              <Image
-                src={article.imgUrl}
-                alt={article.headline}
-                fill
-                className="object-cover"
-                sizes="(max-width: 800px) 100vw, 800px"
-                unoptimized
-                priority
-              />
-              {article.isLive && (
-                <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-canadaRed text-white px-3 py-1 rounded-full font-bold tracking-widest text-xs">
-                  <span className="pulse-dot w-2 h-2 rounded-full bg-white" />
-                  LIVE
-                </div>
-              )}
-            </div>
-            {/* 6. Caption */}
+        <figure className="mb-6">
+          <div className="relative w-full aspect-[16/9] rounded-2xl bg-gray-100 dark:bg-[#1C1C1C] overflow-hidden shadow-sm">
+            <Image
+              src={article.imgUrl || DEFAULT_ARTICLE_IMAGE}
+              alt={article.headline}
+              fill
+              className="object-cover"
+              sizes="(max-width: 800px) 100vw, 800px"
+              unoptimized
+              priority
+            />
+            {article.isLive && (
+              <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-canadaRed text-white px-3 py-1 rounded-full font-bold tracking-widest text-xs">
+                <span className="pulse-dot w-2 h-2 rounded-full bg-white" />
+                LIVE
+              </div>
+            )}
+          </div>
+          {/* 6. Caption */}
+          {article.imgUrl && (
             <figcaption className="mt-2 text-[12px] text-[#999] italic leading-snug">
               {article.headline} — Canada 247
             </figcaption>
-          </figure>
-        )}
+          )}
+        </figure>
 
         {/* 7. Body text — slightly narrower for readability */}
         <div className="max-w-[680px] mx-auto">
@@ -584,14 +584,8 @@ function RelatedArticleItem({ article }: { article: Article }) {
       className="group flex items-center gap-3 p-3 rounded-xl bg-oxfordBlue dark:bg-oxfordBlueDark hover:opacity-90 transition-opacity"
     >
       <div className="relative flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden bg-black/10">
-        {article.imgUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={article.imgUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-black/30 to-black/10 flex items-center justify-center">
-            <span className="font-display text-white/20 text-xs">CN</span>
-          </div>
-        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={article.imgUrl || DEFAULT_ARTICLE_IMAGE} alt="" className="w-full h-full object-cover" loading="lazy" />
       </div>
       <div className="flex-1 min-w-0">
         {article.category && (

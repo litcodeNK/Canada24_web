@@ -7,6 +7,9 @@ import { readStoredSession, requestWithStoredSession } from '../services/session
 import { resyncWebPushIfGranted } from '../lib/webPush';
 import { Colors } from '../theme';
 
+// Shown in place of a story's image whenever the source feed didn't provide one.
+export const DEFAULT_ARTICLE_IMAGE = '/article-fallback.jpg';
+
 export interface Article {
   id: string;
   headline: string;

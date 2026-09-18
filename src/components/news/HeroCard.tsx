@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Article } from '@/context/AppContext';
-import { useApp } from '@/context/AppContext';
+import { useApp, DEFAULT_ARTICLE_IMAGE } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { useInteractions } from '@/context/InteractionsContext';
 import { clsx } from 'clsx';
@@ -31,53 +31,47 @@ export function HeroCard({ article }: { article: Article }) {
     <article className="group mb-8 rounded-xl bg-oxfordBlue dark:bg-oxfordBlueDark p-4">
 
       {/* Hero image — 16:9 with video overlay */}
-      {article.imgUrl ? (
-        <Link href={`/article/${article.id}`} className="block mb-4 relative" aria-label={`Read: ${article.headline}`}>
-          <figure className="relative w-full overflow-hidden rounded-lg">
-            <div className="relative w-full aspect-[16/9] bg-black/10">
-              <Image
-                src={article.imgUrl}
-                alt={article.headline}
-                fill
-                className="object-cover group-hover:scale-[1.015] transition-transform duration-700"
-                sizes="(max-width: 1024px) 100vw, 800px"
-                priority
-                unoptimized
-              />
-              {/* LIVE badge */}
-              {article.isLive && (
-                <div className="absolute top-3 left-3 flex items-center gap-2 bg-red-600 text-white px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase rounded">
-                  <span className="pulse-dot w-1.5 h-1.5 rounded-full bg-white flex-shrink-0" />
-                  LIVE
-                </div>
-              )}
-              {/* Video overlay bar */}
-              {(article.duration || article.isLive) && (
-                <div className="absolute bottom-0 left-0 bg-black/70 text-white flex items-stretch max-w-[90%]">
-                  <PlayButton className="w-12 flex-shrink-0" />
-                  {article.duration && !article.isLive && (
-                    <p className="text-sm font-bold p-3 leading-tight font-sans">
-                      {article.duration}
-                    </p>
-                  )}
-                </div>
-              )}
-              {/* Author attribution */}
-              {article.author && (
-                <div className="absolute bottom-1.5 right-2">
-                  <span className="text-[10px] text-white/70 font-medium drop-shadow">
-                    {article.author}
-                  </span>
-                </div>
-              )}
-            </div>
-          </figure>
-        </Link>
-      ) : (
-        <div className="w-full aspect-[16/9] rounded-lg bg-gradient-to-br from-black/30 to-black/10 mb-4 flex items-center justify-center">
-          <span className="font-display text-white/20 text-8xl">CN</span>
-        </div>
-      )}
+      <Link href={`/article/${article.id}`} className="block mb-4 relative" aria-label={`Read: ${article.headline}`}>
+        <figure className="relative w-full overflow-hidden rounded-lg">
+          <div className="relative w-full aspect-[16/9] bg-black/10">
+            <Image
+              src={article.imgUrl || DEFAULT_ARTICLE_IMAGE}
+              alt={article.headline}
+              fill
+              className="object-cover group-hover:scale-[1.015] transition-transform duration-700"
+              sizes="(max-width: 1024px) 100vw, 800px"
+              priority
+              unoptimized
+            />
+            {/* LIVE badge */}
+            {article.isLive && (
+              <div className="absolute top-3 left-3 flex items-center gap-2 bg-red-600 text-white px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase rounded">
+                <span className="pulse-dot w-1.5 h-1.5 rounded-full bg-white flex-shrink-0" />
+                LIVE
+              </div>
+            )}
+            {/* Video overlay bar */}
+            {(article.duration || article.isLive) && (
+              <div className="absolute bottom-0 left-0 bg-black/70 text-white flex items-stretch max-w-[90%]">
+                <PlayButton className="w-12 flex-shrink-0" />
+                {article.duration && !article.isLive && (
+                  <p className="text-sm font-bold p-3 leading-tight font-sans">
+                    {article.duration}
+                  </p>
+                )}
+              </div>
+            )}
+            {/* Author attribution */}
+            {article.author && (
+              <div className="absolute bottom-1.5 right-2">
+                <span className="text-[10px] text-white/70 font-medium drop-shadow">
+                  {article.author}
+                </span>
+              </div>
+            )}
+          </div>
+        </figure>
+      </Link>
 
       {/* Text block */}
       <div className="lg:grid lg:grid-cols-[1fr_auto] lg:gap-8 lg:items-start">
