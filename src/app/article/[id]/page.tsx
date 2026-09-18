@@ -8,6 +8,7 @@ import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { useInteractions } from '@/context/InteractionsContext';
 import type { Article } from '@/context/AppContext';
+import { fetchArticleDetail } from '@/services/newsService';
 import { clsx } from 'clsx';
 
 const FALLBACK_BODY = [
@@ -42,14 +43,40 @@ export default function ArticleDetailPage() {
   } = useInteractions();
 
   const [article, setArticle] = useState<Article | null>(null);
+  const [notFound, setNotFound] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [speaking, setSpeaking] = useState(false);
   const [shareTooltip, setShareTooltip] = useState(false);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
   const resumeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const commentsSectionRef = useRef<HTMLElement | null>(null);
+  const articleRef = useRef<Article | null>(null);
+  // Once the network fetch below has won for the current id, the cache-lookup
+  // effect must stop touching `article` — otherwise an unrelated later update
+  // to topStories/communityStories/savedArticles (e.g. AppContext's periodic
+  // refreshNews()) re-runs that effect, fails to find this id in the newly
+  // fetched lists (it's often not a top story / not saved), and wipes out the
+  // already-correct article back to null, hanging the page on the spinner
+  // forever even though the real data loaded successfully.
+  const detailLoadedRef = useRef(false);
 
   useEffect(() => {
+    articleRef.current = article;
+  }, [article]);
+
+  // Reset display state whenever we navigate to a different article id, so
+  // the previous article's content can't linger on screen under the new id.
+  useEffect(() => {
+    detailLoadedRef.current = false;
+    setArticle(null);
+    setNotFound(false);
+  }, [id]);
+
+  // Instant display from already-loaded state (top stories / community /
+  // saved), if we have it — but this is never the source of truth, see below,
+  // and it must defer once the network fetch has already resolved.
+  useEffect(() => {
+    if (detailLoadedRef.current) return;
     const all = [...topStories, ...communityStories, ...savedArticles];
     const found = all.find(a => a.id === id);
     if (found) {
@@ -57,6 +84,37 @@ export default function ArticleDetailPage() {
       hydrateArticleInteractions(found);
     }
   }, [id, topStories, communityStories, savedArticles]);
+
+  // Always fetch the current article from the API and let it win over
+  // whatever was shown from cache — a saved article's body can legitimately
+  // change/lengthen after it was saved, and localStorage never re-validates.
+  // This is also the ONLY path that loads an article that isn't in any
+  // in-memory list at all (e.g. reached via Section/Local/Search).
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchArticleDetail(id)
+      .then(fresh => {
+        if (cancelled) return;
+        detailLoadedRef.current = true;
+        setArticle(fresh);
+        setNotFound(false);
+        hydrateArticleInteractions(fresh);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        // Only show "not found" if we have nothing at all to display for
+        // this id — a transient network failure shouldn't blow away a
+        // perfectly good cached copy that's already on screen.
+        if (!articleRef.current || articleRef.current.id !== id) {
+          setNotFound(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   const stopSpeech = () => {
     window.speechSynthesis.cancel();
@@ -164,6 +222,25 @@ export default function ArticleDetailPage() {
     }
     commentsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+
+  if (notFound) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-white dark:bg-[#0D0D0D] px-4 text-center">
+        <p className="font-serif font-black text-2xl text-[#1a1a1a] dark:text-[#F5F5F5]">
+          Article not found
+        </p>
+        <p className="text-sm text-[#999] max-w-xs">
+          This story may have been removed, or the link is incorrect.
+        </p>
+        <button
+          onClick={() => router.push('/')}
+          className="mt-2 px-5 py-2 rounded-full bg-canadaRed text-white text-sm font-bold tracking-wide hover:bg-canadaRedDark transition-colors"
+        >
+          Back to home
+        </button>
+      </div>
+    );
+  }
 
   if (!article) {
     return (

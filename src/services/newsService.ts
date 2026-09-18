@@ -150,6 +150,15 @@ async function fetchArticleList(path: string): Promise<Article[]> {
   return extractList(payload).map(mapBackendArticle);
 }
 
+/** Fetches a single article by id — the source of truth for the detail page.
+ * Unlike the list fetchers above, this does NOT swallow errors: a 404 (bad/
+ * deleted id) or network failure must reach the caller so it can distinguish
+ * "not found" from "still loading" instead of hanging on cached/no data. */
+export async function fetchArticleDetail(id: string): Promise<Article> {
+  const payload = await apiRequest<BackendArticle>(`/news/articles/${id}/`);
+  return mapBackendArticle(payload);
+}
+
 export async function fetchTopStories(): Promise<Article[]> {
   try {
     return await fetchArticleList('/news/top-stories/');
