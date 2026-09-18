@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { fetchCommunityStories, fetchTopStories, mapBackendArticle } from '../services/newsService';
+import { fetchCommunityStories, fetchTopStories, fetchSectionThumbnails, mapBackendArticle } from '../services/newsService';
 import { ApiError, apiRequest } from '../services/api';
 import { readStoredSession, requestWithStoredSession } from '../services/sessionService';
 import { resyncWebPushIfGranted } from '../lib/webPush';
@@ -67,12 +67,22 @@ interface AppState {
   hasSeenWelcome: boolean;
 }
 
+// Section labels the sidebar and footer both need a representative thumbnail
+// for — fetched once here and shared, rather than each component independently
+// re-fetching the same `/news/sections/*` data (which was tripping the API's
+// rate limit when both mounted on the same page load).
+const SECTION_THUMBNAIL_LABELS = [
+  'Politics', 'World', 'Business', 'Health', 'Sports', 'Technology', 'Entertainment',
+  'Immigration', 'Indigenous', 'Education', 'Aviation', 'Auto News', 'Blacks in Canada',
+];
+
 interface AppContextType extends AppState {
   appReady: boolean;
   topStories: Article[];
   communityStories: Article[];
   loadingNews: boolean;
   refreshNews: () => Promise<void>;
+  sectionThumbnails: Record<string, string | undefined>;
   sidebarOpen: boolean;
   openSidebar: () => void;
   closeSidebar: () => void;
@@ -174,6 +184,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [loadingNews, setLoadingNews] = useState(false);
   const [regionCatalog, setRegionCatalog] = useState<ServerRegion[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sectionThumbnails, setSectionThumbnails] = useState<Record<string, string | undefined>>({});
   const topStoriesRef = useRef<Article[]>([]);
   const canManageRegionsRef = useRef(true);
 
@@ -203,6 +214,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!loaded) return;
     void refreshNews();
   }, [loaded, state.onboardingComplete]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    void fetchSectionThumbnails(SECTION_THUMBNAIL_LABELS).then(setSectionThumbnails);
+  }, [loaded]);
 
   useEffect(() => {
     if (!loaded) return;
@@ -352,6 +368,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       loadingNews,
       refreshNews,
       colors,
+      sectionThumbnails,
       sidebarOpen,
       openSidebar: () => setSidebarOpen(true),
       closeSidebar: () => setSidebarOpen(false),

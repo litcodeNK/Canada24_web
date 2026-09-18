@@ -179,6 +179,31 @@ export async function fetchCategoryArticles(section: string): Promise<Article[]>
   }
 }
 
+// One representative thumbnail per section label, fetching the `/news/sections/`
+// catalog once and reusing it — for callers (sidebar, footer) that need several
+// section thumbnails at once, avoiding a redundant catalog fetch per label.
+export async function fetchSectionThumbnails(labels: string[]): Promise<Record<string, string | undefined>> {
+  try {
+    const sections = await apiRequest<BackendSection[]>('/news/sections/');
+    const entries = await Promise.all(
+      labels.map(async label => {
+        const requested = SECTION_NAME_ALIASES[label.toLowerCase()] ?? label;
+        const match = sections.find(item => item.label.toLowerCase() === requested.toLowerCase());
+        if (!match) return [label, undefined] as const;
+        try {
+          const articles = await fetchArticleList(`/news/sections/${match.slug}/`);
+          return [label, articles.find(a => a.imgUrl)?.imgUrl] as const;
+        } catch {
+          return [label, undefined] as const;
+        }
+      }),
+    );
+    return Object.fromEntries(entries);
+  } catch {
+    return Object.fromEntries(labels.map(label => [label, undefined]));
+  }
+}
+
 export async function fetchLocalNews(regionName?: string): Promise<Article[]> {
   const query = regionName ? `?regions=${encodeURIComponent(slugifyValue(regionName))}` : '';
 

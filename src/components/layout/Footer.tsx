@@ -1,12 +1,19 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
+import { Home, MapPin, PlayCircle, LogIn, Bookmark, Settings, Bell, Globe, type LucideIcon } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
+import { SectionThumb } from './SectionThumb';
 
-const FOOTER_COLS = [
+type FooterLink = { href: string; label: string; icon?: LucideIcon };
+
+const FOOTER_COLS: { heading: string; links: FooterLink[] }[] = [
   {
     heading: 'SECTIONS',
     links: [
-      { href: '/', label: 'Top Stories' },
-      { href: '/local', label: 'Local News' },
+      { href: '/', label: 'Top Stories', icon: Home },
+      { href: '/local', label: 'Local News', icon: MapPin },
       { href: '/sections/politics', label: 'Politics' },
       { href: '/sections/world', label: 'World' },
       { href: '/sections/business', label: 'Business' },
@@ -19,7 +26,7 @@ const FOOTER_COLS = [
   {
     heading: 'MORE',
     links: [
-      { href: '/videos', label: 'Video' },
+      { href: '/videos', label: 'Video', icon: PlayCircle },
       { href: '/sections/immigration', label: 'Immigration' },
       { href: '/sections/indigenous', label: 'Indigenous' },
       { href: '/sections/education', label: 'Education' },
@@ -31,16 +38,18 @@ const FOOTER_COLS = [
   {
     heading: 'ACCOUNT',
     links: [
-      { href: '/auth/email', label: 'Sign In' },
-      { href: '/saved', label: 'Saved Articles' },
-      { href: '/settings', label: 'Settings' },
-      { href: '/onboarding/alerts', label: 'Alert Preferences' },
-      { href: '/onboarding/regions', label: 'Manage Regions' },
+      { href: '/auth/email', label: 'Sign In', icon: LogIn },
+      { href: '/saved', label: 'Saved Articles', icon: Bookmark },
+      { href: '/settings', label: 'Settings', icon: Settings },
+      { href: '/onboarding/alerts', label: 'Alert Preferences', icon: Bell },
+      { href: '/onboarding/regions', label: 'Manage Regions', icon: Globe },
     ],
   },
 ];
 
 export function Footer() {
+  const { sectionThumbnails } = useApp();
+
   return (
     <div className="relative mt-6 sm:mt-10">
       {/* Wave cap: a two-period sine curve (y = mid + amp*sin(2*periods*pi*x/W)),
@@ -80,27 +89,44 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Columns */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 mb-8">
-          {FOOTER_COLS.map(col => (
-            <div key={col.heading}>
-              <h3 className="text-[10px] font-bold tracking-[0.12em] text-gray-500 uppercase mb-3 font-sans">
-                {col.heading}
-              </h3>
-              <ul className="space-y-2">
-                {col.links.map(link => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className="text-[13px] text-[#3a3a3a] dark:text-[#CCC] hover:text-canadaRed dark:hover:text-canadaRed transition-colors font-sans"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+        {/* Columns — floating navy card, same treatment as the header/footer cards elsewhere */}
+        <div className="bg-navy rounded-2xl sm:rounded-3xl shadow-xl shadow-navy/20 p-5 sm:p-8 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+            {FOOTER_COLS.map(col => (
+              <div key={col.heading}>
+                <h3 className="text-[10px] font-bold tracking-[0.12em] text-white/45 uppercase mb-3 font-sans">
+                  {col.heading}
+                </h3>
+                <ul className="space-y-1">
+                  {col.links.map(link => {
+                    const Icon = link.icon;
+                    return (
+                      <li key={link.href}>
+                        <Link
+                          href={link.href}
+                          className="group flex items-center gap-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
+                        >
+                          {Icon ? (
+                            <span className="w-8 h-8 rounded-lg flex-shrink-0 bg-white/10 flex items-center justify-center">
+                              <Icon className="w-4 h-4 text-white/70 group-hover:text-canadaRed transition-colors" />
+                            </span>
+                          ) : (
+                            <SectionThumb
+                              src={sectionThumbnails[link.label]}
+                              className="w-8 h-8 rounded-lg flex-shrink-0 bg-white/10"
+                            />
+                          )}
+                          <span className="text-[13px] text-white/80 group-hover:text-white transition-colors font-sans">
+                            {link.label}
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Bottom bar */}

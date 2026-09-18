@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useApp } from '@/context/AppContext';
-import { fetchCategoryArticles } from '@/services/newsService';
+import { SectionThumb } from './SectionThumb';
 import { clsx } from 'clsx';
 
 const navItems = [
@@ -36,25 +35,7 @@ const sectionLinks = [
 export function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
-  const { sidebarOpen: open, closeSidebar: onClose } = useApp();
-  const [sectionImages, setSectionImages] = useState<Record<string, string | undefined>>({});
-
-  // One representative image per section: the newest story from that section's
-  // own feed (/news/sections/<slug>/) — not the general top-stories/community
-  // feed, which is mostly tagged GENERAL and won't have a Politics/Health/etc. match.
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      const entries = await Promise.all(
-        sectionLinks.map(async ({ href, label }) => {
-          const articles = await fetchCategoryArticles(label);
-          return [href, articles.find(a => a.imgUrl)?.imgUrl] as const;
-        }),
-      );
-      if (!cancelled) setSectionImages(Object.fromEntries(entries));
-    })();
-    return () => { cancelled = true; };
-  }, []);
+  const { sidebarOpen: open, closeSidebar: onClose, sectionThumbnails } = useApp();
 
   return (
     <>
@@ -150,16 +131,10 @@ export function Sidebar() {
                   href={href}
                   className="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold text-[#1A1A1A] dark:text-[#F5F5F5] hover:bg-gray-100 dark:hover:bg-[#2A2A2A] transition-colors"
                 >
-                  {sectionImages[href] ? (
-                    <img
-                      src={sectionImages[href]}
-                      alt=""
-                      onError={() => setSectionImages(prev => ({ ...prev, [href]: undefined }))}
-                      className="w-9 h-9 rounded-md object-cover flex-shrink-0 bg-gray-200 dark:bg-[#2A2A2A]"
-                    />
-                  ) : (
-                    <span className="w-9 h-9 rounded-md flex-shrink-0 bg-gray-100 dark:bg-[#2A2A2A]" aria-hidden="true" />
-                  )}
+                  <SectionThumb
+                    src={sectionThumbnails[label]}
+                    className="w-9 h-9 rounded-md flex-shrink-0 bg-gray-100 dark:bg-[#2A2A2A]"
+                  />
                   {label}
                 </Link>
               ))}
