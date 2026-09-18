@@ -219,10 +219,10 @@ export default function ArticleDetailPage() {
           <button
             onClick={toggleSpeech}
             className={clsx(
-              'flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 transition-colors rounded border',
+              'flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 transition-colors rounded-full border',
               speaking
-                ? 'bg-[#D52B1E] text-white border-[#D52B1E]'
-                : 'text-[#999] border-[#E8E8E8] dark:border-[#333] hover:border-[#D52B1E] hover:text-[#D52B1E]',
+                ? 'bg-canadaRed text-white border-canadaRed'
+                : 'text-[#999] border-[#E8E8E8] dark:border-[#333] hover:border-canadaRed hover:text-canadaRed',
             )}
           >
             {speaking ? (
@@ -242,7 +242,7 @@ export default function ArticleDetailPage() {
           <div className="relative">
             <button
               onClick={handleShare}
-              className="text-[#999] hover:text-[#1a1a1a] dark:hover:text-white p-2 transition-colors rounded hover:bg-gray-100 dark:hover:bg-[#2A2A2A]"
+              className="text-[#999] hover:text-[#1a1a1a] dark:hover:text-white p-2 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-[#2A2A2A]"
               aria-label="Share article"
             >
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -251,7 +251,7 @@ export default function ArticleDetailPage() {
               </svg>
             </button>
             {shareTooltip && (
-              <div className="absolute right-0 top-10 bg-[#1a1a1a] text-white text-xs px-2.5 py-1.5 rounded whitespace-nowrap z-10">
+              <div className="absolute right-0 top-10 bg-[#1a1a1a] text-white text-xs px-2.5 py-1.5 rounded-lg whitespace-nowrap z-10">
                 Link copied!
               </div>
             )}
@@ -275,7 +275,7 @@ export default function ArticleDetailPage() {
         )}
 
         {/* 2. Headline — ABOVE the image */}
-        <h1 className="font-extrabold text-[#1a1a1a] dark:text-[#F5F5F5] text-[1.75rem] sm:text-[2.25rem] leading-tight tracking-tight mb-4">
+        <h1 className="font-serif font-black text-[#1a1a1a] dark:text-[#F5F5F5] text-[1.75rem] sm:text-[2.25rem] leading-[1.15] tracking-tight mb-4">
           {article.headline}
         </h1>
 
@@ -308,7 +308,7 @@ export default function ArticleDetailPage() {
         <div className="flex items-center gap-2 mb-6 pb-5 border-b border-[#E8E8E8] dark:border-[#2A2A2A]">
           <button
             onClick={handleShare}
-            className="flex items-center gap-2 text-xs font-medium text-[#3a3a3a] dark:text-[#CCC] border border-[#E8E8E8] dark:border-[#333] px-3 py-1.5 hover:border-[#D52B1E] hover:text-[#D52B1E] transition-colors"
+            className="flex items-center gap-2 text-xs font-medium text-[#3a3a3a] dark:text-[#CCC] border border-[#E8E8E8] dark:border-[#333] rounded-full px-3.5 py-1.5 hover:border-canadaRed hover:text-canadaRed transition-colors"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
@@ -320,10 +320,10 @@ export default function ArticleDetailPage() {
           <button
             onClick={() => toggleSaveArticle(article)}
             className={clsx(
-              'flex items-center gap-2 text-xs font-medium border px-3 py-1.5 transition-colors',
+              'flex items-center gap-2 text-xs font-medium border rounded-full px-3.5 py-1.5 transition-colors',
               saved
-                ? 'border-[#D52B1E] text-[#D52B1E] bg-[#D52B1E]/5'
-                : 'border-[#E8E8E8] dark:border-[#333] text-[#3a3a3a] dark:text-[#CCC] hover:border-[#D52B1E] hover:text-[#D52B1E]',
+                ? 'border-canadaRed text-canadaRed bg-canadaRed/5'
+                : 'border-[#E8E8E8] dark:border-[#333] text-[#3a3a3a] dark:text-[#CCC] hover:border-canadaRed hover:text-canadaRed',
             )}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -336,10 +336,10 @@ export default function ArticleDetailPage() {
           <button
             onClick={toggleSpeech}
             className={clsx(
-              'flex items-center gap-2 text-xs font-medium border px-3 py-1.5 transition-colors ml-auto',
+              'flex items-center gap-2 text-xs font-medium border rounded-full px-3.5 py-1.5 transition-colors ml-auto',
               speaking
-                ? 'border-[#D52B1E] text-[#D52B1E] bg-[#D52B1E]/5'
-                : 'border-[#E8E8E8] dark:border-[#333] text-[#3a3a3a] dark:text-[#CCC] hover:border-[#D52B1E] hover:text-[#D52B1E]',
+                ? 'border-canadaRed text-canadaRed bg-canadaRed/5'
+                : 'border-[#E8E8E8] dark:border-[#333] text-[#3a3a3a] dark:text-[#CCC] hover:border-canadaRed hover:text-canadaRed',
             )}
           >
             {speaking ? (
@@ -360,10 +360,10 @@ export default function ArticleDetailPage() {
           </button>
         </div>
 
-        {/* 5. Hero image — constrained to article column width, NOT full viewport */}
+        {/* 5. Hero image */}
         {article.imgUrl && (
-          <figure className="mb-6 -mx-4 sm:-mx-6 lg:mx-0">
-            <div className="relative w-full aspect-[16/9] bg-gray-100 dark:bg-[#1C1C1C] overflow-hidden">
+          <figure className="mb-6">
+            <div className="relative w-full aspect-[16/9] rounded-2xl bg-gray-100 dark:bg-[#1C1C1C] overflow-hidden shadow-sm">
               <Image
                 src={article.imgUrl}
                 alt={article.headline}
@@ -374,14 +374,14 @@ export default function ArticleDetailPage() {
                 priority
               />
               {article.isLive && (
-                <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-[#D52B1E] text-white px-3 py-1 bebas tracking-widest text-sm">
+                <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-canadaRed text-white px-3 py-1 rounded-full font-bold tracking-widest text-xs">
                   <span className="pulse-dot w-2 h-2 rounded-full bg-white" />
                   LIVE
                 </div>
               )}
             </div>
             {/* 6. Caption */}
-            <figcaption className="px-4 sm:px-0 mt-2 text-[12px] text-[#999] italic leading-snug">
+            <figcaption className="mt-2 text-[12px] text-[#999] italic leading-snug">
               {article.headline} — Canada 247
             </figcaption>
           </figure>
@@ -404,7 +404,7 @@ export default function ArticleDetailPage() {
           <div className="flex items-center gap-2 py-4 border-t border-b border-[#E8E8E8] dark:border-[#2A2A2A] mb-8">
             <EngageButton
               active={reaction === 'like'}
-              activeClass="bg-[#D52B1E]/8 text-[#D52B1E] border-[#D52B1E]/30"
+              activeClass="bg-canadaRed/8 text-canadaRed border-canadaRed/30"
               onClick={() => toggleLike(article.id)}
               count={likeCount}
               label="Like"
@@ -460,10 +460,10 @@ export default function ArticleDetailPage() {
             <button
               onClick={() => toggleSaveArticle(article)}
               className={clsx(
-                'flex items-center gap-1.5 px-3 py-2 text-sm font-medium border transition-colors',
+                'flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium border transition-colors',
                 saved
-                  ? 'border-[#D52B1E] text-[#D52B1E] bg-[#D52B1E]/5'
-                  : 'border-[#E8E8E8] dark:border-[#333] text-[#999] hover:border-[#D52B1E] hover:text-[#D52B1E]',
+                  ? 'border-canadaRed text-canadaRed bg-canadaRed/5'
+                  : 'border-[#E8E8E8] dark:border-[#333] text-[#999] hover:border-canadaRed hover:text-canadaRed',
               )}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -475,10 +475,10 @@ export default function ArticleDetailPage() {
 
           {/* 9. Comments section */}
           <section ref={commentsSectionRef}>
-            <h2 className="bebas tracking-widest text-[15px] dark:text-white mb-5 flex items-center gap-2">
-              <span>COMMENTS</span>
+            <h2 className="font-sans font-bold text-lg tracking-wide text-[#1a1a1a] dark:text-white mb-5 flex items-center gap-2">
+              <span>Comments</span>
               {commentCount > 0 && (
-                <span className="text-xs font-normal text-[#999] normal-case bebas-reset" style={{ fontFamily: 'inherit' }}>
+                <span className="text-sm font-normal text-[#999]">
                   ({commentCount})
                 </span>
               )}
@@ -486,7 +486,7 @@ export default function ArticleDetailPage() {
 
             {user ? (
               <div className="flex gap-3 mb-6">
-                <div className="w-8 h-8 rounded-full bg-[#D52B1E] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-canadaRed flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                   {user.displayName?.[0]?.toUpperCase() ?? user.email[0].toUpperCase()}
                 </div>
                 <div className="flex-1 flex flex-col gap-2">
@@ -495,23 +495,23 @@ export default function ArticleDetailPage() {
                     onChange={e => setCommentText(e.target.value)}
                     placeholder="Join the discussion…"
                     rows={4}
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-[#1C1C1C] border border-[#E8E8E8] dark:border-[#2A2A2A] text-sm outline-none focus:border-[#D52B1E] dark:text-white placeholder:text-[#999] transition-colors resize-none"
+                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-[#1C1C1C] border border-[#E8E8E8] dark:border-[#2A2A2A] text-sm outline-none focus:border-canadaRed dark:text-white placeholder:text-[#999] transition-colors resize-none"
                   />
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] text-[#999]">{commentText.length}/500 characters</span>
                     <button
                       onClick={handleAddComment}
                       disabled={!commentText.trim()}
-                      className="px-5 py-2 bg-[#D52B1E] text-white text-sm font-bold bebas tracking-wider disabled:opacity-40 hover:bg-[#B02010] transition-colors"
+                      className="px-5 py-2 rounded-full bg-canadaRed text-white text-sm font-bold tracking-wide disabled:opacity-40 hover:bg-canadaRedDark transition-colors"
                     >
-                      POST COMMENT
+                      Post comment
                     </button>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="mb-5 p-4 bg-gray-50 dark:bg-[#1C1C1C] border border-[#E8E8E8] dark:border-[#2A2A2A] text-center">
-                <a href="/auth/email" className="text-[#D52B1E] text-sm font-semibold hover:underline">
+              <div className="mb-5 p-4 rounded-xl bg-gray-50 dark:bg-[#1C1C1C] border border-[#E8E8E8] dark:border-[#2A2A2A] text-center">
+                <a href="/auth/email" className="text-canadaRed text-sm font-semibold hover:underline">
                   Sign in to join the discussion
                 </a>
               </div>
@@ -576,7 +576,7 @@ function RelatedArticleItem({ article }: { article: Article }) {
   return (
     <Link href={`/article/${article.id}`} className="group flex items-start gap-3 py-4 first:pt-0">
       {article.imgUrl && (
-        <div className="flex-shrink-0 w-20 h-14 overflow-hidden bg-gray-100 dark:bg-[#2A2A2A] hidden sm:block">
+        <div className="flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden bg-gray-100 dark:bg-[#2A2A2A] hidden sm:block">
           <img src={article.imgUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
         </div>
       )}
@@ -608,10 +608,10 @@ function EngageButton({ active, activeClass, onClick, count, label, children }: 
       onClick={onClick}
       aria-label={label}
       className={clsx(
-        'flex items-center gap-1.5 px-3 py-2 text-sm font-medium border transition-colors',
+        'flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium border transition-colors',
         active
           ? activeClass
-          : 'border-[#E8E8E8] dark:border-[#333] text-[#999] hover:border-[#D52B1E] hover:text-[#D52B1E]',
+          : 'border-[#E8E8E8] dark:border-[#333] text-[#999] hover:border-canadaRed hover:text-canadaRed',
       )}
     >
       {children}

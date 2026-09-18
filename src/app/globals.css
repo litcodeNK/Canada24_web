@@ -176,12 +176,37 @@ body {
 }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 
+/* Visible navy scrollbar for horizontally-scrolling strips (topic bars, tabs, trending) */
+.scrollbar-x-navy {
+  -ms-overflow-style: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #0C1F3F transparent;
+  padding-bottom: 5px;
+}
+.scrollbar-x-navy::-webkit-scrollbar { height: 5px; }
+.scrollbar-x-navy::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-x-navy::-webkit-scrollbar-thumb { background: #0C1F3F; border-radius: 3px; }
+.scrollbar-x-navy::-webkit-scrollbar-thumb:hover { background: #14325C; }
+
 /* Breaking news ticker */
 @keyframes ticker {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
 .ticker-animate { animation: ticker 25s linear infinite; }
+
+/* Fly-in card entrance */
+@keyframes fly-in {
+  0% { opacity: 0; transform: translateY(48px) scale(0.94); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.fly-in-card { animation: fly-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@keyframes backdrop-fade {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+.backdrop-fade { animation: backdrop-fade 0.4s ease-out both; }
 
 /* Pulse dot (LIVE badge) */
 @keyframes pulse-dot {

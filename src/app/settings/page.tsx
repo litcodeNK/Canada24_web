@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
+import { useWebPush } from '@/hooks/useWebPush';
 import { clsx } from 'clsx';
 
 export default function SettingsPage() {
@@ -13,6 +14,7 @@ export default function SettingsPage() {
     toggleDefaultTextSize, setTextScale, toggleBackgroundAudio,
   } = useApp();
   const { user, signOut } = useAuth();
+  const webPush = useWebPush();
 
   const fontSize = Math.round(13 + textScale * 12);
 
@@ -59,6 +61,21 @@ export default function SettingsPage() {
             </div>
           )}
         </Section>
+
+        {/* NOTIFICATIONS */}
+        {user && webPush.supported && (
+          <Section title="NOTIFICATIONS">
+            <ToggleRow
+              label="Browser Push Notifications"
+              value={webPush.enabled}
+              onToggle={webPush.toggle}
+              disabled={webPush.loading}
+            />
+            {webPush.error && (
+              <p className="px-4 pb-3.5 -mt-1 text-xs text-[#D52B1E]">{webPush.error}</p>
+            )}
+          </Section>
+        )}
 
         {/* MEDIA PLAYER */}
         <Section title="MEDIA PLAYER">
@@ -125,14 +142,15 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function ToggleRow({ label, value, onToggle }: { label: string; value: boolean; onToggle: () => void }) {
+function ToggleRow({ label, value, onToggle, disabled }: { label: string; value: boolean; onToggle: () => void; disabled?: boolean }) {
   return (
     <div className="flex items-center justify-between px-4 py-3.5 border-b border-gray-100 dark:border-[#2A2A2A] last:border-b-0">
       <span className="text-sm text-[#1A1A1A] dark:text-[#F5F5F5]">{label}</span>
       <button
         onClick={onToggle}
+        disabled={disabled}
         className={clsx(
-          'relative w-11 h-6 rounded-full transition-colors flex-shrink-0',
+          'relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50',
           value ? 'bg-[#D52B1E]' : 'bg-gray-200 dark:bg-[#333]',
         )}
       >

@@ -9,6 +9,8 @@ const config: Config = {
         canadaRed: '#D52B1E',
         canadaRedDark: '#A81F15',
         navy: '#0C1F3F',
+        oxfordBlue: '#14325C',
+        oxfordBlueDark: '#0B1F3A',
         primary: '#D52B1E',
         'primary-dark': '#FF453A',
         canada: {

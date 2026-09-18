@@ -155,6 +155,124 @@ def fetch_og_image(url: str, timeout: int = 10) -> str:
     return image_url if _is_absolute_url(image_url) else ""
 
 
+# Some sources (wire-service style feeds, teaser-only WordPress configs) never
+# put more than one or two sentences in the feed itself. For those, the only
+# way to get real depth is to fetch the article's own page and pull the body
+# out of the surrounding template. Kept intentionally conservative: this is
+# only ever used to *replace a too-short body*, never to add content that
+# doesn't come from the source's own published page, and it always degrades
+# to the short RSS body on any failure rather than raising.
+MIN_BODY_LENGTH_FOR_FULL_FETCH = 400
+
+_VOID_TAGS = {"img", "input", "meta", "link", "hr", "source", "track", "wbr", "area", "base", "col", "embed"}
+_DROP_SUBTREE_TAGS = {
+    "script", "style", "form", "button", "iframe", "svg", "nav", "footer",
+    "header", "aside", "select", "noscript", "video", "audio", "object", "canvas",
+}
+_BLOCK_TAGS = {"p", "div", "section", "article", "li", "blockquote", "h1", "h2", "h3", "h4"}
+_BOILERPLATE_RE = re.compile(
+    r"(sign up|newsletter|subscribe|terms (and|&) conditions|privacy policy|"
+    r"advertisement|related stor(y|ies)|read more|click here|follow us on|"
+    r"get daily|delivered to your inbox|never miss|^©|all rights reserved|division of)",
+    re.IGNORECASE,
+)
+
+
+class _ArticleBodyHtmlCleaner(HTMLParser):
+    """Reduces a readability-extracted article DOM to plain <p>/<a>/<strong>/<em>
+    markup, dropping non-content subtrees (nav, forms, embeds, ...) and any
+    paragraph that reads like boilerplate (newsletter prompts, copyright lines).
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.paragraphs: list[str] = []
+        self._skip_depth = 0
+        self._current: list[str] = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag in _VOID_TAGS:
+            return
+        if self._skip_depth > 0:
+            if tag in _DROP_SUBTREE_TAGS:
+                self._skip_depth += 1
+            return
+        if tag in _DROP_SUBTREE_TAGS:
+            self._skip_depth += 1
+        elif tag == "a":
+            href = dict(attrs).get("href") or "#"
+            self._current.append(f'<a href="{href}">')
+        elif tag in ("strong", "b"):
+            self._current.append("<strong>")
+        elif tag in ("em", "i"):
+            self._current.append("<em>")
+        elif tag == "br":
+            self._current.append("<br/>")
+
+    def handle_endtag(self, tag):
+        if tag in _VOID_TAGS:
+            return
+        if self._skip_depth > 0:
+            if tag in _DROP_SUBTREE_TAGS:
+                self._skip_depth -= 1
+            return
+        if tag == "a":
+            self._current.append("</a>")
+        elif tag in ("strong", "b"):
+            self._current.append("</strong>")
+        elif tag in ("em", "i"):
+            self._current.append("</em>")
+        elif tag in _BLOCK_TAGS:
+            html = "".join(self._current).strip()
+            plain = TAG_RE.sub("", html).strip()
+            if plain and len(plain) > 20 and not _BOILERPLATE_RE.search(plain):
+                if not self.paragraphs or self.paragraphs[-1] != html:
+                    self.paragraphs.append(html)
+            self._current = []
+
+    def handle_data(self, data):
+        if self._skip_depth == 0:
+            self._current.append(data)
+
+
+def fetch_full_article_body(url: str, timeout: int = 12) -> str:
+    """Fetch `url` and extract its main article text as clean paragraph HTML.
+
+    Returns "" on any failure (network error, no article-like content found,
+    the `readability` heuristic misfiring) — callers must treat that as
+    "couldn't improve on what we already have," not as an error to surface.
+    """
+    if not url:
+        return ""
+    try:
+        from readability import Document
+    except ImportError:
+        return ""
+
+    try:
+        response = requests.get(
+            url,
+            timeout=timeout,
+            headers={"User-Agent": USER_AGENT, "Accept": "text/html"},
+        )
+        response.raise_for_status()
+    except requests.RequestException:
+        return ""
+
+    try:
+        summary_html = Document(response.text).summary()
+    except Exception:
+        return ""
+
+    cleaner = _ArticleBodyHtmlCleaner()
+    try:
+        cleaner.feed(summary_html)
+    except Exception:
+        return ""
+
+    return "\n".join(f"<p>{p}</p>" for p in cleaner.paragraphs)
+
+
 def parse_published_at(value):
     if not value:
         return timezone.now()
@@ -223,7 +341,14 @@ def _build_entry(item, feed_key, default_category, *, is_atom=False) -> dict | N
         published_at = parse_atom_date(date_str)
     else:
         title = text_or_blank(item.find("title"))
-        raw_description = text_or_blank(item.find("description")) or text_or_blank(item.find(f"{CONTENT_NAMESPACE}encoded"))
+        # WordPress/Jetpack feeds put a short teaser in <description> and the
+        # full article HTML in <content:encoded>; other feeds only populate
+        # one of the two. Take whichever actually has more text rather than
+        # always preferring <description>, so full-text feeds aren't reduced
+        # to a one-line teaser.
+        desc_field = text_or_blank(item.find("description"))
+        content_field = text_or_blank(item.find(f"{CONTENT_NAMESPACE}encoded"))
+        raw_description = max((desc_field, content_field), key=lambda value: len(strip_html(value)))
         link = text_or_blank(item.find("link"))
         guid = text_or_blank(item.find("guid")) or link
         author = text_or_blank(item.find("author")) or text_or_blank(item.find(f"{DC_NAMESPACE}creator"))

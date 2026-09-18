@@ -1,20 +1,17 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
-import { getDirectVideoUrl, getEmbeddedVideoUrl } from '@/lib/video';
 import { AppShell } from '@/components/layout/AppShell';
 import { LatestNewsRail } from '@/components/layout/LatestNewsRail';
 import { HeroCard } from '@/components/news/HeroCard';
 import { BreakingTicker } from '@/components/news/BreakingTicker';
 import { SectionBlock } from '@/components/news/SectionBlock';
 import { useRouter } from 'next/navigation';
-import { fetchVideoFeed } from '@/services/newsService';
 import type { Article } from '@/context/AppContext';
-import type { VideoItem } from '@/types/video';
 
 const CATEGORY_COLORS: Record<string, string> = {
   POLITICS: '#1565C0', WORLD: '#00695C', BUSINESS: '#E65100',
@@ -90,11 +87,11 @@ export default function TopStoriesPage() {
       {/* ── 3-column layout ── */}
       <main
         id="main-content"
-        className="max-w-[1400px] mx-auto px-4 grid grid-cols-1 lg:grid-cols-[1.4fr_1fr_320px] gap-6 xl:gap-8 pb-8"
+        className="max-w-[1400px] mx-auto px-4 grid grid-cols-1 lg:grid-cols-[1.4fr_1fr_320px] gap-6 xl:gap-8 pb-8 overflow-x-hidden"
       >
 
         {/* ── LEFT COLUMN ── */}
-        <div className="flex flex-col lg:border-r border-gray-300 dark:border-[#2A2A2A] lg:pr-6">
+        <div className="flex flex-col min-w-0 lg:border-r border-gray-300 dark:border-[#2A2A2A] lg:pr-6">
 
           {/* Date + refresh row */}
           <div className="flex items-center justify-between py-3 border-b border-gray-300 dark:border-[#2A2A2A] mb-6">
@@ -136,7 +133,7 @@ export default function TopStoriesPage() {
         </div>
 
         {/* ── MIDDLE COLUMN ── */}
-        <div className="flex flex-col lg:border-r border-gray-300 dark:border-[#2A2A2A] lg:pr-6">
+        <div className="flex flex-col min-w-0 lg:border-r border-gray-300 dark:border-[#2A2A2A] lg:pr-6">
 
           {/* Middle section blocks */}
           {middleChunks.map((group, idx) => {
@@ -199,7 +196,7 @@ export default function TopStoriesPage() {
         </div>
 
         {/* ── RIGHT COLUMN — sticky rail, hidden below lg ── */}
-        <aside className="hidden lg:block">
+        <aside className="hidden lg:block min-w-0">
           <div className="sticky top-[176px] sm:top-[216px]">
             <LatestNewsRail />
           </div>
@@ -222,77 +219,29 @@ function WelcomeScreen({
   isAuthenticated: boolean;
   onContinue: () => void;
 }) {
-  const [backgroundVideo, setBackgroundVideo] = useState<VideoItem | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    fetchVideoFeed()
-      .then(feed => {
-        setBackgroundVideo(feed.trending[0] ?? feed.live[0] ?? null);
-      })
-      .catch(() => setBackgroundVideo(null));
-  }, []);
-
-  const directVideoUrl = backgroundVideo ? getDirectVideoUrl(backgroundVideo) : null;
-  const embedUrl = backgroundVideo ? getBackgroundVideoUrl(backgroundVideo) : null;
-
   return (
     <main className="relative flex min-h-screen flex-col overflow-hidden bg-[#060606] text-white">
-      <div className="absolute inset-0">
-        {directVideoUrl ? (
-          <video
-            ref={videoRef}
-            src={directVideoUrl}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            poster={backgroundVideo?.imgUrl}
-            className="h-full w-full object-cover opacity-55"
-            onCanPlay={() => {
-              const v = videoRef.current;
-              if (v && v.currentTime < 5) v.currentTime = 20;
-            }}
-          />
-        ) : embedUrl ? (
-          <iframe
-            src={embedUrl}
-            title={backgroundVideo?.title ?? 'Canada 24/7 background video'}
-            className="h-full w-full scale-[1.2] opacity-60 pointer-events-none"
-            allow="autoplay; encrypted-media; picture-in-picture"
-          />
-        ) : backgroundVideo?.imgUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={backgroundVideo.imgUrl} alt="" className="h-full w-full object-cover opacity-55" />
-        ) : null}
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,4,4,0.2)_0%,rgba(5,5,5,0.5)_38%,rgba(5,5,5,0.82)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(213,43,30,0.18),transparent_42%)]" />
-      </div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(213,43,30,0.16),transparent_46%)]" />
 
       <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-md flex-col px-7 pb-10 pt-12 text-center">
-        <div className="flex-1">
-          <div className="mx-auto h-[72px] w-[180px] rounded-full overflow-hidden">
-            <Image
-              src="/canada247-logo.jpg"
-              alt="Canada 24/7"
-              width={180}
-              height={72}
-              priority
-              className="w-full h-full object-cover"
-            />
-          </div>
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <Image
+            src="/canada247-logo.png"
+            alt="Canada 24/7"
+            width={686}
+            height={583}
+            priority
+            className="mx-auto h-[110px] w-auto object-contain drop-shadow-lg"
+          />
 
-          <div className="mt-16">
-            <h1 className="font-sans text-[42px] font-black leading-[1.02] tracking-[-0.04em] text-white">
-              Stay close to
+          <div className="mt-10">
+            <h1 className="font-sans text-[38px] font-black leading-[1.05] tracking-[-0.03em] text-white">
+              News. Updates.
               <br />
-              the stories
-              <br />
-              shaping Canada
+              Canada. Always.
             </h1>
-            <p className="mx-auto mt-6 max-w-[310px] text-lg leading-7 text-white/82">
-              Welcome to a sharper daily briefing built for readers who want clarity, urgency, and a stronger sense of what matters next.
+            <p className="mx-auto mt-5 max-w-[300px] text-base leading-7 text-white/75">
+              We&rsquo;ve got you covered — a sharper daily briefing built for readers who want clarity and a stronger sense of what matters next.
             </p>
           </div>
         </div>
@@ -329,39 +278,6 @@ function WelcomeScreen({
       </section>
     </main>
   );
-}
-
-function getBackgroundVideoUrl(item: VideoItem): string | null {
-  const embedUrl = getEmbeddedVideoUrl(item);
-  if (!embedUrl) return null;
-
-  try {
-    const parsed = new URL(embedUrl);
-
-    if (parsed.hostname.includes('youtube.com')) {
-      const videoId = parsed.pathname.split('/').filter(Boolean).pop();
-      parsed.searchParams.set('autoplay', '1');
-      parsed.searchParams.set('mute', '1');
-      parsed.searchParams.set('controls', '0');
-      parsed.searchParams.set('loop', '1');
-      parsed.searchParams.set('playsinline', '1');
-      parsed.searchParams.set('start', '20');
-      if (videoId) parsed.searchParams.set('playlist', videoId);
-      return parsed.toString();
-    }
-
-    if (parsed.hostname.includes('tiktok.com')) {
-      parsed.searchParams.set('autoplay', '1');
-      parsed.searchParams.set('description', '0');
-      parsed.searchParams.set('controls', '0');
-      parsed.searchParams.set('music_info', '0');
-      return parsed.toString();
-    }
-
-    return parsed.toString();
-  } catch {
-    return embedUrl;
-  }
 }
 
 function LatestItem({ article }: { article: Article }) {

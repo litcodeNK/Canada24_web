@@ -1,6 +1,5 @@
 import type { Article } from '../context/AppContext';
 import type { UserPost, UserPostStatus } from '../context/AuthContext';
-import { LOCAL_ARTICLES, SECTION_FALLBACK_ARTICLES, TOP_STORIES } from '../data/newsData';
 import type { VideoFeed, VideoItem } from '../types/video';
 import { apiRequest, extractList } from './api';
 
@@ -153,10 +152,9 @@ async function fetchArticleList(path: string): Promise<Article[]> {
 
 export async function fetchTopStories(): Promise<Article[]> {
   try {
-    const articles = await fetchArticleList('/news/top-stories/');
-    return articles.length > 0 ? articles : TOP_STORIES;
+    return await fetchArticleList('/news/top-stories/');
   } catch {
-    return TOP_STORIES;
+    return [];
   }
 }
 
@@ -169,29 +167,25 @@ export async function fetchCommunityStories(): Promise<Article[]> {
 }
 
 export async function fetchCategoryArticles(section: string): Promise<Article[]> {
-  const fallback = SECTION_FALLBACK_ARTICLES[section] ?? [];
   try {
     const sections = await apiRequest<BackendSection[]>('/news/sections/');
     const requested = SECTION_NAME_ALIASES[section.toLowerCase()] ?? section;
     const match = sections.find(item => item.label.toLowerCase() === requested.toLowerCase());
-    if (!match) return fallback;
+    if (!match) return [];
 
-    const articles = await fetchArticleList(`/news/sections/${match.slug}/`);
-    return articles.length > 0 ? articles : fallback;
+    return await fetchArticleList(`/news/sections/${match.slug}/`);
   } catch {
-    return fallback;
+    return [];
   }
 }
 
 export async function fetchLocalNews(regionName?: string): Promise<Article[]> {
-  const fallback = regionName ? LOCAL_ARTICLES[regionName] ?? [] : [];
   const query = regionName ? `?regions=${encodeURIComponent(slugifyValue(regionName))}` : '';
 
   try {
-    const articles = await fetchArticleList(`/news/local/${query}`);
-    return articles.length > 0 ? articles : fallback;
+    return await fetchArticleList(`/news/local/${query}`);
   } catch {
-    return fallback;
+    return [];
   }
 }
 

@@ -57,12 +57,12 @@ export function LatestNewsRail() {
       <div className="flex items-center gap-2 mb-3">
         <MapleLeaf className="w-6 h-6 flex-shrink-0" />
         <span className="font-display font-black text-xl tracking-tight text-[#1a1a1a] dark:text-white">
-          CANADA NEWS LIVE
+          CANADA NEWS
         </span>
         <div className="w-2 h-2 rounded-full bg-canadaRed ml-auto pulse-dot flex-shrink-0" aria-label="Live indicator" />
       </div>
 
-      <div className="bg-black aspect-video relative overflow-hidden" role="region" aria-label="Live video player">
+      <div className="bg-black aspect-video relative overflow-hidden rounded-xl" role="region" aria-label="Video player">
         {loadingVideo ? (
           <div className="absolute inset-0 flex items-center justify-center text-white">
             <LoaderCircle className="w-8 h-8 animate-spin" />
@@ -110,31 +110,29 @@ export function LatestNewsRail() {
       <div className="flex flex-col gap-3">
         {latestItems.length > 0 ? (
           latestItems.map((item: Article, i: number) => (
-            <div
+            <Link
               key={item.id}
-              className="p-4 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-[#2A2A2A]"
+              href={`/article/${item.id}`}
+              className="block p-4 rounded-xl bg-oxfordBlue dark:bg-oxfordBlueDark hover:opacity-90 transition-opacity"
             >
               <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                <div className="w-1.5 h-1.5 rounded-full bg-white/70 flex-shrink-0" />
                 <time
-                  className="text-xs text-gray-500 font-mono tracking-wide uppercase"
+                  className="text-xs text-white/70 font-mono tracking-wide uppercase"
                   dateTime={item.time}
                 >
                   {item.time}
                 </time>
               </div>
-              <Link
-                href={`/article/${item.id}`}
-                className="font-serif font-bold text-[15px] leading-snug hover:text-blue-500 transition-colors hover-underline text-[#1a1a1a] dark:text-[#F5F5F5]"
-              >
+              <p className="font-serif font-bold text-[15px] leading-snug text-white">
                 {item.headline}
-              </Link>
-            </div>
+              </p>
+            </Link>
           ))
         ) : (
           /* Placeholder skeleton while loading */
           Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="p-4 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-[#2A2A2A]">
+            <div key={i} className="p-4 rounded-xl bg-oxfordBlue/20 dark:bg-oxfordBlueDark/30">
               <div className="skeleton h-3 w-16 mb-2 rounded" />
               <div className="skeleton h-4 w-full rounded mb-1" />
               <div className="skeleton h-4 w-3/4 rounded" />
@@ -159,9 +157,9 @@ export function LatestNewsRail() {
         {SPONSORED.map((item, i) => (
           <div
             key={i}
-            className="p-4 bg-white dark:bg-[#1C1C1C] border border-gray-200 dark:border-[#2A2A2A] flex gap-4 group cursor-pointer"
+            className="p-4 rounded-xl bg-oxfordBlue dark:bg-oxfordBlueDark flex gap-4 group cursor-pointer"
           >
-            <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden bg-gray-100 dark:bg-[#2A2A2A]">
+            <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden rounded-lg bg-black/10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={item.img}
@@ -173,10 +171,10 @@ export function LatestNewsRail() {
               />
             </div>
             <div>
-              <span className="text-[10px] text-blue-500 font-bold tracking-wider uppercase block mb-1">
+              <span className="text-[10px] text-white/80 font-bold tracking-wider uppercase block mb-1">
                 {item.category}
               </span>
-              <p className="font-serif font-bold text-[15px] leading-snug group-hover:underline decoration-1 underline-offset-2 text-[#1a1a1a] dark:text-[#F5F5F5]">
+              <p className="font-serif font-bold text-[15px] leading-snug group-hover:underline decoration-1 underline-offset-2 text-white">
                 {item.title}
               </p>
             </div>

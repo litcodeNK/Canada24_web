@@ -71,6 +71,48 @@ def backfill_article_images(limit: int = 30):
     return {"checked": len(articles), "updated": len(updated_ids)}
 
 
+@shared_task
+def backfill_short_article_bodies(limit: int = 20):
+    """Replace teaser-length bodies with the full article text from the source page.
+
+    Several feeds (wire-service style RSS, WordPress configs that only expose
+    an excerpt) never put more than a sentence or two in the feed itself. This
+    fetches each such article's own page and swaps in the extracted full text
+    when it actually finds more than the feed gave us — client-reported the
+    feed content as "too brief," this is the fix for sources that are
+    structurally incapable of giving us more via the feed alone.
+
+    Only recent articles are considered so a source that consistently fails to
+    yield more text (paywalled, blocks bots, ...) ages out of the query rather
+    than being retried forever every 10 minutes.
+    """
+    from datetime import timedelta
+
+    from django.db.models.functions import Length
+    from django.utils import timezone as dj_timezone
+
+    from .services import MIN_BODY_LENGTH_FOR_FULL_FETCH, fetch_full_article_body
+    from .models import Article
+
+    cutoff = dj_timezone.now() - timedelta(days=3)
+    articles = list(
+        Article.objects.annotate(body_len=Length("body"))
+        .filter(body_len__lt=MIN_BODY_LENGTH_FOR_FULL_FETCH, published_at__gte=cutoff)
+        .exclude(source_url="")
+        .order_by("-published_at")[:limit]
+    )
+
+    updated_ids = []
+    for article in articles:
+        full_body = fetch_full_article_body(article.source_url)
+        if full_body and len(full_body) > len(article.body):
+            article.body = full_body
+            article.save(update_fields=["body"])
+            updated_ids.append(article.pk)
+
+    return {"checked": len(articles), "updated": len(updated_ids)}
+
+
 def _broadcast_updated_images(article_ids: list[int]) -> None:
     from .models import Article
     from .querysets import annotate_article_queryset

@@ -13,7 +13,7 @@ export class ApiError extends Error {
 }
 
 const DEFAULT_LOCAL_API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
-const DEFAULT_PRODUCTION_API_BASE_URL = 'https://canada24web-production.up.railway.app/api/v1';
+const DEFAULT_PRODUCTION_API_BASE_URL = 'https://ca.niveel.com/api/v1';
 
 function resolveApiBaseUrl(): string {
   const configuredBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
@@ -21,7 +21,7 @@ function resolveApiBaseUrl(): string {
 
   if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
     console.warn(
-      'NEXT_PUBLIC_API_BASE_URL is not set. Falling back to the Railway production API.',
+      'NEXT_PUBLIC_API_BASE_URL is not set. Falling back to the VPS production API.',
     );
     return DEFAULT_PRODUCTION_API_BASE_URL;
   }

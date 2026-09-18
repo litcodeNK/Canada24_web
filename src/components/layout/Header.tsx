@@ -6,7 +6,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Search, User, Menu } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
-import { Badge } from '@/components/news/Badge';
 import { clsx } from 'clsx';
 
 interface HeaderProps {
@@ -44,9 +43,9 @@ export function Header({ onMenuToggle }: HeaderProps) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 w-full font-sans shadow-sm">
 
-      {/* ── Top White Bar: Logo + Actions ── */}
-      <div className="bg-white dark:bg-[#1A1A1A] border-b border-gray-200 dark:border-[#2A2A2A]">
-        <div className="max-w-[1400px] mx-auto px-4 h-[80px] sm:h-[120px] flex items-center justify-between gap-4">
+      {/* ── Top Bar: Logo + Actions, in a floating oval card ── */}
+      <div className="bg-white dark:bg-[#0D0D0D] px-4 pt-2.5 pb-2 sm:pt-3.5 sm:pb-3 h-[80px] sm:h-[120px] flex items-center border-b border-gray-200 dark:border-[#2A2A2A]">
+        <div className="max-w-[1400px] mx-auto w-full h-full bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] shadow-md rounded-tl-[40px] sm:rounded-tl-[60px] rounded-br-[40px] sm:rounded-br-[60px] rounded-tr-lg rounded-bl-lg px-5 sm:px-8 flex items-center justify-between gap-4">
 
           {/* Left: hamburger (mobile) + Logo */}
           <div className="flex items-center gap-3">
@@ -63,18 +62,16 @@ export function Header({ onMenuToggle }: HeaderProps) {
               className="flex items-center gap-3 flex-shrink-0"
               aria-label="Canada 247 — home"
             >
-              <div className="h-[44px] w-[110px] sm:h-[56px] sm:w-[140px] rounded-full overflow-hidden flex-shrink-0">
-                <Image
-                  src="/canada247-logo.jpg"
-                  alt="Canada 247"
-                  width={140}
-                  height={56}
-                  className="w-full h-full object-cover"
-                  priority
-                />
-              </div>
+              <Image
+                src="/canada247-logo.png"
+                alt="Canada 247"
+                width={686}
+                height={583}
+                className="h-[44px] w-auto sm:h-[56px] object-contain flex-shrink-0"
+                priority
+              />
               <div className="hidden sm:block border-l-2 border-canadaRed pl-5">
-                <span className="block text-[22px] sm:text-[42px] font-black tracking-[0.08em] text-canadaRed uppercase leading-none">
+                <span className="block text-[22px] sm:text-[42px] font-black tracking-[0.08em] text-navy dark:text-[#4C7BD9] uppercase leading-none">
                   CANADA IN REAL TIME
                 </span>
               </div>
@@ -131,13 +128,6 @@ export function Header({ onMenuToggle }: HeaderProps) {
               )}
               <span className="hidden lg:inline">{user ? (user.displayName || 'Account') : 'Sign In'}</span>
             </Link>
-
-            <Link
-              href="/subscribe"
-              className="hidden sm:flex bg-canadaRed text-white text-[12px] font-bold px-4 py-2 rounded-sm tracking-wide hover:bg-canadaRedDark transition-colors whitespace-nowrap"
-            >
-              SUBSCRIBE
-            </Link>
           </div>
         </div>
       </div>
@@ -149,7 +139,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
       >
         <div className="max-w-[1400px] mx-auto px-4 h-10 flex items-center justify-between gap-4">
           {/* Primary nav links — xl+ */}
-          <div className="hidden xl:flex items-center gap-1 text-[12px] font-bold tracking-wide h-full overflow-x-auto scrollbar-hide">
+          <div className="hidden xl:flex items-center gap-1 text-[12px] font-bold tracking-wide h-full overflow-x-auto scrollbar-x-navy">
             {PRIMARY_NAV.map(({ href, label }) => {
               const isActive = pathname === href || pathname.startsWith(href + '/');
               return (
@@ -169,7 +159,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
           </div>
 
           {/* Mobile: show all sections scrollable */}
-          <div className="xl:hidden flex items-center gap-1 text-[12px] font-bold tracking-wide h-full overflow-x-auto scrollbar-hide flex-1">
+          <div className="xl:hidden flex items-center gap-1 text-[12px] font-bold tracking-wide h-full overflow-x-auto scrollbar-x-navy flex-1">
             {PRIMARY_NAV.map(({ href, label }) => {
               const isActive = pathname === href || pathname.startsWith(href + '/');
               return (
@@ -195,13 +185,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
         className="bg-white dark:bg-[#1A1A1A] border-b border-gray-300 dark:border-[#2A2A2A]"
         aria-label="Topic navigation"
       >
-        <div className="max-w-[1400px] mx-auto px-4 h-10 flex items-center gap-5 overflow-x-auto whitespace-nowrap scrollbar-hide text-[13px] font-medium">
-          <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
-            <Badge type="live" />
-            <span className="font-bold text-gray-900 dark:text-white group-hover:text-canadaRed group-hover:underline transition-colors decoration-1 underline-offset-2">
-              Breaking News
-            </span>
-          </Link>
+        <div className="max-w-[1400px] mx-auto px-4 h-10 flex items-center gap-5 overflow-x-auto whitespace-nowrap scrollbar-x-navy text-[13px] font-medium">
           {SECONDARY_NAV.map(({ href, label }) => (
             <Link
               key={label}

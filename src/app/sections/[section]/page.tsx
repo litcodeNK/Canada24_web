@@ -80,7 +80,7 @@ export default function SectionDetailPage() {
 
           {/* Topic sub-nav — NBC Sports/Politics style */}
           {topics.length > 0 && (
-            <div className="flex overflow-x-auto scrollbar-hide gap-0 -mb-px">
+            <div className="flex overflow-x-auto scrollbar-x-navy gap-0 -mb-px">
               <button
                 onClick={() => setActiveTopic(null)}
                 className={clsx(

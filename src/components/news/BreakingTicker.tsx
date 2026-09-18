@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Zap } from 'lucide-react';
 import type { Article } from '@/context/AppContext';
 
 export function BreakingTicker({ articles }: { articles: Article[] }) {
@@ -13,16 +14,16 @@ export function BreakingTicker({ articles }: { articles: Article[] }) {
     <div className="border-b border-gray-300 dark:border-[#2A2A2A]" role="region" aria-label="Breaking news and trending">
       {/* Breaking news ticker */}
       {breaking.length > 0 && (
-        <div className="bg-canadaRed flex items-center overflow-hidden h-9">
-          <div className="flex-shrink-0 bg-black text-white px-3 sm:px-4 h-full flex items-center gap-2 z-10">
-            <span className="pulse-dot w-2 h-2 rounded-full bg-canadaRed flex-shrink-0" />
-            <span className="font-sans font-bold tracking-widest text-sm whitespace-nowrap">BREAKING</span>
+        <div className="flex items-center overflow-hidden h-10 bg-gradient-to-r from-canadaRedDark to-canadaRed shadow-sm">
+          <div className="flex-shrink-0 flex items-center gap-2 px-4 sm:px-5 h-full bg-black/25 z-10">
+            <Zap className="w-4 h-4 text-white fill-white flex-shrink-0" aria-hidden="true" />
+            <span className="font-sans font-black tracking-[0.15em] text-[13px] text-white whitespace-nowrap">BREAKING</span>
           </div>
           <div className="flex-1 overflow-hidden" aria-live="polite" aria-label="Breaking news headlines">
             <div className="flex whitespace-nowrap ticker-animate">
-              <span className="text-white text-xs font-semibold px-6 font-sans">
-                {breaking.map(a => a.headline).join('  ·  ')}&nbsp;&nbsp;&nbsp;&nbsp;
-                {breaking.map(a => a.headline).join('  ·  ')}
+              <span className="text-white text-[13px] font-semibold px-6 font-sans">
+                {breaking.map(a => a.headline).join('   •   ')}&nbsp;&nbsp;&nbsp;&nbsp;
+                {breaking.map(a => a.headline).join('   •   ')}
               </span>
             </div>
           </div>
@@ -35,7 +36,7 @@ export function BreakingTicker({ articles }: { articles: Article[] }) {
           <div className="flex-shrink-0 px-3 sm:px-4 h-full flex items-center border-r border-gray-300 dark:border-[#2A2A2A]">
             <span className="text-[10px] font-bold tracking-[0.12em] text-[#999] uppercase whitespace-nowrap font-sans">Trending</span>
           </div>
-          <div className="flex items-center gap-2 px-3 overflow-x-auto scrollbar-hide flex-1">
+          <div className="flex items-center gap-2 px-3 overflow-x-auto scrollbar-x-navy flex-1">
             {trending.map(article => (
               <Link
                 key={article.id}

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { useApp } from '@/context/AppContext';
@@ -151,22 +150,6 @@ export default function ProfilePage() {
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
             Member since {memberYear}
           </p>
-        </div>
-
-        {/* ── Subscription badge ── */}
-        <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-[#2A2A2A] bg-gray-50 dark:bg-[#1C1C1C] mb-6">
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-bold tracking-widest text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-[#2A2A2A] px-2 py-0.5 rounded-sm">
-              FREE PLAN
-            </span>
-            <span className="text-sm text-gray-600 dark:text-gray-300">Basic access</span>
-          </div>
-          <Link
-            href="/subscribe"
-            className="text-sm font-semibold text-[#D52B1E] hover:underline whitespace-nowrap"
-          >
-            Upgrade to Premium →
-          </Link>
         </div>
 
         {/* ── Stats row ── */}

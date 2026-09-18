@@ -83,16 +83,14 @@ export default function AlertSetupPage() {
 
       {/* ── Header ── */}
       <div className="bg-white dark:bg-[#1A1A1A] border-b border-gray-200 dark:border-[#2A2A2A] px-4 py-4 flex flex-col items-center gap-3">
-        <div className="h-12 w-32 rounded-full overflow-hidden border border-gray-200 dark:border-[#333] bg-white">
-          <Image
-            src="/canada247-logo.jpg"
-            alt="Canada 247"
-            width={128}
-            height={48}
-            className="w-full h-full object-cover"
-            priority
-          />
-        </div>
+        <Image
+          src="/canada247-logo.png"
+          alt="Canada 247"
+          width={686}
+          height={583}
+          className="h-12 w-auto object-contain"
+          priority
+        />
         <div className="text-center">
           <h1 className="font-serif font-black text-2xl sm:text-3xl text-[#1a1a1a] dark:text-white leading-tight">
             What do you want to follow?

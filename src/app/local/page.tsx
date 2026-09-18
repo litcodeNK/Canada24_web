@@ -34,7 +34,7 @@ export default function LocalNewsPage() {
           <h1 className="bebas tracking-widest text-[22px] dark:text-white mb-4">LOCAL NEWS</h1>
 
           {/* City tabs */}
-          <div className="flex overflow-x-auto scrollbar-hide gap-0 -mb-px">
+          <div className="flex overflow-x-auto scrollbar-x-navy gap-0 -mb-px">
             {CITIES.map(city => (
               <button
                 key={city}

@@ -19,3 +19,4 @@ daphne>=4.0
 django-redis>=5.4
 django-anymail[sendgrid]>=10.3
 django-cloudinary-storage>=0.3
+readability-lxml>=0.9

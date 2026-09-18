@@ -5,9 +5,14 @@ import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
 import { Footer } from './Footer';
+import { OfflineScreen } from './OfflineScreen';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isOnline = useOnlineStatus();
+
+  if (!isOnline) return <OfflineScreen />;
 
   return (
     <>

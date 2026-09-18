@@ -2,9 +2,9 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { fetchCommunityStories, fetchTopStories, mapBackendArticle } from '../services/newsService';
-import { TOP_STORIES } from '../data/newsData';
 import { ApiError, apiRequest } from '../services/api';
 import { readStoredSession, requestWithStoredSession } from '../services/sessionService';
+import { resyncWebPushIfGranted } from '../lib/webPush';
 import { Colors } from '../theme';
 
 export interface Article {
@@ -166,11 +166,11 @@ const AppContext = createContext<AppContextType | null>(null);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>(defaultState);
   const [loaded, setLoaded] = useState(false);
-  const [topStories, setTopStories] = useState<Article[]>(TOP_STORIES);
+  const [topStories, setTopStories] = useState<Article[]>([]);
   const [communityStories, setCommunityStories] = useState<Article[]>([]);
   const [loadingNews, setLoadingNews] = useState(false);
   const [regionCatalog, setRegionCatalog] = useState<ServerRegion[]>([]);
-  const topStoriesRef = useRef<Article[]>(TOP_STORIES);
+  const topStoriesRef = useRef<Article[]>([]);
   const canManageRegionsRef = useRef(true);
 
   // Load from localStorage
@@ -213,6 +213,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     topStoriesRef.current = topStories;
   }, [topStories]);
+
+  // Silently re-sync an already-granted web push subscription (e.g. after a browser key rotation)
+  useEffect(() => {
+    if (!loaded || !state.onboardingComplete) return;
+    void resyncWebPushIfGranted();
+  }, [loaded, state.onboardingComplete]);
 
   // WebSocket for real-time updates (only if WS URL is configured and not in dev without daphne)
   useEffect(() => {

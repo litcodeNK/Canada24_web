@@ -258,6 +258,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.news.tasks.backfill_article_images",
         "schedule": crontab(minute="*/10"),
     },
+    "backfill-short-article-bodies-every-10-minutes": {
+        "task": "apps.news.tasks.backfill_short_article_bodies",
+        "schedule": crontab(minute="5,15,25,35,45,55"),
+    },
     "cleanup-expired-otps": {
         "task": "apps.accounts.tasks.cleanup_expired_otps",
         "schedule": crontab(minute=0, hour="*/1"),
@@ -276,7 +280,7 @@ TIKTOK_CLIENT_KEY = config("TIKTOK_CLIENT_KEY", default="")
 TIKTOK_CLIENT_SECRET = config("TIKTOK_CLIENT_SECRET", default="")
 TIKTOK_REDIRECT_URI = config(
     "TIKTOK_REDIRECT_URI",
-    default="https://canada24web-production.up.railway.app/api/v1/news/tiktok/oauth/callback/",
+    default="https://ca.niveel.com/api/v1/news/tiktok/oauth/callback/",
 )
 
 OTP_EXPIRY_MINUTES = config("OTP_EXPIRY_MINUTES", default=10, cast=int)
