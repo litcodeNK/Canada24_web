@@ -15,7 +15,9 @@ export function HeroCard({ article }: { article: Article }) {
   const { promptSignIn } = useInteractions();
   const saved = isArticleSaved(article.id);
 
-  const handleSave = () => {
+  const handleSave = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!user) {
       promptSignIn('save articles');
       return;
@@ -29,10 +31,10 @@ export function HeroCard({ article }: { article: Article }) {
 
   return (
     <article className="group mb-8 rounded-xl bg-oxfordBlue dark:bg-oxfordBlueDark p-4">
+      <Link href={`/article/${article.id}`} className="block" aria-label={`Read: ${article.headline}`}>
 
-      {/* Hero image — 16:9 with video overlay */}
-      <Link href={`/article/${article.id}`} className="block mb-4 relative" aria-label={`Read: ${article.headline}`}>
-        <figure className="relative w-full overflow-hidden rounded-lg">
+        {/* Hero image — 16:9 with video overlay */}
+        <figure className="relative w-full overflow-hidden rounded-lg mb-4">
           <div className="relative w-full aspect-[16/9] bg-black/10">
             <Image
               src={article.imgUrl || DEFAULT_ARTICLE_IMAGE}
@@ -71,65 +73,63 @@ export function HeroCard({ article }: { article: Article }) {
             )}
           </div>
         </figure>
-      </Link>
 
-      {/* Text block */}
-      <div className="lg:grid lg:grid-cols-[1fr_auto] lg:gap-8 lg:items-start">
-        <div>
-          {article.category && (
-            <span
-              className="text-[11px] font-bold tracking-[0.1em] uppercase mb-2 block font-sans text-white/80"
-            >
-              {article.category}
-            </span>
-          )}
+        {/* Text block */}
+        <div className="lg:grid lg:grid-cols-[1fr_auto] lg:gap-8 lg:items-start">
+          <div>
+            {article.category && (
+              <span
+                className="text-[11px] font-bold tracking-[0.1em] uppercase mb-2 block font-sans text-white/80"
+              >
+                {article.category}
+              </span>
+            )}
 
-          <Link href={`/article/${article.id}`}>
             <h1 className="font-serif font-black text-4xl leading-[1.1] mb-3 group-hover:text-white/85 transition-colors text-white">
               {article.headline}
             </h1>
-          </Link>
 
-          {excerpt && (
-            <p className="font-serif text-[17px] text-white/75 leading-relaxed mb-3 max-w-[720px]">
-              {excerpt}
-            </p>
-          )}
+            {excerpt && (
+              <p className="font-serif text-[17px] text-white/75 leading-relaxed mb-3 max-w-[720px]">
+                {excerpt}
+              </p>
+            )}
 
-          {/* Byline */}
-          <div className="flex items-center gap-2 flex-wrap font-sans">
-            {article.isUpdated && (
-              <span className="text-[9px] bebas tracking-widest text-white/70 border border-white/30 px-1.5 py-0.5 rounded">
-                UPDATED
-              </span>
-            )}
-            {article.author && (
-              <span className="text-[13px] font-semibold text-white/85">{article.author}</span>
-            )}
-            {article.author && <span className="text-white/50">·</span>}
-            <time className="text-[13px] text-white/60" dateTime={article.time}>
-              {article.time}
-            </time>
+            {/* Byline */}
+            <div className="flex items-center gap-2 flex-wrap font-sans">
+              {article.isUpdated && (
+                <span className="text-[9px] bebas tracking-widest text-white/70 border border-white/30 px-1.5 py-0.5 rounded">
+                  UPDATED
+                </span>
+              )}
+              {article.author && (
+                <span className="text-[13px] font-semibold text-white/85">{article.author}</span>
+              )}
+              {article.author && <span className="text-white/50">·</span>}
+              <time className="text-[13px] text-white/60" dateTime={article.time}>
+                {article.time}
+              </time>
+            </div>
           </div>
-        </div>
 
-        {/* Save button */}
-        <button
-          onClick={handleSave}
-          className={clsx(
-            'mt-3 lg:mt-1 flex items-center gap-1.5 text-[12px] font-medium border rounded-md px-3 py-1.5 transition-colors whitespace-nowrap self-start font-sans',
-            saved
-              ? 'border-white text-white bg-white/10'
-              : 'border-white/30 text-white/70 hover:border-white hover:text-white',
-          )}
-          aria-label={saved ? 'Unsave article' : 'Save article'}
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-          </svg>
-          {saved ? 'Saved' : 'Save'}
-        </button>
-      </div>
+          {/* Save button */}
+          <button
+            onClick={handleSave}
+            className={clsx(
+              'mt-3 lg:mt-1 flex items-center gap-1.5 text-[12px] font-medium border rounded-md px-3 py-1.5 transition-colors whitespace-nowrap self-start font-sans relative z-10',
+              saved
+                ? 'border-white text-white bg-white/10'
+                : 'border-white/30 text-white/70 hover:border-white hover:text-white',
+            )}
+            aria-label={saved ? 'Unsave article' : 'Save article'}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            </svg>
+            {saved ? 'Saved' : 'Save'}
+          </button>
+        </div>
+      </Link>
     </article>
   );
 }
