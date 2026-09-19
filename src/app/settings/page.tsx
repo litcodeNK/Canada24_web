@@ -13,7 +13,7 @@ export default function SettingsPage() {
     allowBackgroundAudio, toggleDarkMode, toggleCompactLayout, toggleStorySwiping,
     toggleDefaultTextSize, setTextScale, toggleBackgroundAudio,
   } = useApp();
-  const { user, signOut } = useAuth();
+  const { user, isAuthLoading, signOut } = useAuth();
   const webPush = useWebPush();
 
   const fontSize = Math.round(13 + textScale * 12);
@@ -84,7 +84,15 @@ export default function SettingsPage() {
 
         {/* ACCOUNT */}
         <Section title="ACCOUNT">
-          {user ? (
+          {isAuthLoading ? (
+            <div className="px-4 py-4 flex items-center gap-3" aria-hidden="true">
+              <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-[#2A2A2A] animate-pulse flex-shrink-0" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <div className="h-3.5 w-1/2 rounded bg-gray-200 dark:bg-[#2A2A2A] animate-pulse" />
+                <div className="h-3 w-2/3 rounded bg-gray-200 dark:bg-[#2A2A2A] animate-pulse" />
+              </div>
+            </div>
+          ) : user ? (
             <>
               <div className="px-4 py-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-[#D52B1E] flex items-center justify-center text-white font-bold flex-shrink-0">

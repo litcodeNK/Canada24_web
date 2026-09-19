@@ -8,6 +8,7 @@ import { useApp, DEFAULT_ARTICLE_IMAGE } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { useInteractions } from '@/context/InteractionsContext';
 import type { Article } from '@/context/AppContext';
+import { fetchArticleById } from '@/services/newsService';
 import { clsx } from 'clsx';
 
 const FALLBACK_BODY = [
@@ -42,12 +43,20 @@ export default function ArticleDetailPage() {
   } = useInteractions();
 
   const [article, setArticle] = useState<Article | null>(null);
+  const [notFound, setNotFound] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [speaking, setSpeaking] = useState(false);
   const [shareTooltip, setShareTooltip] = useState(false);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
   const resumeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const commentsSectionRef = useRef<HTMLElement | null>(null);
+  const directFetchAttemptedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    setArticle(null);
+    setNotFound(false);
+    directFetchAttemptedRef.current = null;
+  }, [id]);
 
   useEffect(() => {
     const all = [...topStories, ...communityStories, ...savedArticles];
@@ -55,7 +64,22 @@ export default function ArticleDetailPage() {
     if (found) {
       setArticle(found);
       hydrateArticleInteractions(found);
+      return;
     }
+
+    // Not in any already-loaded list (older story, or a hard refresh landing
+    // straight on this URL before those lists loaded) — fetch it directly
+    // instead of spinning forever. Only ever attempted once per id.
+    if (directFetchAttemptedRef.current === id) return;
+    directFetchAttemptedRef.current = id;
+    void fetchArticleById(id).then(result => {
+      if (result === 'not-found' || result === null) {
+        setNotFound(true);
+      } else {
+        setArticle(result);
+        hydrateArticleInteractions(result);
+      }
+    });
   }, [id, topStories, communityStories, savedArticles]);
 
   const stopSpeech = () => {
@@ -173,6 +197,23 @@ export default function ArticleDetailPage() {
     }
     toggleSaveArticle(article);
   };
+
+  if (notFound) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-center px-6 bg-white dark:bg-[#0D0D0D]">
+        <p className="bebas tracking-widest text-[#999] text-xl">STORY NOT FOUND</p>
+        <p className="text-[#999] text-sm max-w-sm">
+          This article may have been removed, or the link is out of date.
+        </p>
+        <button
+          onClick={() => router.push('/')}
+          className="mt-2 px-5 py-2.5 bg-[#D52B1E] text-white text-sm font-bold tracking-wide hover:bg-[#B02010] transition-colors"
+        >
+          Back to Top Stories
+        </button>
+      </div>
+    );
+  }
 
   if (!article) {
     return (

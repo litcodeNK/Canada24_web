@@ -1,7 +1,7 @@
 import type { Article } from '../context/AppContext';
 import type { UserPost, UserPostStatus } from '../context/AuthContext';
 import type { VideoFeed, VideoItem } from '../types/video';
-import { apiRequest, extractList } from './api';
+import { apiRequest, extractList, ApiError } from './api';
 
 type BackendArticle = {
   id: number;
@@ -148,6 +148,20 @@ function mapBackendVideoItem(item: BackendVideoItem): VideoItem {
 async function fetchArticleList(path: string): Promise<Article[]> {
   const payload = await apiRequest<BackendArticle[] | { results: BackendArticle[] }>(path);
   return extractList(payload).map(mapBackendArticle);
+}
+
+// Fetches a single article by id directly — used when the detail page can't
+// find it in whatever lists (top-stories, community, saved) happen to already
+// be loaded, e.g. an older story, or a hard refresh landing straight on the
+// article URL before those lists have loaded at all.
+export async function fetchArticleById(id: string): Promise<Article | 'not-found' | null> {
+  try {
+    const payload = await apiRequest<BackendArticle>(`/news/articles/${id}/`);
+    return mapBackendArticle(payload);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return 'not-found';
+    return null;
+  }
 }
 
 export async function fetchTopStories(): Promise<Article[]> {

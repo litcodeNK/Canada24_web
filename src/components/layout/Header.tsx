@@ -36,7 +36,7 @@ const SECONDARY_NAV = [
 
 export function Header({ onMenuToggle }: HeaderProps) {
   const { darkMode, toggleDarkMode } = useApp();
-  const { user } = useAuth();
+  const { user, isAuthLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -101,33 +101,39 @@ export function Header({ onMenuToggle }: HeaderProps) {
               <Search className="w-5 h-5" />
             </button>
 
-            <Link
-              href="/profile"
-              className="hidden sm:flex items-center gap-1.5 text-gray-600 dark:text-gray-300 hover:text-canadaRed transition-colors p-1.5 text-sm font-medium"
-              aria-label={user ? `${user.displayName || user.email} — Profile` : 'Profile / Sign in'}
-            >
-              {user ? (
-                user.avatar ? (
-                  <Image
-                    src={user.avatar}
-                    alt={user.displayName || user.email}
-                    width={24}
-                    height={24}
-                    className="w-6 h-6 rounded-full object-cover"
-                  />
+            {isAuthLoading ? (
+              <div className="hidden sm:flex items-center gap-1.5 p-1.5" aria-hidden="true">
+                <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-[#333] animate-pulse" />
+              </div>
+            ) : (
+              <Link
+                href="/profile"
+                className="hidden sm:flex items-center gap-1.5 text-gray-600 dark:text-gray-300 hover:text-canadaRed transition-colors p-1.5 text-sm font-medium"
+                aria-label={user ? `${user.displayName || user.email} — Profile` : 'Profile / Sign in'}
+              >
+                {user ? (
+                  user.avatar ? (
+                    <Image
+                      src={user.avatar}
+                      alt={user.displayName || user.email}
+                      width={24}
+                      height={24}
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[11px] font-bold select-none flex-shrink-0"
+                      style={{ backgroundColor: '#D52B1E' }}
+                    >
+                      {(user.displayName?.[0] ?? user.email[0]).toUpperCase()}
+                    </div>
+                  )
                 ) : (
-                  <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[11px] font-bold select-none flex-shrink-0"
-                    style={{ backgroundColor: '#D52B1E' }}
-                  >
-                    {(user.displayName?.[0] ?? user.email[0]).toUpperCase()}
-                  </div>
-                )
-              ) : (
-                <User className="w-5 h-5" />
-              )}
-              <span className="hidden lg:inline">{user ? (user.displayName || 'Account') : 'Sign In'}</span>
-            </Link>
+                  <User className="w-5 h-5" />
+                )}
+                <span className="hidden lg:inline">{user ? (user.displayName || 'Account') : 'Sign In'}</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>

@@ -34,7 +34,7 @@ const sectionLinks = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, isAuthLoading } = useAuth();
   const { sidebarOpen: open, closeSidebar: onClose, sectionThumbnails } = useApp();
 
   return (
@@ -164,7 +164,15 @@ export function Sidebar() {
 
         {/* Footer: user */}
         <div className="relative p-4 border-t border-gray-200 dark:border-[#333]">
-          {user ? (
+          {isAuthLoading ? (
+            <div className="flex items-center gap-3" aria-hidden="true">
+              <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-[#333] animate-pulse flex-shrink-0" />
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <div className="h-3 w-2/3 rounded bg-gray-200 dark:bg-[#333] animate-pulse" />
+                <div className="h-2.5 w-4/5 rounded bg-gray-200 dark:bg-[#333] animate-pulse" />
+              </div>
+            </div>
+          ) : user ? (
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-[#D52B1E] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                 {user.displayName?.[0]?.toUpperCase() ?? user.email[0].toUpperCase()}
