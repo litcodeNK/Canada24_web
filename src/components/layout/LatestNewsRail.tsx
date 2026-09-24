@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { LoaderCircle, Sparkles } from 'lucide-react';
+import { LoaderCircle } from 'lucide-react';
 import { MapleLeaf } from '@/components/news/MapleLeaf';
 import { useApp } from '@/context/AppContext';
 import type { Article } from '@/context/AppContext';
@@ -10,32 +10,11 @@ import { fetchVideoFeed } from '@/services/newsService';
 import { buildWatchHref, getEmbeddedVideoUrl } from '@/lib/video';
 import type { VideoItem } from '@/types/video';
 
-const SPONSORED = [
-  {
-    category: 'CANADA',
-    title: 'Top Canadian travel destinations for summer 2025',
-    img: 'https://images.unsplash.com/photo-1503614472-8c93d56e92ce?auto=format&fit=crop&q=80&w=150&h=150',
-  },
-  {
-    category: 'HEALTH',
-    title: 'How to stay healthy during Canadian winters',
-    img: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=150&h=150',
-  },
-  {
-    category: 'BUSINESS',
-    title: 'The best investment strategies for Canadians in 2025',
-    img: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&q=80&w=150&h=150',
-  },
-  {
-    category: 'LIVING',
-    title: 'Housing market outlook: what buyers need to know',
-    img: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=150&h=150',
-  },
-];
-
-export function LatestNewsRail() {
+export function LatestNewsRail({ articles }: { articles?: Article[] } = {}) {
   const { topStories } = useApp();
-  const latestItems = topStories.slice(0, 16);
+  // Homepage passes its own category-scoped list; falls back to the
+  // unfiltered feed for safety if this is ever rendered without one.
+  const latestItems = (articles ?? topStories).slice(0, 16);
   const [featuredVideo, setFeaturedVideo] = useState<VideoItem | null>(null);
   const [loadingVideo, setLoadingVideo] = useState(true);
 
@@ -145,46 +124,6 @@ export function LatestNewsRail() {
         SEE MORE
       </button>
 
-      {/* Select badge */}
-      <div className="inline-flex items-center gap-1 border border-blue-500 rounded-full px-3 py-0.5 mb-4">
-        <Sparkles className="w-3.5 h-3.5 text-blue-500" aria-hidden="true" />
-        <span className="text-blue-500 font-bold text-xs tracking-wider">select</span>
-      </div>
-
-      {/* Sponsored items */}
-      {/* TODO: Wire to backend — GET /api/sponsored — returns sponsored content items */}
-      <div className="flex flex-col gap-3">
-        {SPONSORED.map((item, i) => (
-          <div
-            key={i}
-            className="p-4 rounded-xl bg-oxfordBlue dark:bg-oxfordBlueDark flex gap-4 group cursor-pointer"
-          >
-            <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden rounded-lg bg-black/10">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={item.img}
-                alt={item.title}
-                className="w-full h-full object-cover"
-                loading="lazy"
-                width={80}
-                height={80}
-              />
-            </div>
-            <div>
-              <span className="text-[10px] text-white/80 font-bold tracking-wider uppercase block mb-1">
-                {item.category}
-              </span>
-              <p className="font-serif font-bold text-[15px] leading-snug group-hover:underline decoration-1 underline-offset-2 text-white">
-                {item.title}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <button className="w-full py-3 border border-blue-500 text-blue-500 font-bold text-sm tracking-wide hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors mt-2">
-        SEE ALL
-      </button>
     </aside>
   );
 }

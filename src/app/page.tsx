@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
@@ -10,41 +10,53 @@ import { LatestNewsRail } from '@/components/layout/LatestNewsRail';
 import { HomeHero } from '@/components/news/HomeHero';
 import { FeaturedUpdates } from '@/components/news/FeaturedUpdates';
 import { ImmigrationByProvince } from '@/components/news/ImmigrationByProvince';
-import { NewcomerSections } from '@/components/news/NewcomerSections';
 import { LatestVideos } from '@/components/news/LatestVideos';
 import { BreakingTicker } from '@/components/news/BreakingTicker';
 import { SectionBlock } from '@/components/news/SectionBlock';
+import { fetchCategoryArticles } from '@/services/newsService';
+import { SECTION_NAV } from '@/lib/nav';
 import { useRouter } from 'next/navigation';
 import type { Article } from '@/context/AppContext';
 
-const CATEGORY_COLORS: Record<string, string> = {
-  POLITICS: '#1565C0', WORLD: '#00695C', BUSINESS: '#E65100',
-  HEALTH: '#1B5E20', SPORTS: '#D52B1E', TECHNOLOGY: '#01579B',
-  ENTERTAINMENT: '#880E4F', IMMIGRATION: '#BF360C', INDIGENOUS: '#4A148C',
-  DEFAULT: '#D52B1E',
-};
-
-function sectionColor(cat?: string) {
-  return CATEGORY_COLORS[(cat ?? '').toUpperCase()] ?? CATEGORY_COLORS.DEFAULT;
-}
-
-function chunk<T>(arr: T[], n: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
-  return out;
-}
-
-function groupLabel(articles: Article[]): string {
-  const counts: Record<string, number> = {};
-  for (const a of articles) if (a.category) counts[a.category] = (counts[a.category] ?? 0) + 1;
-  const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
-  return top ? top[0] : 'TOP STORIES';
-}
+/**
+ * Categories shown on the homepage — deliberately just the 4 real-news items
+ * from SECTION_NAV (Video has no articles of its own; Settlement Guide has
+ * no page at all yet). Everything the homepage renders (hero, section rows,
+ * the Trending strip, the right-rail "Latest News" list) is built from these
+ * fetches, not from the unfiltered /news/top-stories/ feed — that endpoint
+ * spans all ~16 backend categories, which is exactly what this site's nav no
+ * longer surfaces.
+ */
+const HOMEPAGE_SECTIONS = SECTION_NAV.filter(
+  (item): item is typeof item & { href: string } => item.href !== null && item.href.startsWith('/sections/'),
+);
 
 export default function TopStoriesPage() {
   const { topStories, communityStories, loadingNews, refreshNews, onboardingComplete, hasSeenWelcome, completeWelcome, appReady } = useApp();
   const { user, isAuthLoading } = useAuth();
   const router = useRouter();
+
+  // Homepage content is scoped to the 4 real-news mockup categories, fetched
+  // directly rather than filtered client-side from topStories — topStories
+  // stays unfiltered because other consumers (search, saved-article lookup,
+  // the article detail page's cache) need every category, not just these 4.
+  const [categoryArticles, setCategoryArticles] = useState<Record<string, Article[]>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all(
+      HOMEPAGE_SECTIONS.map(section =>
+        fetchCategoryArticles(section.href.replace('/sections/', ''))
+          .then(articles => [section.label, articles] as const)
+          .catch(() => [section.label, [] as Article[]] as const),
+      ),
+    ).then(entries => {
+      if (!cancelled) setCategoryArticles(Object.fromEntries(entries));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (appReady && hasSeenWelcome && !isAuthLoading && user && !onboardingComplete) router.replace('/onboarding/regions');
@@ -71,17 +83,23 @@ export default function TopStoriesPage() {
     </div>
   );
 
-  const [hero, ...rest] = topStories;
-  const sectionChunks = chunk(rest.slice(0, 20), 5);
-  const latestFeed = rest.slice(20, 30);
+  // Merge the 4 categories into one feed for the hero/Trending/Latest-News
+  // rail, sorted newest first — each article has exactly one category, so
+  // there's no cross-category duplication to worry about.
+  const homeArticles = Object.values(categoryArticles)
+    .flat()
+    .sort((a, b) => new Date(b.publishedAt ?? 0).getTime() - new Date(a.publishedAt ?? 0).getTime());
 
-  /* Split sections across two columns */
-  const leftChunks = sectionChunks.slice(0, 2);
-  const middleChunks = sectionChunks.slice(2);
+  const [hero, ...rest] = homeArticles;
+  const latestFeed = rest.slice(0, 10);
+  const heroId = hero?.id;
+
+  const leftSections = HOMEPAGE_SECTIONS.slice(0, 2);
+  const middleSections = HOMEPAGE_SECTIONS.slice(2);
 
   return (
     <AppShell>
-      <BreakingTicker articles={topStories} />
+      <BreakingTicker articles={homeArticles} />
 
       {/* Advertisement label */}
       <div className="w-full text-center py-4">
@@ -133,17 +151,18 @@ export default function TopStoriesPage() {
           {/* Divider */}
           <div className="h-px bg-gray-300 dark:bg-[#2A2A2A] w-full mb-6" />
 
-          {/* Category rows — these would otherwise never reach the homepage,
-              see NewcomerSections for why. */}
-          <NewcomerSections />
-
-          {/* Left column section blocks */}
-          {leftChunks.map((group, idx) => {
-            const label = groupLabel(group);
-            const color = sectionColor(group.find(a => a.category)?.category);
-            const layout = idx % 2 === 0 ? 'standard' : 'wide-left';
+          {/* One SectionBlock per mockup category — the hero's own article is
+              excluded so it isn't repeated immediately below itself. */}
+          {leftSections.map((section, idx) => {
+            const articles = (categoryArticles[section.label] ?? []).filter(a => a.id !== heroId);
             return (
-              <SectionBlock key={idx} title={label} color={color} articles={group} layout={layout} />
+              <SectionBlock
+                key={section.label}
+                title={section.label.toUpperCase()}
+                color={section.color ?? '#D52B1E'}
+                articles={articles}
+                layout={idx % 2 === 0 ? 'standard' : 'wide-left'}
+              />
             );
           })}
         </div>
@@ -152,12 +171,16 @@ export default function TopStoriesPage() {
         <div className="flex flex-col min-w-0 lg:border-r border-gray-300 dark:border-[#2A2A2A] lg:pr-6">
 
           {/* Middle section blocks */}
-          {middleChunks.map((group, idx) => {
-            const label = groupLabel(group);
-            const color = sectionColor(group.find(a => a.category)?.category);
-            const layout = idx % 2 === 0 ? 'wide-left' : 'standard';
+          {middleSections.map((section, idx) => {
+            const articles = (categoryArticles[section.label] ?? []).filter(a => a.id !== heroId);
             return (
-              <SectionBlock key={idx} title={label} color={color} articles={group} layout={layout} />
+              <SectionBlock
+                key={section.label}
+                title={section.label.toUpperCase()}
+                color={section.color ?? '#D52B1E'}
+                articles={articles}
+                layout={idx % 2 === 0 ? 'wide-left' : 'standard'}
+              />
             );
           })}
 
@@ -214,7 +237,7 @@ export default function TopStoriesPage() {
         {/* ── RIGHT COLUMN — sticky rail, hidden below lg ── */}
         <aside className="hidden lg:block min-w-0">
           <div className="sticky top-[176px] sm:top-[216px]">
-            <LatestNewsRail />
+            <LatestNewsRail articles={homeArticles} />
           </div>
         </aside>
       </main>
