@@ -1,4 +1,4 @@
-import type { Article } from '../context/AppContext';
+import type { Article, RelatedCoverageItem, RelatedCoverageStatus } from '../context/AppContext';
 import type { UserPost, UserPostStatus } from '../context/AuthContext';
 import type { VideoFeed, VideoItem } from '../types/video';
 import { apiRequest, extractList } from './api';
@@ -27,6 +27,17 @@ type BackendArticle = {
   user_reaction: 'like' | 'dislike' | null;
   is_saved: boolean;
   is_reposted: boolean;
+  related_coverage?: BackendRelatedCoverageItem[];
+  related_coverage_status?: RelatedCoverageStatus;
+};
+
+type BackendRelatedCoverageItem = {
+  title: string;
+  url: string;
+  snippet: string;
+  source_hostname: string;
+  source_favicon: string;
+  age: string;
 };
 
 type BackendUserPost = {
@@ -108,7 +119,25 @@ export function mapBackendArticle(article: BackendArticle): Article {
     userReaction: article.user_reaction,
     isSaved: article.is_saved,
     isReposted: article.is_reposted,
+    relatedCoverage: mapRelatedCoverage(article.related_coverage),
+    relatedCoverageStatus: article.related_coverage_status,
   };
+}
+
+function mapRelatedCoverage(items?: BackendRelatedCoverageItem[]): RelatedCoverageItem[] {
+  if (!Array.isArray(items)) return [];
+  return items
+    // Brave occasionally returns an entry with no usable link; skip those
+    // rather than rendering a dead card.
+    .filter(item => item?.title && item?.url)
+    .map(item => ({
+      title: item.title,
+      url: item.url,
+      snippet: item.snippet ?? '',
+      sourceHostname: item.source_hostname ?? '',
+      sourceFavicon: item.source_favicon ?? '',
+      age: item.age ?? '',
+    }));
 }
 
 export function mapBackendUserPost(post: BackendUserPost): UserPost {

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { useInteractions } from '@/context/InteractionsContext';
-import type { Article } from '@/context/AppContext';
+import type { Article, RelatedCoverageItem } from '@/context/AppContext';
 import { fetchArticleDetail } from '@/services/newsService';
 import { clsx } from 'clsx';
 
@@ -477,6 +477,12 @@ export default function ArticleDetailPage() {
             ))}
           </div>
 
+          {/* 7b. Related coverage (Brave Search enrichment) — only rendered
+              once the backend has actually populated it. On the very first
+              view of an article the status comes back PENDING (the fetch was
+              just triggered), so the section stays hidden until a later load. */}
+          <RelatedCoverage items={article.relatedCoverage} />
+
           {/* 8. Engagement bar */}
           <div className="flex items-center gap-2 py-4 border-t border-b border-[#E8E8E8] dark:border-[#2A2A2A] mb-8">
             <EngageButton
@@ -646,6 +652,64 @@ export default function ArticleDetailPage() {
         )}
       </article>
     </div>
+  );
+}
+
+function RelatedCoverage({ items }: { items?: RelatedCoverageItem[] }) {
+  if (!items || items.length === 0) return null;
+
+  return (
+    <section className="mb-8 pt-6 border-t border-[#E8E8E8] dark:border-[#2A2A2A]">
+      <h2 className="font-sans font-bold text-lg tracking-wide text-[#1a1a1a] dark:text-white mb-1">
+        Related coverage
+      </h2>
+      <p className="text-[12px] text-[#999] mb-4">From other news sources</p>
+
+      <div className="space-y-3">
+        {items.map(item => (
+          <a
+            key={item.url}
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group block p-3.5 rounded-xl border border-[#E8E8E8] dark:border-[#2A2A2A] hover:border-canadaRed dark:hover:border-canadaRed transition-colors"
+          >
+            <div className="flex items-center gap-2 mb-1.5">
+              {item.sourceFavicon && (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={item.sourceFavicon}
+                  alt=""
+                  width={14}
+                  height={14}
+                  className="rounded-sm flex-shrink-0"
+                  loading="lazy"
+                />
+              )}
+              <span className="text-[11px] font-semibold text-[#666] dark:text-[#AAA] truncate">
+                {item.sourceHostname}
+              </span>
+              {item.age && (
+                <>
+                  <span className="text-[#E8E8E8] dark:text-[#444]">·</span>
+                  <span className="text-[11px] text-[#999] flex-shrink-0">{item.age}</span>
+                </>
+              )}
+            </div>
+
+            <h3 className="font-serif font-bold text-[15px] leading-snug text-[#1a1a1a] dark:text-[#F5F5F5] group-hover:text-canadaRed transition-colors line-clamp-2">
+              {item.title}
+            </h3>
+
+            {item.snippet && (
+              <p className="mt-1 text-[13px] text-[#666] dark:text-[#AAA] leading-relaxed line-clamp-2">
+                {item.snippet}
+              </p>
+            )}
+          </a>
+        ))}
+      </div>
+    </section>
   );
 }
 
