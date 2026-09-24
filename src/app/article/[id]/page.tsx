@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, type ReactNode } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -46,7 +46,7 @@ export default function ArticleDetailPage() {
   const [notFound, setNotFound] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [speaking, setSpeaking] = useState(false);
-  const [shareTooltip, setShareTooltip] = useState(false);
+  const [shareMenuOpen, setShareMenuOpen] = useState<'icon' | 'row' | null>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
   const resumeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const commentsSectionRef = useRef<HTMLElement | null>(null);
@@ -185,24 +185,8 @@ export default function ArticleDetailPage() {
     };
   }, []);
 
-  const handleShare = async () => {
-    if (navigator.share && article) {
-      try {
-        await navigator.share({ title: article.headline, url: window.location.href });
-        return;
-      } catch (err) {
-        // User dismissed the share sheet — no fallback needed
-        if (err instanceof Error && err.name === 'AbortError') return;
-      }
-    }
-    // Fallback: copy link to clipboard
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-    } catch {
-      // clipboard not available — still show the tooltip so the user knows something happened
-    }
-    setShareTooltip(true);
-    setTimeout(() => setShareTooltip(false), 2000);
+  const toggleShareMenu = (which: 'icon' | 'row') => {
+    setShareMenuOpen(prev => (prev === which ? null : which));
   };
 
   const handleAddComment = () => {
@@ -327,7 +311,7 @@ export default function ArticleDetailPage() {
           {/* Share */}
           <div className="relative">
             <button
-              onClick={handleShare}
+              onClick={() => toggleShareMenu('icon')}
               className="text-[#999] hover:text-[#1a1a1a] dark:hover:text-white p-2 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-[#2A2A2A]"
               aria-label="Share article"
             >
@@ -336,10 +320,8 @@ export default function ArticleDetailPage() {
                 <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
               </svg>
             </button>
-            {shareTooltip && (
-              <div className="absolute right-0 top-10 bg-[#1a1a1a] text-white text-xs px-2.5 py-1.5 rounded-lg whitespace-nowrap z-10">
-                Link copied!
-              </div>
+            {shareMenuOpen === 'icon' && article && (
+              <ShareMenu url={typeof window !== 'undefined' ? window.location.href : ''} title={article.headline} onClose={() => setShareMenuOpen(null)} />
             )}
           </div>
         </div>
@@ -393,16 +375,21 @@ export default function ArticleDetailPage() {
 
         {/* 4. Share + Save action row */}
         <div className="flex items-center gap-2 mb-6 pb-5 border-b border-[#E8E8E8] dark:border-[#2A2A2A]">
-          <button
-            onClick={handleShare}
-            className="flex items-center gap-2 text-xs font-medium text-[#3a3a3a] dark:text-[#CCC] border border-[#E8E8E8] dark:border-[#333] rounded-full px-3.5 py-1.5 hover:border-canadaRed hover:text-canadaRed transition-colors"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-            </svg>
-            Share
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => toggleShareMenu('row')}
+              className="flex items-center gap-2 text-xs font-medium text-[#3a3a3a] dark:text-[#CCC] border border-[#E8E8E8] dark:border-[#333] rounded-full px-3.5 py-1.5 hover:border-canadaRed hover:text-canadaRed transition-colors"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </svg>
+              Share
+            </button>
+            {shareMenuOpen === 'row' && article && (
+              <ShareMenu url={typeof window !== 'undefined' ? window.location.href : ''} title={article.headline} onClose={() => setShareMenuOpen(null)} align="left" />
+            )}
+          </div>
 
           <button
             onClick={handleSave}
@@ -656,6 +643,139 @@ export default function ArticleDetailPage() {
         </aside>
       )}
       </div>
+    </div>
+  );
+}
+
+function buildShareUrl(platform: 'facebook' | 'x' | 'whatsapp' | 'linkedin', url: string, title: string): string {
+  const u = encodeURIComponent(url);
+  const t = encodeURIComponent(title);
+  switch (platform) {
+    case 'facebook':
+      return `https://www.facebook.com/sharer/sharer.php?u=${u}`;
+    case 'x':
+      return `https://twitter.com/intent/tweet?url=${u}&text=${t}`;
+    case 'whatsapp':
+      return `https://wa.me/?text=${t}%20${u}`;
+    case 'linkedin':
+      return `https://www.linkedin.com/sharing/share-offsite/?url=${u}`;
+  }
+}
+
+function ShareMenuItem({ label, icon, onClick }: { label: string; icon: ReactNode; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm text-[#3a3a3a] dark:text-[#DDD] hover:bg-gray-50 dark:hover:bg-[#2A2A2A] transition-colors text-left"
+    >
+      <span className="flex-shrink-0 w-4 h-4 flex items-center justify-center">{icon}</span>
+      {label}
+    </button>
+  );
+}
+
+/** Instagram has no public share-intent URL (unlike Facebook/X/WhatsApp/LinkedIn) —
+ * Meta's own developer docs only cover native-app deep links that require an
+ * image asset and a registered Facebook App ID, not a plain web hyperlink.
+ * The standard workaround is copy-link + prompt the user to paste it into
+ * their own Story/post/DM, which is what this does. */
+function ShareMenu({
+  url,
+  title,
+  onClose,
+  align = 'right',
+}: {
+  url: string;
+  title: string;
+  onClose: () => void;
+  /** Which edge the menu hangs from — 'right' for a trigger near the right
+   * edge of its row, 'left' for one near the left (right-0 alone pushes a
+   * 240px-wide menu off-screen when the trigger sits far left on the page). */
+  align?: 'left' | 'right';
+}) {
+  const [message, setMessage] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) onClose();
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onClose]);
+
+  const openShareWindow = (href: string) => {
+    window.open(href, '_blank', 'noopener,noreferrer,width=600,height=500');
+    onClose();
+  };
+
+  const copyLink = async (successMessage: string, closeDelayMs: number) => {
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      // clipboard not available — still show the message so the user knows something happened
+    }
+    setMessage(successMessage);
+    setTimeout(onClose, closeDelayMs);
+  };
+
+  return (
+    <div
+      ref={menuRef}
+      className={clsx(
+        'absolute top-10 z-20 w-60 rounded-xl border border-[#E8E8E8] dark:border-[#2A2A2A] bg-white dark:bg-[#1a1a1a] shadow-lg overflow-hidden',
+        align === 'right' ? 'right-0' : 'left-0',
+      )}
+    >
+      {message ? (
+        <div className="px-3.5 py-3 text-xs text-[#3a3a3a] dark:text-[#CCC]">{message}</div>
+      ) : (
+        <div className="py-1.5">
+          <ShareMenuItem
+            label="Facebook"
+            onClick={() => openShareWindow(buildShareUrl('facebook', url, title))}
+            icon={
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.78-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.77l-.44 2.89h-2.33v6.99A10 10 0 0 0 22 12z"/></svg>
+            }
+          />
+          <ShareMenuItem
+            label="X (Twitter)"
+            onClick={() => openShareWindow(buildShareUrl('x', url, title))}
+            icon={
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.6 8.68L23.3 22H16.9l-5-6.53L6.1 22H3l8.13-9.29L2.7 2h6.6l4.5 5.97L18.9 2zm-1.2 18h1.7L7.4 4h-1.8l12.1 16z"/></svg>
+            }
+          />
+          <ShareMenuItem
+            label="WhatsApp"
+            onClick={() => openShareWindow(buildShareUrl('whatsapp', url, title))}
+            icon={
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.5 0-9.96 4.46-9.96 9.96 0 1.76.46 3.48 1.34 5L2 22l5.2-1.36a9.95 9.95 0 0 0 4.84 1.24h.01c5.5 0 9.96-4.46 9.96-9.96S17.54 2 12.04 2zm0 18.2c-1.5 0-2.98-.4-4.28-1.16l-.31-.18-3.09.81.82-3-.2-.31a8.2 8.2 0 0 1-1.26-4.4c0-4.54 3.7-8.24 8.24-8.24s8.24 3.7 8.24 8.24-3.7 8.24-8.24 8.24zm4.52-6.17c-.25-.12-1.47-.72-1.7-.81-.23-.08-.4-.12-.56.13-.17.25-.65.81-.8.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.39-1.72-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.44.12-.14.16-.25.25-.41.08-.17.04-.31-.02-.44-.06-.12-.56-1.36-.77-1.86-.2-.48-.41-.42-.56-.43-.14-.01-.31-.01-.48-.01-.17 0-.44.06-.67.31-.23.25-.87.85-.87 2.08 0 1.22.89 2.4 1.02 2.57.12.17 1.76 2.68 4.26 3.76.6.26 1.06.41 1.43.53.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.1-.23-.16-.48-.28z"/></svg>
+            }
+          />
+          <ShareMenuItem
+            label="LinkedIn"
+            onClick={() => openShareWindow(buildShareUrl('linkedin', url, title))}
+            icon={
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.56V9h3.56v11.45z"/></svg>
+            }
+          />
+          <ShareMenuItem
+            label="Instagram"
+            onClick={() => copyLink('Link copied! Instagram doesn’t support pasting a link directly — open the app and paste it into your Story, post, or a DM.', 3500)}
+            icon={
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+            }
+          />
+          <div className="my-1 border-t border-[#E8E8E8] dark:border-[#2A2A2A]" />
+          <ShareMenuItem
+            label="Copy link"
+            onClick={() => copyLink('Link copied!', 1500)}
+            icon={
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            }
+          />
+        </div>
+      )}
     </div>
   );
 }
