@@ -5,6 +5,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { InteractionsProvider } from '@/context/InteractionsContext';
 import { NavigationLoader } from '@/components/layout/NavigationLoader';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { PushOptInPrompt } from '@/components/layout/PushOptInPrompt';
 
 function GlobalSidebar() {
   const { sidebarOpen, closeSidebar } = useApp();
@@ -22,6 +23,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
               changes instead of unmounting/resetting whenever the page under it
               (which may or may not use AppShell) swaps out. */}
           <GlobalSidebar />
+          <PushOptInPrompt />
         </InteractionsProvider>
       </AuthProvider>
     </AppProvider>
