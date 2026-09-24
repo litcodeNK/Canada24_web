@@ -211,9 +211,15 @@ async function fetchArticleList(path: string): Promise<Article[]> {
 /** Fetches a single article by id — the source of truth for the detail page.
  * Unlike the list fetchers above, this does NOT swallow errors: a 404 (bad/
  * deleted id) or network failure must reach the caller so it can distinguish
- * "not found" from "still loading" instead of hanging on cached/no data. */
+ * "not found" from "still loading" instead of hanging on cached/no data.
+ *
+ * `cache: 'no-store'` because the backend sends no Cache-Control/ETag on this
+ * endpoint — without it, browsers can silently serve a stale cached response
+ * for repeat calls to the same URL (verified: identical GETs kept returning a
+ * long-stale related_coverage_status even after the DB value changed), which
+ * would break the related-coverage poll in the article page. */
 export async function fetchArticleDetail(id: string): Promise<Article> {
-  const payload = await apiRequest<BackendArticle>(`/news/articles/${id}/`);
+  const payload = await apiRequest<BackendArticle>(`/news/articles/${id}/`, { cache: 'no-store' });
   return mapBackendArticle(payload);
 }
 
