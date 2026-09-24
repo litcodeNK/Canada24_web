@@ -2,24 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { fetchImmigrationStats, type ImmigrationStats } from '@/services/newsService';
+import { CANADA_PROVINCES, CANADA_VIEWBOX } from '@/lib/canadaMap';
 
-/* Short codes for the compact labels; anything unmapped falls back to the
-   full name so a new/renamed IRCC label still renders readably. */
-const PROVINCE_CODES: Record<string, string> = {
-  'Ontario': 'ON',
-  'Quebec': 'QC',
-  'British Columbia': 'BC',
-  'Alberta': 'AB',
-  'Manitoba': 'MB',
-  'Saskatchewan': 'SK',
-  'Nova Scotia': 'NS',
-  'New Brunswick': 'NB',
-  'Newfoundland and Labrador': 'NL',
-  'Prince Edward Island': 'PE',
-  'Northwest Territories': 'NT',
-  'Yukon': 'YT',
-  'Nunavut': 'NU',
-};
+/** Shade provinces by share so the map reads at a glance, rather than every
+ *  province being the same flat colour with only the label carrying meaning. */
+function fillFor(share: number | undefined, max: number): string {
+  if (share === undefined) return 'rgba(148,163,184,0.20)';
+  const t = max > 0 ? share / max : 0;
+  // 0.10 -> 0.85 opacity of the brand red
+  return `rgba(213,43,30,${(0.10 + t * 0.75).toFixed(3)})`;
+}
 
 export function ImmigrationByProvince() {
   const [stats, setStats] = useState<ImmigrationStats | null>(null);
@@ -34,11 +26,11 @@ export function ImmigrationByProvince() {
     };
   }, []);
 
-  // No data yet (table empty or fetch failed) -> hide rather than show blanks.
+  // Nothing ingested yet, or the fetch failed -> hide instead of showing blanks.
   if (!stats || stats.provinces.length === 0) return null;
 
-  const top = stats.provinces.slice(0, 8);
-  const max = top[0]?.share || 1;
+  const byName = new Map(stats.provinces.map(p => [p.province, p]));
+  const max = Math.max(...stats.provinces.map(p => p.share));
 
   return (
     <section
@@ -52,28 +44,77 @@ export function ImmigrationByProvince() {
         <span className="text-[11px] text-[#999] flex-shrink-0">{stats.year}</span>
       </div>
 
-      <div className="p-4 space-y-2.5">
-        {top.map(p => (
-          <div key={p.province} className="flex items-center gap-2.5">
-            <span className="w-7 flex-shrink-0 text-[11px] font-bold text-[#666] dark:text-[#AAA]">
-              {PROVINCE_CODES[p.province] ?? p.province.slice(0, 2).toUpperCase()}
-            </span>
+      <div className="p-3">
+        <svg
+          viewBox={CANADA_VIEWBOX}
+          className="w-full h-auto"
+          role="img"
+          aria-label={`Map of Canada shaded by share of permanent resident admissions in ${stats.year}`}
+        >
+          <title>Permanent resident admissions by province, {stats.year}</title>
 
-            <div className="flex-1 h-4 bg-gray-100 dark:bg-[#222] rounded-sm overflow-hidden">
-              <div
-                className="h-full bg-canadaRed/85 rounded-sm"
-                style={{ width: `${Math.max((p.share / max) * 100, 2)}%` }}
-              />
-            </div>
+          {CANADA_PROVINCES.map(prov => {
+            const stat = byName.get(prov.name);
+            return (
+              <path
+                key={prov.code}
+                d={prov.d}
+                fill={fillFor(stat?.share, max)}
+                stroke="#ffffff"
+                strokeWidth={1.6}
+                strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
+              >
+                {stat && (
+                  <title>
+                    {prov.name}: {stat.total.toLocaleString('en-CA')} ({stat.share}%)
+                  </title>
+                )}
+              </path>
+            );
+          })}
 
-            <span className="w-11 flex-shrink-0 text-right text-[11px] font-semibold text-[#1a1a1a] dark:text-[#F5F5F5] tabular-nums">
-              {p.share}%
-            </span>
-            <span className="w-14 flex-shrink-0 text-right text-[11px] text-[#999] tabular-nums hidden sm:inline">
-              {p.total.toLocaleString('en-CA')}
-            </span>
-          </div>
-        ))}
+          {/* Labels drawn after all shapes so they never sit under a neighbour */}
+          {CANADA_PROVINCES.map(prov => {
+            const stat = byName.get(prov.name);
+            if (!stat) return null;
+            return (
+              <g key={`${prov.code}-label`} pointerEvents="none">
+                {/* PE/NS are too small to hold text, so their label sits
+                    outside with a hairline connector back to the province. */}
+                {prov.outside && prov.anchorX !== undefined && prov.anchorY !== undefined && (
+                  <line
+                    x1={prov.anchorX}
+                    y1={prov.anchorY}
+                    x2={prov.cx - 16}
+                    y2={prov.cy}
+                    className="stroke-[#bbb] dark:stroke-[#555]"
+                    strokeWidth={1.5}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                )}
+                <text
+                  x={prov.cx}
+                  y={prov.cy}
+                  textAnchor="middle"
+                  className="fill-[#1a1a1a] dark:fill-white"
+                  style={{ fontSize: 26, fontWeight: 800 }}
+                >
+                  {prov.code}
+                </text>
+                <text
+                  x={prov.cx}
+                  y={prov.cy + 24}
+                  textAnchor="middle"
+                  className="fill-[#3a3a3a] dark:fill-[#DDD]"
+                  style={{ fontSize: 22, fontWeight: 600 }}
+                >
+                  {stat.share}%
+                </text>
+              </g>
+            );
+          })}
+        </svg>
       </div>
 
       {stats.top_source_countries.length > 0 && (
