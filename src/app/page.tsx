@@ -11,6 +11,7 @@ import { HomeHero } from '@/components/news/HomeHero';
 import { FeaturedUpdates } from '@/components/news/FeaturedUpdates';
 import { ImmigrationByProvince } from '@/components/news/ImmigrationByProvince';
 import { NewcomerSections } from '@/components/news/NewcomerSections';
+import { LatestVideos } from '@/components/news/LatestVideos';
 import { BreakingTicker } from '@/components/news/BreakingTicker';
 import { SectionBlock } from '@/components/news/SectionBlock';
 import { useRouter } from 'next/navigation';
@@ -229,6 +230,8 @@ export default function TopStoriesPage() {
           </div>
         </aside>
       </main>
+
+      <LatestVideos />
 
       {loadingNews && (
         <div className="flex justify-center py-12">
