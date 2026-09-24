@@ -7,8 +7,8 @@ import Link from 'next/link';
 import { useApp, DEFAULT_ARTICLE_IMAGE } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { useInteractions } from '@/context/InteractionsContext';
-import type { Article } from '@/context/AppContext';
-import { fetchArticleById } from '@/services/newsService';
+import type { Article, RelatedCoverageItem } from '@/context/AppContext';
+import { fetchArticleDetail } from '@/services/newsService';
 import { clsx } from 'clsx';
 
 const FALLBACK_BODY = [
@@ -50,37 +50,71 @@ export default function ArticleDetailPage() {
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
   const resumeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const commentsSectionRef = useRef<HTMLElement | null>(null);
-  const directFetchAttemptedRef = useRef<string | null>(null);
+  const articleRef = useRef<Article | null>(null);
+  // Once the network fetch below has won for the current id, the cache-lookup
+  // effect must stop touching `article` — otherwise an unrelated later update
+  // to topStories/communityStories/savedArticles (e.g. AppContext's periodic
+  // refreshNews()) re-runs that effect, fails to find this id in the newly
+  // fetched lists (it's often not a top story / not saved), and wipes out the
+  // already-correct article back to null, hanging the page on the spinner
+  // forever even though the real data loaded successfully.
+  const detailLoadedRef = useRef(false);
 
   useEffect(() => {
+    articleRef.current = article;
+  }, [article]);
+
+  // Reset display state whenever we navigate to a different article id, so
+  // the previous article's content can't linger on screen under the new id.
+  useEffect(() => {
+    detailLoadedRef.current = false;
     setArticle(null);
     setNotFound(false);
-    directFetchAttemptedRef.current = null;
   }, [id]);
 
+  // Instant display from already-loaded state (top stories / community /
+  // saved), if we have it — but this is never the source of truth, see below,
+  // and it must defer once the network fetch has already resolved.
   useEffect(() => {
+    if (detailLoadedRef.current) return;
     const all = [...topStories, ...communityStories, ...savedArticles];
     const found = all.find(a => a.id === id);
     if (found) {
       setArticle(found);
       hydrateArticleInteractions(found);
-      return;
     }
-
-    // Not in any already-loaded list (older story, or a hard refresh landing
-    // straight on this URL before those lists loaded) — fetch it directly
-    // instead of spinning forever. Only ever attempted once per id.
-    if (directFetchAttemptedRef.current === id) return;
-    directFetchAttemptedRef.current = id;
-    void fetchArticleById(id).then(result => {
-      if (result === 'not-found' || result === null) {
-        setNotFound(true);
-      } else {
-        setArticle(result);
-        hydrateArticleInteractions(result);
-      }
-    });
   }, [id, topStories, communityStories, savedArticles]);
+
+  // Always fetch the current article from the API and let it win over
+  // whatever was shown from cache — a saved article's body can legitimately
+  // change/lengthen after it was saved, and localStorage never re-validates.
+  // This is also the ONLY path that loads an article that isn't in any
+  // in-memory list at all (e.g. reached via Section/Local/Search).
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchArticleDetail(id)
+      .then(fresh => {
+        if (cancelled) return;
+        detailLoadedRef.current = true;
+        setArticle(fresh);
+        setNotFound(false);
+        hydrateArticleInteractions(fresh);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        // Only show "not found" if we have nothing at all to display for
+        // this id — a transient network failure shouldn't blow away a
+        // perfectly good cached copy that's already on screen.
+        if (!articleRef.current || articleRef.current.id !== id) {
+          setNotFound(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   const stopSpeech = () => {
     window.speechSynthesis.cancel();
@@ -200,16 +234,18 @@ export default function ArticleDetailPage() {
 
   if (notFound) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-center px-6 bg-white dark:bg-[#0D0D0D]">
-        <p className="bebas tracking-widest text-[#999] text-xl">STORY NOT FOUND</p>
-        <p className="text-[#999] text-sm max-w-sm">
-          This article may have been removed, or the link is out of date.
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-white dark:bg-[#0D0D0D] px-4 text-center">
+        <p className="font-serif font-black text-2xl text-[#1a1a1a] dark:text-[#F5F5F5]">
+          Article not found
+        </p>
+        <p className="text-sm text-[#999] max-w-xs">
+          This story may have been removed, or the link is incorrect.
         </p>
         <button
           onClick={() => router.push('/')}
-          className="mt-2 px-5 py-2.5 bg-[#D52B1E] text-white text-sm font-bold tracking-wide hover:bg-[#B02010] transition-colors"
+          className="mt-2 px-5 py-2 rounded-full bg-canadaRed text-white text-sm font-bold tracking-wide hover:bg-canadaRedDark transition-colors"
         >
-          Back to Top Stories
+          Back to home
         </button>
       </div>
     );
@@ -451,6 +487,12 @@ export default function ArticleDetailPage() {
             ))}
           </div>
 
+          {/* 7b. Related coverage (Brave Search enrichment) — only rendered
+              once the backend has actually populated it. On the very first
+              view of an article the status comes back PENDING (the fetch was
+              just triggered), so the section stays hidden until a later load. */}
+          <RelatedCoverage items={article.relatedCoverage} />
+
           {/* 8. Engagement bar */}
           <div className="flex items-center gap-2 py-4 border-t border-b border-[#E8E8E8] dark:border-[#2A2A2A] mb-8">
             <EngageButton
@@ -615,6 +657,64 @@ export default function ArticleDetailPage() {
       )}
       </div>
     </div>
+  );
+}
+
+function RelatedCoverage({ items }: { items?: RelatedCoverageItem[] }) {
+  if (!items || items.length === 0) return null;
+
+  return (
+    <section className="mb-8 pt-6 border-t border-[#E8E8E8] dark:border-[#2A2A2A]">
+      <h2 className="font-sans font-bold text-lg tracking-wide text-[#1a1a1a] dark:text-white mb-1">
+        Related coverage
+      </h2>
+      <p className="text-[12px] text-[#999] mb-4">From other news sources</p>
+
+      <div className="space-y-3">
+        {items.map(item => (
+          <a
+            key={item.url}
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group block p-3.5 rounded-xl border border-[#E8E8E8] dark:border-[#2A2A2A] hover:border-canadaRed dark:hover:border-canadaRed transition-colors"
+          >
+            <div className="flex items-center gap-2 mb-1.5">
+              {item.sourceFavicon && (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={item.sourceFavicon}
+                  alt=""
+                  width={14}
+                  height={14}
+                  className="rounded-sm flex-shrink-0"
+                  loading="lazy"
+                />
+              )}
+              <span className="text-[11px] font-semibold text-[#666] dark:text-[#AAA] truncate">
+                {item.sourceHostname}
+              </span>
+              {item.age && (
+                <>
+                  <span className="text-[#E8E8E8] dark:text-[#444]">·</span>
+                  <span className="text-[11px] text-[#999] flex-shrink-0">{item.age}</span>
+                </>
+              )}
+            </div>
+
+            <h3 className="font-serif font-bold text-[15px] leading-snug text-[#1a1a1a] dark:text-[#F5F5F5] group-hover:text-canadaRed transition-colors line-clamp-2">
+              {item.title}
+            </h3>
+
+            {item.snippet && (
+              <p className="mt-1 text-[13px] text-[#666] dark:text-[#AAA] leading-relaxed line-clamp-2">
+                {item.snippet}
+              </p>
+            )}
+          </a>
+        ))}
+      </div>
+    </section>
   );
 }
 

@@ -1,4 +1,4 @@
-import type { Article } from '../context/AppContext';
+import type { Article, RelatedCoverageItem, RelatedCoverageStatus } from '../context/AppContext';
 import type { UserPost, UserPostStatus } from '../context/AuthContext';
 import type { VideoFeed, VideoItem } from '../types/video';
 import { apiRequest, extractList, ApiError } from './api';
@@ -14,6 +14,7 @@ type BackendArticle = {
   author: string;
   published_at: string;
   time: string;
+  read_time_minutes?: number;
   is_live: boolean;
   is_updated: boolean;
   source: string;
@@ -27,6 +28,17 @@ type BackendArticle = {
   user_reaction: 'like' | 'dislike' | null;
   is_saved: boolean;
   is_reposted: boolean;
+  related_coverage?: BackendRelatedCoverageItem[];
+  related_coverage_status?: RelatedCoverageStatus;
+};
+
+type BackendRelatedCoverageItem = {
+  title: string;
+  url: string;
+  snippet: string;
+  source_hostname: string;
+  source_favicon: string;
+  age: string;
 };
 
 type BackendUserPost = {
@@ -69,8 +81,16 @@ type BackendVideoFeed = {
   live: BackendVideoItem[];
 };
 
+/* Maps clean URL slugs onto the backend's section *labels* (fetchCategoryArticles
+   matches on label, not slug), so nav URLs don't have to contain spaces the way
+   /sections/auto%20news did. */
 const SECTION_NAME_ALIASES: Record<string, string> = {
   education: 'Education in Canada',
+  auto: 'Auto News',
+  'auto-news': 'Auto News',
+  'jobs-money': 'Opportunities',
+  jobs: 'Opportunities',
+  'blacks-in-canada': 'Blacks in Canada',
 };
 
 function titleCase(value: string): string {
@@ -79,6 +99,24 @@ function titleCase(value: string): string {
     .split('_')
     .map(part => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
+}
+
+/* How a section slug is shown in the UI. Separate from SECTION_NAME_ALIASES
+   above, which exists for API lookup — the two differ on purpose: /sections/
+   jobs-money queries the backend's "Opportunities" section but is presented
+   to readers as "Jobs & Money". */
+const SECTION_DISPLAY_LABELS: Record<string, string> = {
+  'jobs-money': 'Jobs & Money',
+  jobs: 'Jobs & Money',
+  opportunities: 'Jobs & Money',
+  auto: 'Auto',
+  'auto-news': 'Auto News',
+  education: 'Education in Canada',
+  'blacks-in-canada': 'Blacks in Canada',
+};
+
+export function sectionDisplayLabel(slug: string): string {
+  return SECTION_DISPLAY_LABELS[slug.trim().toLowerCase()] ?? slug;
 }
 
 export function slugifyValue(value: string): string {
@@ -98,6 +136,7 @@ export function mapBackendArticle(article: BackendArticle): Article {
     author: article.author || undefined,
     sourceUrl: article.source_url || undefined,
     publishedAt: article.published_at,
+    readTimeMinutes: article.read_time_minutes,
     feedKey: article.feed_key || undefined,
     regionSlugs: article.region_slugs,
     likesCount: article.likes_count,
@@ -108,7 +147,25 @@ export function mapBackendArticle(article: BackendArticle): Article {
     userReaction: article.user_reaction,
     isSaved: article.is_saved,
     isReposted: article.is_reposted,
+    relatedCoverage: mapRelatedCoverage(article.related_coverage),
+    relatedCoverageStatus: article.related_coverage_status,
   };
+}
+
+function mapRelatedCoverage(items?: BackendRelatedCoverageItem[]): RelatedCoverageItem[] {
+  if (!Array.isArray(items)) return [];
+  return items
+    // Brave occasionally returns an entry with no usable link; skip those
+    // rather than rendering a dead card.
+    .filter(item => item?.title && item?.url)
+    .map(item => ({
+      title: item.title,
+      url: item.url,
+      snippet: item.snippet ?? '',
+      sourceHostname: item.source_hostname ?? '',
+      sourceFavicon: item.source_favicon ?? '',
+      age: item.age ?? '',
+    }));
 }
 
 export function mapBackendUserPost(post: BackendUserPost): UserPost {
@@ -150,16 +207,23 @@ async function fetchArticleList(path: string): Promise<Article[]> {
   return extractList(payload).map(mapBackendArticle);
 }
 
-// Fetches a single article by id directly — used when the detail page can't
-// find it in whatever lists (top-stories, community, saved) happen to already
-// be loaded, e.g. an older story, or a hard refresh landing straight on the
-// article URL before those lists have loaded at all.
-export async function fetchArticleById(id: string): Promise<Article | 'not-found' | null> {
+/** Fetches a single article by id — the source of truth for the detail page.
+ * Unlike the list fetchers above, this does NOT swallow errors: a 404 (bad/
+ * deleted id) or network failure must reach the caller so it can distinguish
+ * "not found" from "still loading" instead of hanging on cached/no data. */
+export async function fetchArticleDetail(id: string): Promise<Article> {
+  const payload = await apiRequest<BackendArticle>(`/news/articles/${id}/`);
+  return mapBackendArticle(payload);
+}
+
+/** The single most recent story an editor flagged as breaking in Django admin,
+ *  or null when nothing is flagged (in which case the ticker hides itself).
+ *  Returns null rather than throwing — a ticker outage must not break the page. */
+export async function fetchBreakingNews(): Promise<Article | null> {
   try {
-    const payload = await apiRequest<BackendArticle>(`/news/articles/${id}/`);
-    return mapBackendArticle(payload);
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 404) return 'not-found';
+    const payload = await apiRequest<BackendArticle | null>('/news/breaking/');
+    return payload ? mapBackendArticle(payload) : null;
+  } catch {
     return null;
   }
 }

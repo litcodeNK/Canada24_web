@@ -7,7 +7,8 @@ import { useApp, DEFAULT_ARTICLE_IMAGE } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { AppShell } from '@/components/layout/AppShell';
 import { LatestNewsRail } from '@/components/layout/LatestNewsRail';
-import { HeroCard } from '@/components/news/HeroCard';
+import { HomeHero } from '@/components/news/HomeHero';
+import { FeaturedUpdates } from '@/components/news/FeaturedUpdates';
 import { BreakingTicker } from '@/components/news/BreakingTicker';
 import { SectionBlock } from '@/components/news/SectionBlock';
 import { useRouter } from 'next/navigation';
@@ -116,7 +117,11 @@ export default function TopStoriesPage() {
           </div>
 
           {/* Hero story */}
-          {hero && <HeroCard article={hero} />}
+          {hero && <HomeHero article={hero} />}
+
+          <div className="mt-8">
+            <FeaturedUpdates />
+          </div>
 
           {/* Divider */}
           <div className="h-px bg-gray-300 dark:bg-[#2A2A2A] w-full mb-6" />

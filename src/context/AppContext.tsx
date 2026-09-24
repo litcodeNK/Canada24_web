@@ -23,6 +23,7 @@ export interface Article {
   author?: string;
   sourceUrl?: string;
   publishedAt?: string;
+  readTimeMinutes?: number;
   feedKey?: string;
   regionSlugs?: string[];
   likesCount?: number;
@@ -33,7 +34,28 @@ export interface Article {
   userReaction?: 'like' | 'dislike' | null;
   isSaved?: boolean;
   isReposted?: boolean;
+  relatedCoverage?: RelatedCoverageItem[];
+  relatedCoverageStatus?: RelatedCoverageStatus;
 }
+
+export interface RelatedCoverageItem {
+  title: string;
+  url: string;
+  snippet: string;
+  sourceHostname: string;
+  sourceFavicon: string;
+  age: string;
+}
+
+/** Mirrors Article.RelatedCoverageStatus on the backend. PENDING means the
+ * enrichment was just triggered by this very page view and isn't ready yet —
+ * the data arrives on a later request, so the section stays hidden for now. */
+export type RelatedCoverageStatus =
+  | 'NOT_STARTED'
+  | 'PENDING'
+  | 'DONE'
+  | 'NO_RESULTS'
+  | 'FAILED';
 
 export type ServerAlertPreferences = {
   breaking_news: boolean;
