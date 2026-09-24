@@ -89,6 +89,7 @@ const SECTION_NAME_ALIASES: Record<string, string> = {
   auto: 'Auto News',
   'auto-news': 'Auto News',
   'jobs-money': 'Opportunities',
+  'jobs & money': 'Opportunities',
   jobs: 'Opportunities',
   'blacks-in-canada': 'Blacks in Canada',
 };

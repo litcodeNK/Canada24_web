@@ -98,7 +98,7 @@ interface AppState {
 // rate limit when both mounted on the same page load).
 const SECTION_THUMBNAIL_LABELS = [
   'Politics', 'World', 'Business', 'Health', 'Sports', 'Technology', 'Entertainment',
-  'Immigration', 'Indigenous', 'Education', 'Aviation', 'Auto News', 'Blacks in Canada',
+  'Immigration', 'Jobs & Money', 'Housing', 'Auto', 'Indigenous', 'Education', 'Aviation', 'Blacks in Canada',
 ];
 
 interface AppContextType extends AppState {
