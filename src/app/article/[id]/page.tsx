@@ -269,7 +269,17 @@ export default function ArticleDetailPage() {
   const commentCount = getCommentCount(article.id) ?? article.commentsCount ?? 0;
   const reposted = isReposted(article.id) ?? false;
   const comments = getComments(article.id);
-  const bodyParagraphs = article.body ? [article.body] : FALLBACK_BODY;
+  // Thin-source articles get their body extended with a bounded excerpt from
+  // the source's own page (backend: apps/news/services_extraction.py), which
+  // always ends with a "Continue reading at <source> →" marker line. body is
+  // rendered as plain text (no HTML), so that marker isn't clickable on its
+  // own — split it out here and render it as a real link to sourceUrl below,
+  // without otherwise changing how any other article's body renders.
+  const continueReadingMatch = article.body?.match(/\n\nContinue reading at (.+) →$/);
+  const bodyWithoutContinueReading = continueReadingMatch
+    ? article.body!.slice(0, continueReadingMatch.index)
+    : article.body;
+  const bodyParagraphs = bodyWithoutContinueReading ? [bodyWithoutContinueReading] : FALLBACK_BODY;
 
   /* Related articles: same category, exclude current */
   const related = [...topStories, ...communityStories]
@@ -508,6 +518,16 @@ export default function ArticleDetailPage() {
                 {para}
               </p>
             ))}
+            {continueReadingMatch && article.sourceUrl && (
+              <a
+                href={article.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block text-[1rem] font-semibold text-canadaRed hover:underline"
+              >
+                Continue reading at {continueReadingMatch[1]} {'→'}
+              </a>
+            )}
           </div>
 
           {/* 7b. Related coverage (Brave Search enrichment) — only rendered
