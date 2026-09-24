@@ -116,6 +116,50 @@ export default function ArticleDetailPage() {
     };
   }, [id]);
 
+  // related_coverage is enriched in the background by a Celery task kicked
+  // off on first view — the initial fetch above can catch it mid-flight
+  // (status "PENDING"). Poll the detail endpoint until it resolves so the
+  // section appears without the user having to reload the page.
+  useEffect(() => {
+    if (article?.relatedCoverageStatus !== 'PENDING') return;
+
+    let cancelled = false;
+    const startedAt = Date.now();
+    const POLL_INTERVAL_MS = 4000;
+    const POLL_TIMEOUT_MS = 30000;
+
+    const interval = setInterval(() => {
+      if (Date.now() - startedAt > POLL_TIMEOUT_MS) {
+        clearInterval(interval);
+        return;
+      }
+      fetchArticleDetail(id)
+        .then(fresh => {
+          if (cancelled) return;
+          setArticle(prev =>
+            prev
+              ? {
+                  ...prev,
+                  relatedCoverage: fresh.relatedCoverage,
+                  relatedCoverageStatus: fresh.relatedCoverageStatus,
+                }
+              : fresh,
+          );
+          if (fresh.relatedCoverageStatus !== 'PENDING') {
+            clearInterval(interval);
+          }
+        })
+        .catch(() => {
+          // Transient failure — let the next tick (or the timeout) handle it.
+        });
+    }, POLL_INTERVAL_MS);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [id, article?.relatedCoverageStatus]);
+
   const stopSpeech = () => {
     window.speechSynthesis.cancel();
     if (resumeIntervalRef.current) {
