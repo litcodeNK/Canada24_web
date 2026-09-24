@@ -214,6 +214,18 @@ export async function fetchArticleDetail(id: string): Promise<Article> {
   return mapBackendArticle(payload);
 }
 
+/** The single most recent story an editor flagged as breaking in Django admin,
+ *  or null when nothing is flagged (in which case the ticker hides itself).
+ *  Returns null rather than throwing — a ticker outage must not break the page. */
+export async function fetchBreakingNews(): Promise<Article | null> {
+  try {
+    const payload = await apiRequest<BackendArticle | null>('/news/breaking/');
+    return payload ? mapBackendArticle(payload) : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchTopStories(): Promise<Article[]> {
   try {
     return await fetchArticleList('/news/top-stories/');
