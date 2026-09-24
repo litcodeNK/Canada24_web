@@ -1,4 +1,4 @@
-import type { Article, RelatedCoverageItem, RelatedCoverageStatus } from '../context/AppContext';
+import type { Article, AudioStatus, RelatedCoverageItem, RelatedCoverageStatus } from '../context/AppContext';
 import type { UserPost, UserPostStatus } from '../context/AuthContext';
 import type { VideoFeed, VideoItem } from '../types/video';
 import { apiRequest, extractList } from './api';
@@ -30,6 +30,8 @@ type BackendArticle = {
   is_reposted: boolean;
   related_coverage?: BackendRelatedCoverageItem[];
   related_coverage_status?: RelatedCoverageStatus;
+  audio_url?: string | null;
+  audio_status?: AudioStatus;
 };
 
 type BackendRelatedCoverageItem = {
@@ -150,6 +152,8 @@ export function mapBackendArticle(article: BackendArticle): Article {
     isReposted: article.is_reposted,
     relatedCoverage: mapRelatedCoverage(article.related_coverage),
     relatedCoverageStatus: article.related_coverage_status,
+    audioUrl: article.audio_url,
+    audioStatus: article.audio_status,
   };
 }
 

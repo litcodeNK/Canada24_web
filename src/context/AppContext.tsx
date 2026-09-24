@@ -36,6 +36,8 @@ export interface Article {
   isReposted?: boolean;
   relatedCoverage?: RelatedCoverageItem[];
   relatedCoverageStatus?: RelatedCoverageStatus;
+  audioUrl?: string | null;
+  audioStatus?: AudioStatus;
 }
 
 export interface RelatedCoverageItem {
@@ -56,6 +58,12 @@ export type RelatedCoverageStatus =
   | 'DONE'
   | 'NO_RESULTS'
   | 'FAILED';
+
+/** Mirrors Article.AudioStatus on the backend. Purely informational for the
+ * frontend — it only decides whether to play the cached audioUrl directly or
+ * hit the live-streaming endpoint; the article page never polls or waits on
+ * this, since every "Listen" click gets its own stream regardless. */
+export type AudioStatus = 'NOT_STARTED' | 'PENDING' | 'DONE' | 'FAILED';
 
 export type ServerAlertPreferences = {
   breaking_news: boolean;
