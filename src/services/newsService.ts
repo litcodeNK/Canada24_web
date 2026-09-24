@@ -1,7 +1,7 @@
 import type { Article, RelatedCoverageItem, RelatedCoverageStatus } from '../context/AppContext';
 import type { UserPost, UserPostStatus } from '../context/AuthContext';
 import type { VideoFeed, VideoItem } from '../types/video';
-import { apiRequest, extractList, ApiError } from './api';
+import { apiRequest, extractList } from './api';
 
 type BackendArticle = {
   id: number;
