@@ -14,6 +14,7 @@ type BackendArticle = {
   author: string;
   published_at: string;
   time: string;
+  read_time_minutes?: number;
   is_live: boolean;
   is_updated: boolean;
   source: string;
@@ -135,6 +136,7 @@ export function mapBackendArticle(article: BackendArticle): Article {
     author: article.author || undefined,
     sourceUrl: article.source_url || undefined,
     publishedAt: article.published_at,
+    readTimeMinutes: article.read_time_minutes,
     feedKey: article.feed_key || undefined,
     regionSlugs: article.region_slugs,
     likesCount: article.likes_count,

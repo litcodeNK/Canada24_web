@@ -20,6 +20,7 @@ export interface Article {
   author?: string;
   sourceUrl?: string;
   publishedAt?: string;
+  readTimeMinutes?: number;
   feedKey?: string;
   regionSlugs?: string[];
   likesCount?: number;
