@@ -23,13 +23,18 @@ export async function getExistingPushSubscription(): Promise<PushSubscription | 
   return registration.pushManager.getSubscription();
 }
 
+/** Anonymous visitors can subscribe too (the backend upserts by endpoint and
+ * re-attaches the row to a real account if this same browser subscribes
+ * again after signing in), so this only adds an auth header when signed in
+ * rather than requiring a session. */
 async function syncSubscriptionToServer(subscription: PushSubscription): Promise<void> {
   const session = readStoredSession();
-  if (!session) throw new Error('You must be signed in to enable notifications.');
-  await requestWithStoredSession(session, '/notifications/web-push/subscribe/', {
-    method: 'POST',
-    body: JSON.stringify(subscription.toJSON()),
-  });
+  const body = JSON.stringify(subscription.toJSON());
+  if (session) {
+    await requestWithStoredSession(session, '/notifications/web-push/subscribe/', { method: 'POST', body });
+  } else {
+    await apiRequest('/notifications/web-push/subscribe/', { method: 'POST', body });
+  }
 }
 
 export async function enableWebPush(): Promise<PushSubscription> {
@@ -75,21 +80,24 @@ export async function disableWebPush(): Promise<void> {
   await subscription.unsubscribe();
 
   const session = readStoredSession();
-  if (!session) return;
-  await requestWithStoredSession(session, '/notifications/web-push/subscribe/', {
-    method: 'DELETE',
-    body: JSON.stringify({ endpoint }),
-  });
+  const body = JSON.stringify({ endpoint });
+  if (session) {
+    await requestWithStoredSession(session, '/notifications/web-push/subscribe/', { method: 'DELETE', body });
+  } else {
+    await apiRequest('/notifications/web-push/subscribe/', { method: 'DELETE', body });
+  }
 }
 
 /**
  * Re-syncs an already-granted subscription on app load without prompting —
  * covers the case where the browser rotated the subscription's endpoint/keys.
+ * Runs for anonymous visitors too (not just signed-in ones): the resulting
+ * subscribe call omits the auth header when there's no session, same as
+ * enableWebPush.
  */
 export async function resyncWebPushIfGranted(): Promise<void> {
   if (!isWebPushSupported()) return;
   if (Notification.permission !== 'granted') return;
-  if (!readStoredSession()) return;
 
   try {
     const registration = await navigator.serviceWorker.register('/sw.js');
