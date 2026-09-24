@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { HeroCard } from '@/components/news/HeroCard';
 import { SectionBlock } from '@/components/news/SectionBlock';
-import { fetchCategoryArticles } from '@/services/newsService';
+import { fetchCategoryArticles, sectionDisplayLabel } from '@/services/newsService';
 import type { Article } from '@/context/AppContext';
 import { clsx } from 'clsx';
 
@@ -14,6 +14,7 @@ const SECTION_COLORS: Record<string, string> = {
   POLITICS: '#1565C0', WORLD: '#00695C', BUSINESS: '#E65100',
   HEALTH: '#1B5E20', SPORTS: '#D52B1E', TECHNOLOGY: '#01579B',
   ENTERTAINMENT: '#880E4F', IMMIGRATION: '#BF360C', INDIGENOUS: '#4A148C',
+  HOUSING: '#00695C', 'JOBS-MONEY': '#E65100', AUTO: '#37474F', 'AUTO-NEWS': '#37474F',
 };
 
 /* Sub-topics per section (NBC-style horizontal topic strip) */
@@ -27,6 +28,9 @@ const SECTION_TOPICS: Record<string, string[]> = {
   ENTERTAINMENT: ['Music', 'Film', 'TV', 'Arts', 'Celebrity'],
   IMMIGRATION: ['Refugees', 'Policy', 'Study Permit', 'Work Permit', 'Citizenship'],
   INDIGENOUS: ['Treaties', 'Land Rights', 'Culture', 'Governance'],
+  HOUSING: ['Renting', 'Buying', 'Mortgages', 'Market', 'Affordability'],
+  'JOBS-MONEY': ['Work Permits', 'Hiring', 'Careers', 'Credentials', 'Banking'],
+  AUTO: ['Buying', 'Insurance', 'EVs', 'Licensing', 'Reviews'],
 };
 
 function chunk<T>(arr: T[], n: number): T[][] {
@@ -38,9 +42,12 @@ function chunk<T>(arr: T[], n: number): T[][] {
 export default function SectionDetailPage() {
   const params = useParams();
   const section = decodeURIComponent(params.section as string);
-  const sectionUpper = section.toUpperCase();
-  const color = SECTION_COLORS[sectionUpper] ?? '#D52B1E';
-  const topics = SECTION_TOPICS[sectionUpper] ?? [];
+  /* Slug-derived key drives the colour/topic lookups below; the display label
+     is resolved separately so "jobs-money" reads as "JOBS & MONEY". */
+  const sectionKey = section.toUpperCase();
+  const sectionUpper = sectionDisplayLabel(section).toUpperCase();
+  const color = SECTION_COLORS[sectionKey] ?? '#D52B1E';
+  const topics = SECTION_TOPICS[sectionKey] ?? [];
 
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);

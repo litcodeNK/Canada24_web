@@ -80,8 +80,16 @@ type BackendVideoFeed = {
   live: BackendVideoItem[];
 };
 
+/* Maps clean URL slugs onto the backend's section *labels* (fetchCategoryArticles
+   matches on label, not slug), so nav URLs don't have to contain spaces the way
+   /sections/auto%20news did. */
 const SECTION_NAME_ALIASES: Record<string, string> = {
   education: 'Education in Canada',
+  auto: 'Auto News',
+  'auto-news': 'Auto News',
+  'jobs-money': 'Opportunities',
+  jobs: 'Opportunities',
+  'blacks-in-canada': 'Blacks in Canada',
 };
 
 function titleCase(value: string): string {
@@ -90,6 +98,24 @@ function titleCase(value: string): string {
     .split('_')
     .map(part => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
+}
+
+/* How a section slug is shown in the UI. Separate from SECTION_NAME_ALIASES
+   above, which exists for API lookup — the two differ on purpose: /sections/
+   jobs-money queries the backend's "Opportunities" section but is presented
+   to readers as "Jobs & Money". */
+const SECTION_DISPLAY_LABELS: Record<string, string> = {
+  'jobs-money': 'Jobs & Money',
+  jobs: 'Jobs & Money',
+  opportunities: 'Jobs & Money',
+  auto: 'Auto',
+  'auto-news': 'Auto News',
+  education: 'Education in Canada',
+  'blacks-in-canada': 'Blacks in Canada',
+};
+
+export function sectionDisplayLabel(slug: string): string {
+  return SECTION_DISPLAY_LABELS[slug.trim().toLowerCase()] ?? slug;
 }
 
 export function slugifyValue(value: string): string {
