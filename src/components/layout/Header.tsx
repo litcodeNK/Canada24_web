@@ -7,29 +7,12 @@ import { Search, User, Menu } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { clsx } from 'clsx';
+import { SECTION_NAV } from '@/lib/nav';
 
 interface HeaderProps {
   onMenuToggle: () => void;
 }
 
-type NavItem = {
-  label: string;
-  /** null = no page behind it yet; rendered as a non-interactive "Soon" chip
-   *  rather than a link that 404s or lands on an empty section. */
-  href: string | null;
-};
-
-/* Section hrefs resolve via SECTION_NAME_ALIASES in newsService, which maps
-   these slugs onto the backend's section labels (e.g. jobs-money ->
-   "Opportunities", auto -> "Auto News"). */
-const PRIMARY_NAV: NavItem[] = [
-  { href: '/sections/immigration', label: 'IMMIGRATION' },
-  { href: '/sections/jobs-money', label: 'JOBS & MONEY' },
-  { href: '/sections/housing', label: 'HOUSING' },
-  { href: '/sections/auto', label: 'AUTO' },
-  { href: null, label: 'SETTLEMENT GUIDE' },
-  { href: '/videos', label: 'VIDEO' },
-];
 
 function MapleLeaf({ className }: { className?: string }) {
   return (
@@ -78,7 +61,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
             className="hidden lg:flex items-center gap-1 text-[11.5px] xl:text-[12.5px] font-bold tracking-wide"
             aria-label="Primary navigation"
           >
-            {PRIMARY_NAV.map(item => {
+            {SECTION_NAV.map(item => {
               if (item.href === null) {
                 return (
                   <span
@@ -86,7 +69,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
                     title="Coming soon"
                     className="px-2.5 xl:px-3 py-2 flex items-center gap-1.5 text-white/40 cursor-default whitespace-nowrap"
                   >
-                    {item.label}
+                    {item.label.toUpperCase()}
                     <span className="text-[8.5px] font-bold uppercase tracking-wider border border-white/25 rounded px-1 py-px leading-none">
                       Soon
                     </span>
@@ -105,7 +88,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
                     isActive && 'text-canadaRed',
                   )}
                 >
-                  {item.label}
+                  {item.label.toUpperCase()}
                 </Link>
               );
             })}

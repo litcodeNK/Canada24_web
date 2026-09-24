@@ -1,32 +1,16 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { SECTION_NAV, SECONDARY_SECTION_NAV } from '@/lib/nav';
 
 const FOOTER_COLS = [
   {
     heading: 'SECTIONS',
-    links: [
-      { href: '/', label: 'Top Stories' },
-      { href: '/local', label: 'Local News' },
-      { href: '/sections/politics', label: 'Politics' },
-      { href: '/sections/world', label: 'World' },
-      { href: '/sections/business', label: 'Business' },
-      { href: '/sections/health', label: 'Health' },
-      { href: '/sections/sports', label: 'Sports' },
-      { href: '/sections/technology', label: 'Technology' },
-      { href: '/sections/entertainment', label: 'Entertainment' },
-    ],
+    // Same list the header and mobile menu render — see src/lib/nav.ts.
+    links: SECTION_NAV,
   },
   {
     heading: 'MORE',
-    links: [
-      { href: '/videos', label: 'Video' },
-      { href: '/sections/immigration', label: 'Immigration' },
-      { href: '/sections/indigenous', label: 'Indigenous' },
-      { href: '/sections/education', label: 'Education' },
-      { href: '/sections/aviation', label: 'Aviation' },
-      { href: '/sections/auto news', label: 'Auto News' },
-      { href: '/sections/blacks in canada', label: 'Blacks in Canada' },
-    ],
+    links: SECONDARY_SECTION_NAV,
   },
   {
     heading: 'ACCOUNT',
@@ -89,13 +73,23 @@ export function Footer() {
               </h3>
               <ul className="space-y-2">
                 {col.links.map(link => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className="text-[13px] text-[#3a3a3a] dark:text-[#CCC] hover:text-canadaRed dark:hover:text-canadaRed transition-colors font-sans"
-                    >
-                      {link.label}
-                    </Link>
+                  <li key={link.label}>
+                    {link.href === null ? (
+                      /* No page behind it yet — shown, but not linked. */
+                      <span className="text-[13px] text-[#999] font-sans inline-flex items-center gap-1.5">
+                        {link.label}
+                        <span className="text-[8.5px] font-bold uppercase tracking-wider border border-current rounded px-1 py-px leading-none opacity-70">
+                          Soon
+                        </span>
+                      </span>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="text-[13px] text-[#3a3a3a] dark:text-[#CCC] hover:text-canadaRed dark:hover:text-canadaRed transition-colors font-sans"
+                      >
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>

@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useApp } from '@/context/AppContext';
 import { clsx } from 'clsx';
+import { SECTION_NAV, SECONDARY_SECTION_NAV } from '@/lib/nav';
 
 interface SidebarProps {
   open: boolean;
@@ -25,16 +26,8 @@ const secondaryItems = [
   { href: '/onboarding/alerts', label: 'ALERT PREFERENCES', icon: BellIcon },
 ];
 
-const sectionLinks = [
-  { href: '/sections/politics', label: 'Politics', color: '#1565C0' },
-  { href: '/sections/world', label: 'World', color: '#00695C' },
-  { href: '/sections/business', label: 'Business', color: '#E65100' },
-  { href: '/sections/health', label: 'Health', color: '#1B5E20' },
-  { href: '/sections/sports', label: 'Sports', color: '#D52B1E' },
-  { href: '/sections/technology', label: 'Technology', color: '#01579B' },
-  { href: '/sections/entertainment', label: 'Entertainment', color: '#880E4F' },
-  { href: '/sections/immigration', label: 'Immigration', color: '#BF360C' },
-];
+// Canonical nav lives in src/lib/nav.ts so header/footer/sidebar can't drift.
+const sectionLinks = [...SECTION_NAV, ...SECONDARY_SECTION_NAV];
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
@@ -135,17 +128,30 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           <div className="px-4 mb-1">
             <p className="text-[10px] font-bold tracking-[0.12em] text-[#999] uppercase mb-2">Sections</p>
             <div className="grid grid-cols-2 gap-x-2 gap-y-0">
-              {sectionLinks.map(({ href, label, color }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={onClose}
-                  className="py-1.5 text-[13px] font-semibold hover:underline transition-colors"
-                  style={{ color }}
-                >
-                  {label}
-                </Link>
-              ))}
+              {sectionLinks.map(({ href, label, color }) =>
+                href === null ? (
+                  /* No page behind it yet — listed, but not linked. */
+                  <span
+                    key={label}
+                    className="py-1.5 text-[13px] font-semibold text-[#999] inline-flex items-center gap-1.5"
+                  >
+                    {label}
+                    <span className="text-[8px] font-bold uppercase tracking-wider border border-current rounded px-1 py-px leading-none opacity-70">
+                      Soon
+                    </span>
+                  </span>
+                ) : (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={onClose}
+                    className="py-1.5 text-[13px] font-semibold hover:underline transition-colors"
+                    style={{ color }}
+                  >
+                    {label}
+                  </Link>
+                ),
+              )}
             </div>
           </div>
 
