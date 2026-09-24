@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useInteractions } from '@/context/InteractionsContext';
 import type { Article, RelatedCoverageItem } from '@/context/AppContext';
 import { fetchArticleDetail } from '@/services/newsService';
+import { API_BASE_URL } from '@/services/api';
 import { clsx } from 'clsx';
 
 const FALLBACK_BODY = [
@@ -47,8 +48,8 @@ export default function ArticleDetailPage() {
   const [commentText, setCommentText] = useState('');
   const [speaking, setSpeaking] = useState(false);
   const [shareMenuOpen, setShareMenuOpen] = useState<'icon' | 'row' | null>(null);
-  const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const resumeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [audioLoading, setAudioLoading] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const commentsSectionRef = useRef<HTMLElement | null>(null);
   const articleRef = useRef<Article | null>(null);
   // Once the network fetch below has won for the current id, the cache-lookup
@@ -161,71 +162,44 @@ export default function ArticleDetailPage() {
   }, [id, article?.relatedCoverageStatus]);
 
   const stopSpeech = () => {
-    window.speechSynthesis.cancel();
-    if (resumeIntervalRef.current) {
-      clearInterval(resumeIntervalRef.current);
-      resumeIntervalRef.current = null;
-    }
+    audioRef.current?.pause();
     setSpeaking(false);
+    setAudioLoading(false);
   };
 
-  const toggleSpeech = async () => {
-    if (speaking) { stopSpeech(); return; }
+  const toggleSpeech = () => {
+    if (speaking || audioLoading) { stopSpeech(); return; }
     if (!article) return;
 
-    window.speechSynthesis.cancel();
+    const audio = audioRef.current;
+    if (!audio) return;
 
-    // Android: getVoices() is empty until voiceschanged fires — wait for it
-    const loadVoices = (): Promise<SpeechSynthesisVoice[]> =>
-      new Promise(resolve => {
-        const v = window.speechSynthesis.getVoices();
-        if (v.length > 0) return resolve(v);
-        window.speechSynthesis.onvoiceschanged = () =>
-          resolve(window.speechSynthesis.getVoices());
-      });
+    // Cached audio (audioStatus === 'DONE') plays directly with no backend
+    // call. Otherwise this hits the live-streaming endpoint, which starts
+    // sending audio bytes within ~1-2s (verified against the real Fish Audio
+    // API) rather than waiting for the whole article to finish generating —
+    // the browser's native progressive audio playback handles the rest.
+    const src = article.audioStatus === 'DONE' && article.audioUrl
+      ? article.audioUrl
+      : `${API_BASE_URL}/news/articles/${article.id}/audio/stream/`;
 
-    const voices = await loadVoices();
-    const voice = voices.find(v => v.lang.startsWith('en-CA'))
-      ?? voices.find(v => v.lang.startsWith('en'));
-
-    const text = [article.headline, ...(article.body ? [article.body] : FALLBACK_BODY)].join('. ');
-    const utt = new SpeechSynthesisUtterance(text);
-    if (voice) utt.voice = voice;
-    utt.lang = voice?.lang ?? 'en-US';
-
-    const cleanup = () => {
-      if (resumeIntervalRef.current) {
-        clearInterval(resumeIntervalRef.current);
-        resumeIntervalRef.current = null;
-      }
+    if (audio.src !== src) audio.src = src;
+    setAudioLoading(true);
+    audio.play().catch(() => {
+      setAudioLoading(false);
       setSpeaking(false);
-    };
-    utt.onend = cleanup;
-    utt.onerror = cleanup;
-    speechRef.current = utt;
-
-    // iOS: wake up the synthesis engine
-    window.speechSynthesis.resume();
-    window.speechSynthesis.speak(utt);
-    setSpeaking(true);
-
-    // Android Chrome cuts synthesis off after ~15s — keep it alive with pause/resume
-    resumeIntervalRef.current = setInterval(() => {
-      if (!window.speechSynthesis.speaking) {
-        clearInterval(resumeIntervalRef.current!);
-        resumeIntervalRef.current = null;
-        setSpeaking(false);
-        return;
-      }
-      window.speechSynthesis.pause();
-      window.speechSynthesis.resume();
-    }, 14_000);
+    });
   };
 
+  // Cleanup only — the audio element mounts later than this component
+  // (only once `article` has loaded, see the early return below), so a
+  // mount-time effect here would grab a null ref and never re-attach once
+  // the real <audio> element exists. Play/pause state is driven by JSX
+  // event props directly on the element instead (onPlaying/onEnded/onError
+  // below), which React attaches correctly regardless of when it mounts.
   useEffect(() => {
     return () => {
-      window.speechSynthesis?.cancel();
-      if (resumeIntervalRef.current) clearInterval(resumeIntervalRef.current);
+      audioRef.current?.pause();
     };
   }, []);
 
@@ -334,12 +308,17 @@ export default function ArticleDetailPage() {
             onClick={toggleSpeech}
             className={clsx(
               'flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 transition-colors rounded-full border',
-              speaking
+              speaking || audioLoading
                 ? 'bg-canadaRed text-white border-canadaRed'
                 : 'text-[#999] border-[#E8E8E8] dark:border-[#333] hover:border-canadaRed hover:text-canadaRed',
             )}
           >
-            {speaking ? (
+            {audioLoading ? (
+              <>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="animate-spin"><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+                <span>Loading…</span>
+              </>
+            ) : speaking ? (
               <>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
                 <span>Stop</span>
@@ -455,12 +434,17 @@ export default function ArticleDetailPage() {
             onClick={toggleSpeech}
             className={clsx(
               'flex items-center gap-2 text-xs font-medium border rounded-full px-3.5 py-1.5 transition-colors ml-auto',
-              speaking
+              speaking || audioLoading
                 ? 'border-canadaRed text-canadaRed bg-canadaRed/5'
                 : 'border-[#E8E8E8] dark:border-[#333] text-[#3a3a3a] dark:text-[#CCC] hover:border-canadaRed hover:text-canadaRed',
             )}
           >
-            {speaking ? (
+            {audioLoading ? (
+              <>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="animate-spin"><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+                <span>Loading…</span>
+              </>
+            ) : speaking ? (
               <>
                 <div className="flex items-end gap-0.5 h-3">
                   {[1,2,3,4,5].map(i => (
@@ -476,6 +460,14 @@ export default function ArticleDetailPage() {
               </>
             )}
           </button>
+          <audio
+            ref={audioRef}
+            preload="none"
+            className="hidden"
+            onPlaying={() => { setAudioLoading(false); setSpeaking(true); }}
+            onEnded={() => setSpeaking(false)}
+            onError={() => { setAudioLoading(false); setSpeaking(false); }}
+          />
         </div>
 
         {/* 5. Hero image */}
