@@ -1,16 +1,14 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { SECTION_NAV, SECONDARY_SECTION_NAV } from '@/lib/nav';
+import { SECTION_NAV } from '@/lib/nav';
 
 const FOOTER_COLS = [
   {
     heading: 'SECTIONS',
     // Same list the header and mobile menu render — see src/lib/nav.ts.
+    // Scoped to the mockup's 6 categories only — no generic Politics/World/
+    // Business/etc columns.
     links: SECTION_NAV,
-  },
-  {
-    heading: 'MORE',
-    links: SECONDARY_SECTION_NAV,
   },
   {
     heading: 'ACCOUNT',

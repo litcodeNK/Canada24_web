@@ -6,6 +6,11 @@
  * showing the newcomer categories while the footer and mobile menu still
  * listed the old generic ones.
  *
+ * Scoped to exactly the 6 categories in the mockup — no generic sections
+ * (Politics, World, Business, Sports, etc.) are part of this site's nav or
+ * homepage. Those RSS feeds may still run server-side (see the backend
+ * report on that), but nothing in this frontend links to or renders them.
+ *
  * `href: null` means there is no page behind the item yet — it renders as a
  * non-interactive "Soon" chip rather than a link to an empty section.
  */
@@ -23,22 +28,4 @@ export const SECTION_NAV: SectionNavItem[] = [
   { label: 'Auto', href: '/sections/auto', color: '#37474F' },
   { label: 'Settlement Guide', href: null },
   { label: 'Video', href: '/videos', color: '#D52B1E' },
-];
-
-/** Sections that exist in the backend but aren't in the primary nav. Kept for
- *  the footer/sidebar "More" lists so that coverage stays reachable. */
-export const SECONDARY_SECTION_NAV: SectionNavItem[] = [
-  { label: 'Top Stories', href: '/', color: '#D52B1E' },
-  { label: 'Local News', href: '/local', color: '#1565C0' },
-  { label: 'Politics', href: '/sections/politics', color: '#1565C0' },
-  { label: 'World', href: '/sections/world', color: '#00695C' },
-  { label: 'Business', href: '/sections/business', color: '#E65100' },
-  { label: 'Health', href: '/sections/health', color: '#1B5E20' },
-  { label: 'Technology', href: '/sections/technology', color: '#01579B' },
-  { label: 'Sports', href: '/sections/sports', color: '#D52B1E' },
-  { label: 'Entertainment', href: '/sections/entertainment', color: '#880E4F' },
-  { label: 'Indigenous', href: '/sections/indigenous', color: '#4A148C' },
-  { label: 'Education', href: '/sections/education', color: '#01579B' },
-  { label: 'Aviation', href: '/sections/aviation', color: '#0277BD' },
-  { label: 'Blacks in Canada', href: '/sections/blacks-in-canada', color: '#5D4037' },
 ];

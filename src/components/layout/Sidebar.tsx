@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useApp } from '@/context/AppContext';
 import { clsx } from 'clsx';
-import { SECTION_NAV, SECONDARY_SECTION_NAV } from '@/lib/nav';
+import { SECTION_NAV } from '@/lib/nav';
 
 interface SidebarProps {
   open: boolean;
@@ -27,7 +27,8 @@ const secondaryItems = [
 ];
 
 // Canonical nav lives in src/lib/nav.ts so header/footer/sidebar can't drift.
-const sectionLinks = [...SECTION_NAV, ...SECONDARY_SECTION_NAV];
+// Scoped to the mockup's 6 categories only.
+const sectionLinks = SECTION_NAV;
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
