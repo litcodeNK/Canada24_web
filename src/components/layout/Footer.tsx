@@ -2,38 +2,22 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Home, MapPin, PlayCircle, LogIn, Bookmark, Settings, Bell, Globe, type LucideIcon } from 'lucide-react';
+import { LogIn, Bookmark, Settings, Bell, Globe, type LucideIcon } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { SectionThumb } from './SectionThumb';
+import { SECTION_NAV, SECONDARY_SECTION_NAV } from '@/lib/nav';
 
-type FooterLink = { href: string; label: string; icon?: LucideIcon };
+type FooterLink = { href: string | null; label: string; icon?: LucideIcon };
 
 const FOOTER_COLS: { heading: string; links: FooterLink[] }[] = [
   {
     heading: 'SECTIONS',
-    links: [
-      { href: '/', label: 'Top Stories', icon: Home },
-      { href: '/local', label: 'Local News', icon: MapPin },
-      { href: '/sections/politics', label: 'Politics' },
-      { href: '/sections/world', label: 'World' },
-      { href: '/sections/business', label: 'Business' },
-      { href: '/sections/health', label: 'Health' },
-      { href: '/sections/sports', label: 'Sports' },
-      { href: '/sections/technology', label: 'Technology' },
-      { href: '/sections/entertainment', label: 'Entertainment' },
-    ],
+    // Same list the header and mobile menu render — see src/lib/nav.ts.
+    links: SECTION_NAV,
   },
   {
     heading: 'MORE',
-    links: [
-      { href: '/videos', label: 'Video', icon: PlayCircle },
-      { href: '/sections/immigration', label: 'Immigration' },
-      { href: '/sections/indigenous', label: 'Indigenous' },
-      { href: '/sections/education', label: 'Education' },
-      { href: '/sections/aviation', label: 'Aviation' },
-      { href: '/sections/auto news', label: 'Auto News' },
-      { href: '/sections/blacks in canada', label: 'Blacks in Canada' },
-    ],
+    links: SECONDARY_SECTION_NAV,
   },
   {
     heading: 'ACCOUNT',
@@ -100,26 +84,40 @@ export function Footer() {
                 <ul className="space-y-1">
                   {col.links.map(link => {
                     const Icon = link.icon;
+                    const thumb = Icon ? (
+                      <span className="w-8 h-8 rounded-lg flex-shrink-0 bg-white/10 flex items-center justify-center">
+                        <Icon className="w-4 h-4 text-white/70 group-hover:text-canadaRed transition-colors" />
+                      </span>
+                    ) : (
+                      <SectionThumb
+                        src={sectionThumbnails[link.label]}
+                        className="w-8 h-8 rounded-lg flex-shrink-0 bg-white/10"
+                      />
+                    );
                     return (
-                      <li key={link.href}>
-                        <Link
-                          href={link.href}
-                          className="group flex items-center gap-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
-                        >
-                          {Icon ? (
-                            <span className="w-8 h-8 rounded-lg flex-shrink-0 bg-white/10 flex items-center justify-center">
-                              <Icon className="w-4 h-4 text-white/70 group-hover:text-canadaRed transition-colors" />
+                      <li key={link.label}>
+                        {link.href === null ? (
+                          /* No page behind it yet — shown, but not linked. */
+                          <span className="flex items-center gap-2.5 py-1.5 opacity-60">
+                            {thumb}
+                            <span className="text-[13px] text-white/80 font-sans inline-flex items-center gap-1.5">
+                              {link.label}
+                              <span className="text-[8.5px] font-bold uppercase tracking-wider border border-current rounded px-1 py-px leading-none opacity-70">
+                                Soon
+                              </span>
                             </span>
-                          ) : (
-                            <SectionThumb
-                              src={sectionThumbnails[link.label]}
-                              className="w-8 h-8 rounded-lg flex-shrink-0 bg-white/10"
-                            />
-                          )}
-                          <span className="text-[13px] text-white/80 group-hover:text-white transition-colors font-sans">
-                            {link.label}
                           </span>
-                        </Link>
+                        ) : (
+                          <Link
+                            href={link.href}
+                            className="group flex items-center gap-2.5 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
+                          >
+                            {thumb}
+                            <span className="text-[13px] text-white/80 group-hover:text-white transition-colors font-sans">
+                              {link.label}
+                            </span>
+                          </Link>
+                        )}
                       </li>
                     );
                   })}

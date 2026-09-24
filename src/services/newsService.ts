@@ -228,6 +228,26 @@ export async function fetchBreakingNews(): Promise<Article | null> {
   }
 }
 
+export type ImmigrationStats = {
+  year: number | null;
+  national_total?: number;
+  provinces: { province: string; total: number; share: number }[];
+  top_source_countries: { country: string; total: number }[];
+  source?: string;
+  note?: string;
+};
+
+/** IRCC open-data figures behind the province widget. Returns null on failure
+ *  or when the stats table is empty, so the widget hides instead of erroring. */
+export async function fetchImmigrationStats(): Promise<ImmigrationStats | null> {
+  try {
+    const payload = await apiRequest<ImmigrationStats>('/news/immigration-stats/');
+    return payload && payload.year ? payload : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchTopStories(): Promise<Article[]> {
   try {
     return await fetchArticleList('/news/top-stories/');

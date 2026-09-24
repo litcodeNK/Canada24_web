@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useApp } from '@/context/AppContext';
 import { SectionThumb } from './SectionThumb';
 import { clsx } from 'clsx';
+import { SECTION_NAV, SECONDARY_SECTION_NAV } from '@/lib/nav';
 
 const navItems = [
   { href: '/', label: 'TOP STORIES', icon: HomeIcon },
@@ -21,16 +22,8 @@ const secondaryItems = [
   { href: '/onboarding/alerts', label: 'ALERT PREFERENCES', icon: BellIcon },
 ];
 
-const sectionLinks = [
-  { href: '/sections/politics', label: 'Politics' },
-  { href: '/sections/world', label: 'World' },
-  { href: '/sections/business', label: 'Business' },
-  { href: '/sections/health', label: 'Health' },
-  { href: '/sections/sports', label: 'Sports' },
-  { href: '/sections/technology', label: 'Technology' },
-  { href: '/sections/entertainment', label: 'Entertainment' },
-  { href: '/sections/immigration', label: 'Immigration' },
-];
+// Canonical nav lives in src/lib/nav.ts so header/footer/sidebar can't drift.
+const sectionLinks = [...SECTION_NAV, ...SECONDARY_SECTION_NAV];
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -125,19 +118,36 @@ export function Sidebar() {
           <div className="px-2 mb-1">
             <p className="text-[10px] font-bold tracking-[0.12em] text-[#999] uppercase mb-2 px-3">Sections</p>
             <div className="space-y-1">
-              {sectionLinks.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold text-[#1A1A1A] dark:text-[#F5F5F5] hover:bg-gray-100 dark:hover:bg-[#2A2A2A] transition-colors"
-                >
-                  <SectionThumb
-                    src={sectionThumbnails[label]}
-                    className="w-9 h-9 rounded-md flex-shrink-0 bg-gray-100 dark:bg-[#2A2A2A]"
-                  />
-                  {label}
-                </Link>
-              ))}
+              {sectionLinks.map(({ href, label }) =>
+                href === null ? (
+                  /* No page behind it yet — listed, but not linked. */
+                  <span
+                    key={label}
+                    className="flex items-center gap-3 px-3 py-2 text-[13px] font-semibold text-[#999]"
+                  >
+                    <SectionThumb
+                      src={sectionThumbnails[label]}
+                      className="w-9 h-9 rounded-md flex-shrink-0 bg-gray-100 dark:bg-[#2A2A2A]"
+                    />
+                    {label}
+                    <span className="text-[8px] font-bold uppercase tracking-wider border border-current rounded px-1 py-px leading-none opacity-70">
+                      Soon
+                    </span>
+                  </span>
+                ) : (
+                  <Link
+                    key={href}
+                    href={href}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold text-[#1A1A1A] dark:text-[#F5F5F5] hover:bg-gray-100 dark:hover:bg-[#2A2A2A] transition-colors"
+                  >
+                    <SectionThumb
+                      src={sectionThumbnails[label]}
+                      className="w-9 h-9 rounded-md flex-shrink-0 bg-gray-100 dark:bg-[#2A2A2A]"
+                    />
+                    {label}
+                  </Link>
+                ),
+              )}
             </div>
           </div>
 

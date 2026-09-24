@@ -9,6 +9,8 @@ import { AppShell } from '@/components/layout/AppShell';
 import { LatestNewsRail } from '@/components/layout/LatestNewsRail';
 import { HomeHero } from '@/components/news/HomeHero';
 import { FeaturedUpdates } from '@/components/news/FeaturedUpdates';
+import { ImmigrationByProvince } from '@/components/news/ImmigrationByProvince';
+import { NewcomerSections } from '@/components/news/NewcomerSections';
 import { BreakingTicker } from '@/components/news/BreakingTicker';
 import { SectionBlock } from '@/components/news/SectionBlock';
 import { useRouter } from 'next/navigation';
@@ -120,11 +122,19 @@ export default function TopStoriesPage() {
           {hero && <HomeHero article={hero} />}
 
           <div className="mt-8">
+            <ImmigrationByProvince />
+          </div>
+
+          <div className="mt-8">
             <FeaturedUpdates />
           </div>
 
           {/* Divider */}
           <div className="h-px bg-gray-300 dark:bg-[#2A2A2A] w-full mb-6" />
+
+          {/* Category rows — these would otherwise never reach the homepage,
+              see NewcomerSections for why. */}
+          <NewcomerSections />
 
           {/* Left column section blocks */}
           {leftChunks.map((group, idx) => {
