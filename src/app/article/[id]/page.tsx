@@ -269,16 +269,13 @@ export default function ArticleDetailPage() {
   const commentCount = getCommentCount(article.id) ?? article.commentsCount ?? 0;
   const reposted = isReposted(article.id) ?? false;
   const comments = getComments(article.id);
-  // Thin-source articles get their body extended with a bounded excerpt from
-  // the source's own page (backend: apps/news/services_extraction.py), which
-  // always ends with a "Continue reading at <source> →" marker line. body is
-  // rendered as plain text (no HTML), so that marker isn't clickable on its
-  // own — split it out here and render it as a real link to sourceUrl below,
-  // without otherwise changing how any other article's body renders.
-  const continueReadingMatch = article.body?.match(/\n\nContinue reading at (.+) →$/);
-  const bodyWithoutContinueReading = continueReadingMatch
-    ? article.body!.slice(0, continueReadingMatch.index)
-    : article.body;
+  // Thin-source articles extended before this change (backend:
+  // apps/news/services_extraction.py) may still have a trailing "Continue
+  // reading at <source> →" marker baked into their stored body — the backend
+  // no longer appends it (the byline's own "Source ↗" link already covers
+  // attribution/link-back), but existing rows aren't retroactively edited.
+  // Strip it here so it doesn't show as inert, unclickable text for those.
+  const bodyWithoutContinueReading = article.body?.replace(/\n\nContinue reading at .+ →$/, '');
   const bodyParagraphs = bodyWithoutContinueReading ? [bodyWithoutContinueReading] : FALLBACK_BODY;
 
   /* Related articles: same category, exclude current */
@@ -518,16 +515,6 @@ export default function ArticleDetailPage() {
                 {para}
               </p>
             ))}
-            {continueReadingMatch && article.sourceUrl && (
-              <a
-                href={article.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block text-[1rem] font-semibold text-canadaRed hover:underline"
-              >
-                Continue reading at {continueReadingMatch[1]} {'→'}
-              </a>
-            )}
           </div>
 
           {/* 7b. Related coverage (Brave Search enrichment) — only rendered
