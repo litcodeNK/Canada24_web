@@ -371,3 +371,33 @@ body {
   .animated-button .circle,
   .animated-button .text { transition-duration: 0.01ms; }
 }
+
+/* ── Large layout circles (header + footer) ── */
+.c247-circle {
+  position: absolute;
+  border-radius: 9999px;
+  animation: c247-circle-drift ease-in-out infinite alternate;
+}
+.c247-circle--red   { background: radial-gradient(circle at 30% 30%, rgba(255,90,77,0.55), rgba(213,43,30,0.10) 70%); }
+.c247-circle--blue  { background: radial-gradient(circle at 70% 30%, rgba(90,150,255,0.45), rgba(30,80,190,0.08) 70%); }
+.c247-circle--glass { background: linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.10); }
+.c247-circle--ring  { border: 2px solid rgba(255,255,255,0.14); background: transparent; }
+
+@keyframes c247-circle-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(24px, 10px, 0) scale(1.06); }
+}
+
+/* Soft shimmer sweep for the header's red accent line */
+@keyframes c247-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.c247-shimmer-line {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #D52B1E, #ff8a7a, #D52B1E, transparent);
+  background-size: 200% 100%;
+  animation: c247-shimmer 6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .c247-circle { animation: none; }
+  .c247-shimmer-line { animation: none; }
+}

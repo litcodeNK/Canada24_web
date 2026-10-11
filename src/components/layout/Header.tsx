@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { clsx } from 'clsx';
 import { SECTION_NAV } from '@/lib/nav';
 import { Logo } from '@/components/brand/Logo';
+import { FloatingBubbles } from '@/components/ui/FloatingBubbles';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -26,8 +27,10 @@ export function Header({ onMenuToggle }: HeaderProps) {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 w-full font-sans">
-      <div className="bg-navy text-white">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-[64px] sm:h-[76px] flex items-center gap-4">
+      <div className="relative overflow-hidden bg-gradient-to-r from-navy via-[#12306a] to-navy text-white">
+        <FloatingBubbles variant="header" />
+        <div className="c247-shimmer-line absolute bottom-0 left-0 right-0 z-10" aria-hidden="true" />
+        <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 h-[64px] sm:h-[76px] flex items-center gap-4">
 
           {/* Hamburger (mobile) */}
           <button

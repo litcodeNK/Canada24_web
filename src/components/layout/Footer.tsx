@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { SECTION_NAV } from '@/lib/nav';
 import { Logo } from '@/components/brand/Logo';
+import { FloatingBubbles } from '@/components/ui/FloatingBubbles';
 
 const FOOTER_COLS = [
   {
@@ -40,8 +41,9 @@ export function Footer() {
         />
       </svg>
 
-      <footer className="relative bg-white dark:bg-[#1A1A1A] shadow-[0_-20px_45px_-25px_rgba(0,0,0,0.5)]">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-10">
+      <footer className="relative overflow-hidden bg-white dark:bg-[#1A1A1A] shadow-[0_-20px_45px_-25px_rgba(0,0,0,0.5)]">
+      <FloatingBubbles variant="footer" className="opacity-70 dark:opacity-100" />
+      <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 py-10">
 
         {/* Logo row */}
         <div className="flex items-center gap-3 mb-8 pb-6 border-b border-gray-300 dark:border-[#2A2A2A]">
