@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { SECTION_NAV } from '@/lib/nav';
+import { Logo } from '@/components/brand/Logo';
 
 const FOOTER_COLS = [
   {
@@ -45,21 +45,10 @@ export function Footer() {
 
         {/* Logo row */}
         <div className="flex items-center gap-3 mb-8 pb-6 border-b border-gray-300 dark:border-[#2A2A2A]">
-          <Image
-            src="/canada247-logo.png"
-            alt="Canada 247"
-            width={686}
-            height={583}
-            className="h-10 w-auto object-contain flex-shrink-0"
-          />
-          <div>
-            <span className="font-display font-black text-2xl tracking-tight text-[#1a1a1a] dark:text-white block leading-none">
-              CANADA NEWS
-            </span>
-            <span className="text-[10px] text-gray-500 font-medium tracking-widest uppercase font-sans">
-              Canada in Real Time
-            </span>
-          </div>
+          <Logo className="h-12 flex-shrink-0" />
+          <span className="text-[10px] text-gray-500 font-medium tracking-widest uppercase font-sans">
+            Canada in Real Time
+          </span>
         </div>
 
         {/* Columns */}
@@ -72,22 +61,12 @@ export function Footer() {
               <ul className="space-y-2">
                 {col.links.map(link => (
                   <li key={link.label}>
-                    {link.href === null ? (
-                      /* No page behind it yet — shown, but not linked. */
-                      <span className="text-[13px] text-[#999] font-sans inline-flex items-center gap-1.5">
-                        {link.label}
-                        <span className="text-[8.5px] font-bold uppercase tracking-wider border border-current rounded px-1 py-px leading-none opacity-70">
-                          Soon
-                        </span>
-                      </span>
-                    ) : (
-                      <Link
-                        href={link.href}
-                        className="text-[13px] text-[#3a3a3a] dark:text-[#CCC] hover:text-canadaRed dark:hover:text-canadaRed transition-colors font-sans"
-                      >
-                        {link.label}
-                      </Link>
-                    )}
+                    <Link
+                      href={link.href}
+                      className="text-[13px] text-[#3a3a3a] dark:text-[#CCC] hover:text-canadaRed dark:hover:text-canadaRed transition-colors font-sans"
+                    >
+                      {link.label}
+                    </Link>
                   </li>
                 ))}
               </ul>

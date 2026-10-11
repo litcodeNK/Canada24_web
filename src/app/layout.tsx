@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     siteName: 'Canada News',
     title: 'Canada News — Breaking News, Politics, World & More',
     description: 'Breaking news and real-time updates from across Canada.',
-    images: [{ url: '/assets/canada247-logo.png', width: 686, height: 583 }],
+    images: [{ url: '/canada247-og.jpg', width: 1280, height: 1280 }],
   },
   twitter: {
     card: 'summary_large_image',
