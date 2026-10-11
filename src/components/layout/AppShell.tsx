@@ -17,14 +17,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <>
       <Header onMenuToggle={openSidebar} />
 
-      {/*
-        Header height: 72px red bar + 48px secondary nav = 120px desktop
-        Mobile: 72px red bar + 48px secondary nav = 120px (secondary nav visible on mobile too)
-        Bottom nav: 80px on mobile, hidden on desktop
-      */}
+      {/* Top padding = fixed header height (64px mobile, 76px sm+); keep in sync with Header.tsx. */}
       <main
         id="main-content"
-        className="pt-[160px] sm:pt-[200px] pb-20 lg:pb-0 min-h-screen bg-white dark:bg-[#0D0D0D]"
+        className="pt-[64px] sm:pt-[76px] pb-20 lg:pb-0 min-h-screen bg-white dark:bg-[#0D0D0D]"
       >
         {children}
         <Footer />

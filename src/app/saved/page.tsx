@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { ArticleCard } from '@/components/news/ArticleCard';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
 
 export default function SavedPage() {
   const { savedArticles } = useApp();
@@ -19,12 +20,7 @@ export default function SavedPage() {
           </svg>
           <h2 className="bebas tracking-widest text-xl dark:text-white mb-2">SAVED ARTICLES</h2>
           <p className="text-gray-400 text-sm mb-6">Sign in to save articles and access them across devices.</p>
-          <Link
-            href="/auth/email"
-            className="bebas tracking-widest text-sm bg-[#D52B1E] text-white px-6 py-2.5 rounded-lg hover:bg-[#B02010] transition-colors"
-          >
-            SIGN IN
-          </Link>
+          <AnimatedButton href="/auth/email">Sign in</AnimatedButton>
         </div>
       </AppShell>
     );

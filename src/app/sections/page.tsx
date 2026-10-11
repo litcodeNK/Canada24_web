@@ -6,55 +6,16 @@ import { List, LayoutGrid } from 'lucide-react';
 import { clsx } from 'clsx';
 import { AppShell } from '@/components/layout/AppShell';
 import { apiRequest, extractList } from '@/services/api';
+import { SECTION_NAV } from '@/lib/nav';
 
-const SECTION_NAME_ALIASES: Record<string, string> = {
-  education: 'Education in Canada',
-};
+// Same list as the header, sidebar and footer — see src/lib/nav.ts.
+const SECTIONS = SECTION_NAV.map(({ label, href, color }) => ({
+  name: label,
+  href,
+  color: color ?? '#D52B1E',
+}));
 
-const SECTION_GROUPS = [
-  {
-    label: 'NEWS',
-    sections: [
-      { name: 'Politics', color: '#1565C0' },
-      { name: 'World', color: '#00695C' },
-      { name: 'Indigenous', color: '#4A148C' },
-    ],
-  },
-  {
-    label: 'LIFE & SOCIETY',
-    sections: [
-      { name: 'Business', color: '#E65100' },
-      { name: 'Health', color: '#1B5E20' },
-      { name: 'Education', color: '#0277BD' },
-      { name: 'Events', color: '#6A1B9A' },
-    ],
-  },
-  {
-    label: 'TECH, AUTO & AVIATION',
-    sections: [
-      { name: 'Technology', color: '#01579B' },
-      { name: 'Auto News', color: '#37474F' },
-      { name: 'Aviation', color: '#1565C0' },
-    ],
-  },
-  {
-    label: 'IMMIGRATION & OPPORTUNITIES',
-    sections: [
-      { name: 'Immigration', color: '#BF360C' },
-      { name: 'Opportunities', color: '#2E7D32' },
-    ],
-  },
-  {
-    label: 'CULTURE & COMMUNITY',
-    sections: [
-      { name: 'Sports', color: '#D52B1E' },
-      { name: 'Entertainment', color: '#880E4F' },
-      { name: 'Blacks in Canada', color: '#4A148C' },
-    ],
-  },
-];
-
-const ALL_SECTION_NAMES = SECTION_GROUPS.flatMap(g => g.sections.map(s => s.name));
+const ALL_SECTION_NAMES = SECTIONS.map(s => s.name);
 
 type ViewMode = 'list' | 'gallery';
 
@@ -87,8 +48,7 @@ export default function SectionsPage() {
         if (cancelled) return;
 
         await Promise.all(ALL_SECTION_NAMES.map(async name => {
-          const alias = SECTION_NAME_ALIASES[name.toLowerCase()] ?? name;
-          const match = sections.find(s => s.label.toLowerCase() === alias.toLowerCase());
+          const match = sections.find(s => s.label.toLowerCase() === name.toLowerCase());
           if (!match) return;
           try {
             const payload = await apiRequest<unknown>(`/news/sections/${match.slug}/`);
@@ -139,23 +99,15 @@ export default function SectionsPage() {
         </div>
 
         <div className="space-y-8">
-          {SECTION_GROUPS.map(group => (
-            <div key={group.label}>
-              {/* Group label */}
-              <div className="flex items-center gap-3 mb-3">
-                <h2 className="text-[10px] font-bold tracking-[0.12em] text-[#999] uppercase">
-                  {group.label}
-                </h2>
-                <div className="flex-1 h-px bg-[#E8E8E8] dark:bg-[#2A2A2A]" />
-              </div>
-
+          {[{ sections: SECTIONS }].map((group, i) => (
+            <div key={i}>
               {viewMode === 'list' ? (
                 /* ── LIST VIEW ── */
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {group.sections.map(section => (
                     <Link
                       key={section.name}
-                      href={`/sections/${encodeURIComponent(section.name.toLowerCase())}`}
+                      href={section.href}
                       className="group flex items-center gap-3 p-3 rounded-xl bg-oxfordBlue dark:bg-oxfordBlueDark hover:opacity-90 transition-opacity"
                     >
                       <SectionThumb
@@ -192,7 +144,7 @@ export default function SectionsPage() {
                   {group.sections.map(section => (
                     <Link
                       key={section.name}
-                      href={`/sections/${encodeURIComponent(section.name.toLowerCase())}`}
+                      href={section.href}
                       className="group rounded-xl overflow-hidden bg-oxfordBlue dark:bg-oxfordBlueDark hover:opacity-90 transition-opacity"
                     >
                       <SectionThumb

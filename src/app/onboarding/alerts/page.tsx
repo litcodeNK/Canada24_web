@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { apiRequest, extractList } from '@/services/api';
 import { clsx } from 'clsx';
 import { Star } from 'lucide-react';
+import { Logo } from '@/components/brand/Logo';
 
 type PreferenceSource = 'top' | 'category' | 'none';
 type PreferenceItem = { key: string; desc: string; source: PreferenceSource };
@@ -148,14 +148,7 @@ export default function AlertSetupPage() {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15,18 9,12 15,6"/></svg>
           </button>
         )}
-        <Image
-          src="/canada247-logo.png"
-          alt="Canada 247"
-          width={686}
-          height={583}
-          className="h-12 w-auto object-contain"
-          priority
-        />
+        <Logo className="h-14" priority />
         <div className="text-center">
           <h1 className="font-serif font-black text-2xl sm:text-3xl text-[#1a1a1a] dark:text-white leading-tight">
             What do you want to follow?

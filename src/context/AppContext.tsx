@@ -8,7 +8,7 @@ import { resyncWebPushIfGranted } from '../lib/webPush';
 import { Colors } from '../theme';
 
 // Shown in place of a story's image whenever the source feed didn't provide one.
-export const DEFAULT_ARTICLE_IMAGE = '/article-fallback.jpg';
+export const DEFAULT_ARTICLE_IMAGE = '/article-fallback-v2.jpg';
 
 export interface Article {
   id: string;

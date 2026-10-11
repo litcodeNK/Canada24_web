@@ -1,12 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useApp } from '@/context/AppContext';
 import { clsx } from 'clsx';
 import { SECTION_NAV } from '@/lib/nav';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
+import { Logo } from '@/components/brand/Logo';
 
 interface SidebarProps {
   open: boolean;
@@ -40,22 +41,27 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       {/* Backdrop */}
       <div
         className={clsx(
-          'fixed inset-0 z-40 bg-black/50 transition-opacity duration-300',
+          'fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ease-out',
           open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
         )}
         onClick={onClose}
       />
 
-      {/* Drawer */}
+      {/* Dropdown — hangs from the bottom edge of the header bar (z-45 keeps it
+          beneath the header, so it appears to slide out from under it). */}
       <aside
+        aria-hidden={!open}
         className={clsx(
-          'fixed top-0 left-0 z-50 h-full w-72 bg-white dark:bg-[#1A1A1A] shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col',
-          open ? 'translate-x-0' : '-translate-x-full',
+          'fixed z-[45] top-[64px] sm:top-[76px] left-0 right-0 sm:left-auto sm:right-4 lg:right-6 sm:w-[360px]',
+          'max-h-[calc(100dvh-64px)] sm:max-h-[calc(100dvh-76px-16px)] flex flex-col overflow-hidden',
+          'bg-white dark:bg-[#1A1A1A] shadow-2xl sm:rounded-b-xl border-t-2 border-canadaRed',
+          'transition-[transform,opacity,visibility] duration-300 ease-out',
+          open ? 'translate-y-0 opacity-100 visible' : '-translate-y-full opacity-0 invisible pointer-events-none',
         )}
       >
         {/* Header */}
         <div
-          className="relative overflow-hidden px-5 pt-10 pb-6"
+          className="relative overflow-hidden px-5 pt-5 pb-4"
           style={{
             backgroundImage: 'url(/sidebar-bg.avif)',
             backgroundSize: 'cover',
@@ -66,39 +72,16 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: 'linear-gradient(160deg, rgba(0,0,0,0.72) 0%, rgba(20,0,0,0.65) 60%, rgba(213,43,30,0.55) 100%)',
+              background: 'linear-gradient(160deg, rgba(6,16,34,0.88) 0%, rgba(6,16,34,0.82) 60%, rgba(12,31,63,0.78) 100%)',
             }}
           />
 
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="absolute top-3 right-3 text-white/60 hover:text-white p-1.5 z-10"
-            aria-label="Close menu"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-
-          {/* Logo + branding */}
-          <div className="relative z-10 flex flex-col items-start gap-3">
-            <Image
-              src="/canada247-logo.png"
-              alt="Canada 247 Logo"
-              width={686}
-              height={583}
-              className="h-16 w-auto object-contain drop-shadow-xl"
-            />
-            <div>
-              <span className="bebas text-white text-3xl tracking-widest block leading-none drop-shadow-md">
-                CANADA 247
-              </span>
-              <span className="text-white/55 text-[10px] tracking-[0.18em] font-medium uppercase">
-                Canada in real time
-              </span>
-            </div>
+          {/* Logo */}
+          <div className="relative z-10 flex flex-col items-start gap-2">
+            <Logo surface="onDark" className="h-14 drop-shadow-xl" />
+            <span className="text-white/60 text-[10px] tracking-[0.18em] font-medium uppercase">
+              Canada in real time
+            </span>
           </div>
         </div>
 
@@ -129,30 +112,17 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           <div className="px-4 mb-1">
             <p className="text-[10px] font-bold tracking-[0.12em] text-[#999] uppercase mb-2">Sections</p>
             <div className="grid grid-cols-2 gap-x-2 gap-y-0">
-              {sectionLinks.map(({ href, label, color }) =>
-                href === null ? (
-                  /* No page behind it yet — listed, but not linked. */
-                  <span
-                    key={label}
-                    className="py-1.5 text-[13px] font-semibold text-[#999] inline-flex items-center gap-1.5"
-                  >
-                    {label}
-                    <span className="text-[8px] font-bold uppercase tracking-wider border border-current rounded px-1 py-px leading-none opacity-70">
-                      Soon
-                    </span>
-                  </span>
-                ) : (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={onClose}
-                    className="py-1.5 text-[13px] font-semibold hover:underline transition-colors"
-                    style={{ color }}
-                  >
-                    {label}
-                  </Link>
-                ),
-              )}
+              {sectionLinks.map(({ href, label, color }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={onClose}
+                  className="py-1.5 text-[13px] font-semibold hover:underline transition-colors"
+                  style={{ color }}
+                >
+                  {label}
+                </Link>
+              ))}
             </div>
           </div>
 
@@ -191,13 +161,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               </div>
             </div>
           ) : (
-            <Link
-              href="/auth/email"
-              onClick={onClose}
-              className="block w-full text-center bebas tracking-widest text-sm text-[#D52B1E] border border-[#D52B1E] rounded-lg py-2 hover:bg-[#D52B1E] hover:text-white transition-colors"
-            >
-              SIGN IN
-            </Link>
+            <AnimatedButton href="/auth/email" onClick={onClose} size="sm" block>
+              Sign in
+            </AnimatedButton>
           )}
         </div>
       </aside>

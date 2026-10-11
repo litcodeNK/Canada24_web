@@ -6,17 +6,14 @@
  * showing the newcomer categories while the footer and mobile menu still
  * listed the old generic ones.
  *
- * Scoped to exactly the 6 categories in the mockup — no generic sections
+ * Scoped to exactly the 5 categories in the top nav — no generic sections
  * (Politics, World, Business, Sports, etc.) are part of this site's nav or
  * homepage. Those RSS feeds may still run server-side (see the backend
  * report on that), but nothing in this frontend links to or renders them.
- *
- * `href: null` means there is no page behind the item yet — it renders as a
- * non-interactive "Soon" chip rather than a link to an empty section.
  */
 export type SectionNavItem = {
   label: string;
-  href: string | null;
+  href: string;
   /** Accent colour used by the mobile sidebar's category dots. */
   color?: string;
 };
@@ -26,6 +23,5 @@ export const SECTION_NAV: SectionNavItem[] = [
   { label: 'Jobs & Money', href: '/sections/jobs-money', color: '#E65100' },
   { label: 'Housing', href: '/sections/housing', color: '#00695C' },
   { label: 'Auto', href: '/sections/auto', color: '#37474F' },
-  { label: 'Settlement Guide', href: null },
   { label: 'Video', href: '/videos', color: '#D52B1E' },
 ];

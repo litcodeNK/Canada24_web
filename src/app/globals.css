@@ -278,3 +278,126 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.55; }
 }
+
+/* ── Animated button (see components/ui/AnimatedButton.tsx) ──
+   Outlined; on hover the arrow slides through, a circle floods the fill and the
+   corners tighten. Colours come from the variant custom properties. */
+.animated-button {
+  --ab-color: #D52B1E;
+  --ab-hover-text: #ffffff;
+  --ab-radius: 8px;
+  --ab-radius-hover: 3px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 14px 36px;
+  border: 4px solid transparent;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-decoration: none;
+  background-color: transparent;
+  border-radius: var(--ab-radius);
+  color: var(--ab-color);
+  box-shadow: 0 0 0 2px var(--ab-color);
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.dark .animated-button--red { --ab-color: #FF5A4D; }
+.animated-button--light { --ab-color: #ffffff; --ab-hover-text: #111111; }
+
+.animated-button--sm { padding: 9px 30px; font-size: 13px; border-width: 3px; }
+.animated-button--block { display: flex; width: 100%; }
+
+.animated-button svg {
+  position: absolute;
+  width: 22px;
+  fill: var(--ab-color);
+  z-index: 9;
+  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.animated-button--sm svg { width: 18px; }
+.animated-button .arr-1 { right: 14px; }
+.animated-button .arr-2 { left: -25%; }
+
+.animated-button .circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  background-color: var(--ab-color);
+  border-radius: 50%;
+  opacity: 0;
+  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.animated-button .text {
+  position: relative;
+  z-index: 1;
+  transform: translateX(-10px);
+  transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.animated-button:hover,
+.animated-button:focus-visible {
+  box-shadow: 0 0 0 12px transparent;
+  color: var(--ab-hover-text);
+  border-radius: var(--ab-radius-hover);
+}
+.animated-button:hover .arr-1,
+.animated-button:focus-visible .arr-1 { right: -25%; }
+.animated-button:hover .arr-2,
+.animated-button:focus-visible .arr-2 { left: 14px; }
+.animated-button:hover .text,
+.animated-button:focus-visible .text { transform: translateX(10px); }
+.animated-button:hover svg,
+.animated-button:focus-visible svg { fill: var(--ab-hover-text); }
+.animated-button:hover .circle,
+.animated-button:focus-visible .circle { width: 260px; height: 260px; opacity: 1; }
+
+.animated-button:active { scale: 0.96; box-shadow: 0 0 0 4px var(--ab-color); }
+.animated-button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animated-button,
+  .animated-button svg,
+  .animated-button .circle,
+  .animated-button .text { transition-duration: 0.01ms; }
+}
+
+/* ── Large layout circles (header + footer) ── */
+.c247-circle {
+  position: absolute;
+  border-radius: 9999px;
+  animation: c247-circle-drift ease-in-out infinite alternate;
+}
+.c247-circle--red   { background: radial-gradient(circle at 30% 30%, rgba(255,90,77,0.55), rgba(213,43,30,0.10) 70%); }
+.c247-circle--blue  { background: radial-gradient(circle at 70% 30%, rgba(90,150,255,0.45), rgba(30,80,190,0.08) 70%); }
+.c247-circle--glass { background: linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.10); }
+.c247-circle--ring  { border: 2px solid rgba(255,255,255,0.14); background: transparent; }
+
+@keyframes c247-circle-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(24px, 10px, 0) scale(1.06); }
+}
+
+/* Soft shimmer sweep for the header's red accent line */
+@keyframes c247-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.c247-shimmer-line {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #D52B1E, #ff8a7a, #D52B1E, transparent);
+  background-size: 200% 100%;
+  animation: c247-shimmer 6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .c247-circle { animation: none; }
+  .c247-shimmer-line { animation: none; }
+}
