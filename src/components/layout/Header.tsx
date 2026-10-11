@@ -3,27 +3,23 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
-import { Search, User, Menu } from 'lucide-react';
+import { Search, User, Menu, X } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { clsx } from 'clsx';
 import { SECTION_NAV } from '@/lib/nav';
+import { Logo } from '@/components/brand/Logo';
 
 interface HeaderProps {
   onMenuToggle: () => void;
 }
 
 
-function MapleLeaf({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 512 512" aria-hidden="true" className={className} fill="currentColor">
-      <path d="M256 32l-38 76c-4 8-13 12-22 10l-47-10 21 92c2 9-3 18-12 21l-30 10 96 82c7 6 10 15 7 24l-12 38 90-8c9-1 17 6 17 15l-4 88h32l-4-88c0-9 8-16 17-15l90 8-12-38c-3-9 0-18 7-24l96-82-30-10c-9-3-14-12-12-21l21-92-47 10c-9 2-18-2-22-10l-38-76z" />
-    </svg>
-  );
-}
-
 export function Header({ onMenuToggle }: HeaderProps) {
-  const { darkMode, toggleDarkMode } = useApp();
+  const { darkMode, toggleDarkMode, sidebarOpen, closeSidebar } = useApp();
+  // The hamburger doubles as the close button while the menu is open.
+  const handleMenu = sidebarOpen ? closeSidebar : onMenuToggle;
+  const MenuIcon = sidebarOpen ? X : Menu;
   const { user, isAuthLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -35,19 +31,17 @@ export function Header({ onMenuToggle }: HeaderProps) {
 
           {/* Hamburger (mobile) */}
           <button
-            onClick={onMenuToggle}
+            onClick={handleMenu}
             className="lg:hidden text-white p-1 -ml-1 hover:text-canadaRed transition-colors flex-shrink-0"
-            aria-label="Open navigation menu"
+            aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={sidebarOpen}
           >
-            <Menu className="w-6 h-6" />
+            <MenuIcon className="w-6 h-6" />
           </button>
 
           {/* Wordmark + tagline */}
-          <Link href="/" className="flex items-center gap-3 flex-shrink-0 group" aria-label="Canada 24/7 — home">
-            <MapleLeaf className="w-7 h-7 sm:w-9 sm:h-9 text-canadaRed flex-shrink-0" />
-            <span className="font-black italic tracking-tight text-[30px] sm:text-[40px] leading-none select-none">
-              24/7
-            </span>
+          <Link href="/" className="flex items-center flex-shrink-0" aria-label="Canada 247 — home">
+            <Logo surface="onDark" priority className="h-[46px] sm:h-[58px]" />
           </Link>
 
           <span className="hidden md:block text-[12px] lg:text-[13px] text-white/70 leading-tight flex-shrink-0">
@@ -62,21 +56,6 @@ export function Header({ onMenuToggle }: HeaderProps) {
             aria-label="Primary navigation"
           >
             {SECTION_NAV.map(item => {
-              if (item.href === null) {
-                return (
-                  <span
-                    key={item.label}
-                    title="Coming soon"
-                    className="px-2.5 xl:px-3 py-2 flex items-center gap-1.5 text-white/40 cursor-default whitespace-nowrap"
-                  >
-                    {item.label.toUpperCase()}
-                    <span className="text-[8.5px] font-bold uppercase tracking-wider border border-white/25 rounded px-1 py-px leading-none">
-                      Soon
-                    </span>
-                  </span>
-                );
-              }
-
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
               return (
                 <Link
@@ -148,11 +127,12 @@ export function Header({ onMenuToggle }: HeaderProps) {
             )}
 
             <button
-              onClick={onMenuToggle}
+              onClick={handleMenu}
               className="hidden lg:flex items-center text-white/80 hover:text-white transition-colors p-2"
-              aria-label="Open navigation menu"
+              aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={sidebarOpen}
             >
-              <Menu className="w-5 h-5" />
+              <MenuIcon className="w-5 h-5" />
             </button>
           </div>
         </div>
