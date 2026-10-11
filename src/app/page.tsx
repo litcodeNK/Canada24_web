@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useApp, DEFAULT_ARTICLE_IMAGE } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
@@ -17,18 +16,19 @@ import { fetchCategoryArticles } from '@/services/newsService';
 import { SECTION_NAV } from '@/lib/nav';
 import { useRouter } from 'next/navigation';
 import type { Article } from '@/context/AppContext';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
+import { Logo } from '@/components/brand/Logo';
 
 /**
  * Categories shown on the homepage — deliberately just the 4 real-news items
- * from SECTION_NAV (Video has no articles of its own; Settlement Guide has
- * no page at all yet). Everything the homepage renders (hero, section rows,
+ * from SECTION_NAV (Video has no articles of its own). Everything the homepage renders (hero, section rows,
  * the Trending strip, the right-rail "Latest News" list) is built from these
  * fetches, not from the unfiltered /news/top-stories/ feed — that endpoint
  * spans all ~16 backend categories, which is exactly what this site's nav no
  * longer surfaces.
  */
 const HOMEPAGE_SECTIONS = SECTION_NAV.filter(
-  (item): item is typeof item & { href: string } => item.href !== null && item.href.startsWith('/sections/'),
+  item => item.href.startsWith('/sections/'),
 );
 
 export default function TopStoriesPage() {
@@ -219,13 +219,7 @@ export default function TopStoriesPage() {
           {/* Newsletter sign-up promo — classic framed newspaper call-out box (signed-out visitors only) */}
           {!user && (
             <div className="border-2 border-[#1a1a1a] dark:border-white/25 bg-white dark:bg-[#1C1C1C] p-6 mt-6 text-center">
-              <Image
-                src="/canada247-logo.png"
-                alt="Canada 247"
-                width={686}
-                height={583}
-                className="h-12 w-auto object-contain mx-auto mb-3"
-              />
+              <Logo className="h-14 mx-auto mb-3" />
               <p className="text-[11px] font-bold tracking-[0.15em] uppercase text-canadaRed mb-2 font-sans">
                 Stay Informed
               </p>
@@ -248,7 +242,7 @@ export default function TopStoriesPage() {
 
         {/* ── RIGHT COLUMN — sticky rail, hidden below lg ── */}
         <aside className="hidden lg:block min-w-0">
-          <div className="sticky top-[176px] sm:top-[216px]">
+          <div className="sticky top-[80px] sm:top-[92px]">
             <LatestNewsRail articles={homeArticles} />
           </div>
         </aside>
@@ -278,14 +272,7 @@ function WelcomeScreen({
 
       <section className="relative z-10 mx-auto flex min-h-screen w-full max-w-md flex-col px-7 pb-10 pt-12 text-center">
         <div className="flex-1 flex flex-col items-center justify-center">
-          <Image
-            src="/canada247-logo.png"
-            alt="Canada 24/7"
-            width={686}
-            height={583}
-            priority
-            className="mx-auto h-[110px] w-auto object-contain drop-shadow-lg"
-          />
+          <Logo surface="onDark" priority className="mx-auto h-[120px] drop-shadow-lg" />
 
           <div className="mt-10">
             <h1 className="font-sans text-[38px] font-black leading-[1.05] tracking-[-0.03em] text-white">
@@ -308,18 +295,12 @@ function WelcomeScreen({
           </button>
         ) : (
           <div className="space-y-4">
-            <Link
-              href="/auth/email"
-              className="block w-full rounded-[18px] bg-[#ff2b23] px-6 py-4 text-center text-[18px] font-bold text-white transition-colors hover:bg-[#e2251e]"
-            >
+            <AnimatedButton href="/auth/email" block>
               Sign in
-            </Link>
-            <Link
-              href="/auth/email"
-              className="block w-full rounded-[18px] bg-white px-6 py-4 text-center text-[18px] font-bold text-[#111111] transition-colors hover:bg-[#f1f1f1]"
-            >
+            </AnimatedButton>
+            <AnimatedButton href="/auth/email" variant="light" block>
               Create a free account
-            </Link>
+            </AnimatedButton>
             <button
               onClick={onContinue}
               className="pt-2 text-sm font-medium text-white/62 transition-colors hover:text-white"
