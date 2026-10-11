@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Bell, X } from 'lucide-react';
 import { useWebPush } from '@/hooks/useWebPush';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
 
 const SHOW_DELAY_MS = 5000;
 const DISMISS_SUPPRESS_DAYS = 7;
@@ -77,13 +78,9 @@ export function PushOptInPrompt() {
             Turn on notifications to hear about major stories the moment they happen.
           </p>
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleEnable}
-              disabled={loading}
-              className="text-xs font-bold text-white bg-canadaRed rounded-full px-4 py-1.5 hover:bg-canadaRed/90 transition-colors disabled:opacity-60"
-            >
+            <AnimatedButton onClick={handleEnable} disabled={loading} size="sm">
               {loading ? 'Enabling…' : 'Enable'}
-            </button>
+            </AnimatedButton>
             <button
               onClick={handleDismiss}
               className="text-xs font-medium text-[#666] dark:text-[#AAA] hover:text-[#1a1a1a] dark:hover:text-white transition-colors px-2 py-1.5"

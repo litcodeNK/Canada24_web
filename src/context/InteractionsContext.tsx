@@ -1,12 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import Link from 'next/link';
 import { apiRequest, extractList } from '../services/api';
 import { readStoredSession, requestWithStoredSession } from '../services/sessionService';
 import type { Article } from './AppContext';
 import type { AuthUser } from './AuthContext';
 import { useAuth } from './AuthContext';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
 
 const REACTIONS_KEY = '@canada247_reactions';
 const COMMENTS_KEY = '@canada247_comments';
@@ -267,13 +267,13 @@ export function InteractionsProvider({ children }: { children: React.ReactNode }
               </button>
             </div>
             <div className="mt-3 flex items-center justify-end">
-              <Link
+              <AnimatedButton
                 href="/auth/email"
+                size="sm"
                 onClick={() => setAuthPrompt(cur => ({ ...cur, visible: false }))}
-                className="rounded-full bg-[#D52B1E] px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[#B02010]"
               >
                 Sign in
-              </Link>
+              </AnimatedButton>
             </div>
           </div>
         </div>

@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Clock, ArrowRight } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import type { Article } from '@/context/AppContext';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
 
 function formatPublished(iso?: string): string {
   if (!iso) return '';
@@ -74,13 +75,9 @@ export function HomeHero({ article }: { article?: Article }) {
             )}
           </span>
 
-          <Link
-            href={`/article/${article.id}`}
-            className="ml-auto inline-flex items-center gap-2 bg-canadaRed hover:bg-canadaRedDark text-white text-[13px] sm:text-[14px] font-bold px-5 py-2.5 rounded-md transition-colors"
-          >
+          <AnimatedButton href={`/article/${article.id}`} size="sm" className="ml-auto">
             Read Full Story
-            <ArrowRight className="w-4 h-4" aria-hidden="true" />
-          </Link>
+          </AnimatedButton>
         </div>
       </div>
     </article>

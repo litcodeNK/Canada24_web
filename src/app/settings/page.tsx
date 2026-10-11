@@ -5,6 +5,7 @@ import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { useWebPush } from '@/hooks/useWebPush';
 import { clsx } from 'clsx';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -115,12 +116,7 @@ export default function SettingsPage() {
           ) : (
             <div className="px-4 py-4">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Sign in to sync your preferences and saved articles.</p>
-              <a
-                href="/auth/email"
-                className="inline-block bebas tracking-widest text-sm bg-[#D52B1E] text-white px-5 py-2.5 rounded-lg hover:bg-[#B02010] transition-colors"
-              >
-                SIGN IN
-              </a>
+              <AnimatedButton href="/auth/email" size="sm">Sign in</AnimatedButton>
             </div>
           )}
         </Section>
