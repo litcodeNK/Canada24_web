@@ -269,7 +269,14 @@ export default function ArticleDetailPage() {
   const commentCount = getCommentCount(article.id) ?? article.commentsCount ?? 0;
   const reposted = isReposted(article.id) ?? false;
   const comments = getComments(article.id);
-  const bodyParagraphs = article.body ? [article.body] : FALLBACK_BODY;
+  // Thin-source articles extended before this change (backend:
+  // apps/news/services_extraction.py) may still have a trailing "Continue
+  // reading at <source> →" marker baked into their stored body — the backend
+  // no longer appends it (the byline's own "Source ↗" link already covers
+  // attribution/link-back), but existing rows aren't retroactively edited.
+  // Strip it here so it doesn't show as inert, unclickable text for those.
+  const bodyWithoutContinueReading = article.body?.replace(/\n\nContinue reading at .+ →$/, '');
+  const bodyParagraphs = bodyWithoutContinueReading ? [bodyWithoutContinueReading] : FALLBACK_BODY;
 
   /* Related articles: same category, exclude current */
   const related = [...topStories, ...communityStories]
