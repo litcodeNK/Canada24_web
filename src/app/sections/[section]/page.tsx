@@ -33,6 +33,36 @@ const SECTION_TOPICS: Record<string, string[]> = {
   AUTO: ['Buying', 'Insurance', 'EVs', 'Licensing', 'Reviews'],
 };
 
+/* Keywords that place an article under a topic tab. Matched against headline
+   and body; topics without an entry fall back to the topic name itself. */
+const TOPIC_KEYWORDS: Record<string, string[]> = {
+  Refugees: ['refugee', 'asylum', 'humanitarian'],
+  Policy: ['policy', 'policies', 'ircc', 'minister', 'levels plan', 'regulation', 'legislation', 'bill c'],
+  'Study Permit': ['study permit', 'student visa', 'international student', 'study in canada', 'pgwp'],
+  'Work Permit': ['work permit', 'lmia', 'open work', 'temporary foreign', 'tfw'],
+  'Work Permits': ['work permit', 'lmia', 'open work', 'temporary foreign', 'tfw'],
+  Citizenship: ['citizenship', 'citizen', 'naturaliz'],
+  Hiring: ['hiring', 'hire', 'job posting', 'job openings', 'vacanc', 'recruit', 'layoff'],
+  Careers: ['career', 'job', 'employment', 'employer', 'workforce', 'wage', 'salary'],
+  Credentials: ['credential', 'certif', 'licen', 'degree', 'recognition'],
+  Banking: ['bank', 'credit', 'loan', 'interest rate', 'savings', 'tfsa', 'rrsp', 'tax'],
+  Renting: ['rent', 'tenant', 'landlord', 'lease'],
+  Buying: ['buy', 'purchase', 'homebuyer', 'first-time', 'price', 'sales'],
+  Mortgages: ['mortgage', 'down payment', 'interest rate', 'lender'],
+  Market: ['market', 'prices', 'sales', 'inventory', 'listings'],
+  Affordability: ['afford', 'cost', 'inflation', 'cost of living', 'crisis'],
+  Insurance: ['insurance', 'insurer', 'premium'],
+  EVs: ['ev', 'electric', 'hybrid', 'battery', 'charging', 'tesla'],
+  Licensing: ['licen', 'driver', 'road test', 'registration', 'g1', 'g2'],
+  Reviews: ['review', 'first drive', 'tested', 'test drive', 'versus', ' vs '],
+};
+
+function matchesTopic(article: Article, topic: string): boolean {
+  const haystack = `${article.headline} ${article.body ?? ''}`.toLowerCase();
+  const keywords = TOPIC_KEYWORDS[topic] ?? [topic.toLowerCase()];
+  return keywords.some(k => (k.length <= 3 ? new RegExp(`\\b${k}\\b`).test(haystack) : haystack.includes(k)));
+}
+
 function chunk<T>(arr: T[], n: number): T[][] {
   const out: T[][] = [];
   for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
@@ -61,7 +91,8 @@ export default function SectionDetailPage() {
       .finally(() => setLoading(false));
   }, [section]);
 
-  const [hero, ...rest] = articles;
+  const visibleArticles = activeTopic ? articles.filter(a => matchesTopic(a, activeTopic)) : articles;
+  const [hero, ...rest] = visibleArticles;
   const sectionChunks = chunk(rest, 5);
 
   return (
@@ -125,10 +156,17 @@ export default function SectionDetailPage() {
           <div className="flex justify-center py-20">
             <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: color }} />
           </div>
-        ) : articles.length === 0 ? (
+        ) : visibleArticles.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center px-4">
             <p className="bebas tracking-widest text-[#999] text-xl mb-2">NO ARTICLES</p>
-            <p className="text-[#999] text-sm">Check back soon for {sectionUpper} coverage.</p>
+            <p className="text-[#999] text-sm">
+              {activeTopic ? `No ${activeTopic} stories right now.` : `Check back soon for ${sectionUpper} coverage.`}
+            </p>
+            {activeTopic && (
+              <button onClick={() => setActiveTopic(null)} className="mt-3 text-sm font-semibold underline" style={{ color }}>
+                Show all {sectionUpper} stories
+              </button>
+            )}
           </div>
         ) : (
           <>

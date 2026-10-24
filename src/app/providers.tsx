@@ -6,6 +6,7 @@ import { InteractionsProvider } from '@/context/InteractionsContext';
 import { NavigationLoader } from '@/components/layout/NavigationLoader';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { PushOptInPrompt } from '@/components/layout/PushOptInPrompt';
+import { SignInPrompt } from '@/components/layout/SignInPrompt';
 
 function GlobalSidebar() {
   const { sidebarOpen, closeSidebar } = useApp();
@@ -24,6 +25,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
               (which may or may not use AppShell) swaps out. */}
           <GlobalSidebar />
           <PushOptInPrompt />
+          <SignInPrompt />
         </InteractionsProvider>
       </AuthProvider>
     </AppProvider>
