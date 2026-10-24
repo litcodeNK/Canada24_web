@@ -16,7 +16,7 @@ interface SidebarProps {
 
 const navItems = [
   { href: '/', label: 'TOP STORIES', icon: HomeIcon },
-  { href: '/local', label: 'LOCAL NEWS', icon: MapIcon },
+  { href: '/local', label: 'ACROSS CANADA', icon: MapIcon },
   { href: '/videos', label: 'VIDEO FEED', icon: PlayIcon },
   { href: '/saved', label: 'SAVED', icon: BookmarkIcon },
   { href: '/sections', label: 'EXPLORE', icon: GridIcon },
@@ -110,7 +110,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
           {/* Sections */}
           <div className="px-4 mb-1">
-            <p className="text-[10px] font-bold tracking-[0.12em] text-[#999] uppercase mb-2">Sections</p>
+            <p className="text-[10px] font-bold tracking-[0.12em] text-[#999] uppercase mb-2">Categories</p>
             <div className="grid grid-cols-2 gap-x-2 gap-y-0">
               {sectionLinks.map(({ href, label, color }) => (
                 <Link

@@ -70,7 +70,7 @@ export default function SectionsPage() {
 
         {/* Page header */}
         <div className="flex items-center justify-between mb-6 pb-3 border-b border-[#E8E8E8] dark:border-[#2A2A2A]">
-          <h1 className="bebas tracking-widest text-[18px] dark:text-white">EXPLORE SECTIONS</h1>
+          <h1 className="bebas tracking-widest text-[18px] dark:text-white">EXPLORE CATEGORIES</h1>
 
           <div className="flex items-center gap-1 bg-gray-100 dark:bg-[#1C1C1C] rounded-full p-1">
             <button

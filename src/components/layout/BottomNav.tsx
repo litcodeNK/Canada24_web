@@ -6,7 +6,7 @@ import { clsx } from 'clsx';
 
 const tabs = [
   { href: '/', label: 'TOP', icon: HomeIcon },
-  { href: '/local', label: 'LOCAL', icon: MapIcon },
+  { href: '/local', label: 'CANADA', icon: MapIcon },
   { href: '/videos', label: 'VIDEO', icon: PlayIcon },
   { href: '/saved', label: 'SAVED', icon: BookmarkIcon },
   { href: '/sections', label: 'EXPLORE', icon: GridIcon },

@@ -3,50 +3,81 @@
 import { useEffect, useState } from 'react';
 import { AppShell } from '@/components/layout/AppShell';
 import { ArticleCard } from '@/components/news/ArticleCard';
-import { fetchLocalNews } from '@/services/newsService';
+import { fetchTopStories, fetchRegions, fetchRegionArticles } from '@/services/newsService';
 import type { Article } from '@/context/AppContext';
 import { clsx } from 'clsx';
 
-const CITIES = ['Calgary', 'Manitoba', 'Kitchener-Waterloo', 'Edmonton'];
+type SortMode = 'recent' | 'popular';
+type Tab = { slug: string; name: string };
+
+const ALL_CANADA: Tab = { slug: 'all', name: 'All Canada' };
+
+function engagement(a: Article): number {
+  return (a.likesCount ?? 0) + (a.commentsCount ?? 0) + (a.repostsCount ?? 0) + (a.savesCount ?? 0);
+}
+
+function byRecent(a: Article, b: Article): number {
+  return new Date(b.publishedAt ?? 0).getTime() - new Date(a.publishedAt ?? 0).getTime();
+}
 
 export default function LocalNewsPage() {
-  const [activeCity, setActiveCity] = useState(CITIES[0]);
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [sortByTime, setSortByTime] = useState(false);
+  const [tabs, setTabs] = useState<Tab[]>([ALL_CANADA]);
+  const [byTab, setByTab] = useState<Record<string, Article[]>>({});
+  const [activeSlug, setActiveSlug] = useState(ALL_CANADA.slug);
+  const [loading, setLoading] = useState(true);
+  const [sortMode, setSortMode] = useState<SortMode>('recent');
 
+  // Load national news plus every region's own news, then only show region
+  // tabs that actually have stories. A region appears as soon as news tagged
+  // to it exists — nothing is hard-coded.
   useEffect(() => {
-    setLoading(true);
-    fetchLocalNews(activeCity)
-      .then(setArticles)
-      .finally(() => setLoading(false));
-  }, [activeCity]);
+    let cancelled = false;
+    (async () => {
+      const [national, regions] = await Promise.all([fetchTopStories(), fetchRegions()]);
+      const regionResults = await Promise.all(
+        regions.map(async region => [region, await fetchRegionArticles(region.slug)] as const),
+      );
+      if (cancelled) return;
+      const withNews = regionResults.filter(([, list]) => list.length > 0);
+      setTabs([ALL_CANADA, ...withNews.map(([r]) => ({ slug: r.slug, name: r.name }))]);
+      setByTab({
+        [ALL_CANADA.slug]: national,
+        ...Object.fromEntries(withNews.map(([r, list]) => [r.slug, list])),
+      });
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  const sorted = sortByTime
-    ? [...articles].sort((a, b) => (b.publishedAt ?? '').localeCompare(a.publishedAt ?? ''))
-    : articles;
+  const articles = byTab[activeSlug] ?? [];
+  const activeName = tabs.find(t => t.slug === activeSlug)?.name ?? ALL_CANADA.name;
+  const sorted = [...articles].sort((a, b) =>
+    sortMode === 'popular' ? engagement(b) - engagement(a) || byRecent(a, b) : byRecent(a, b),
+  );
 
   return (
     <AppShell>
       {/* Page header */}
       <div className="border-b border-[#E8E8E8] dark:border-[#2A2A2A] bg-white dark:bg-[#1A1A1A]">
         <div className="max-w-[1180px] mx-auto px-4 sm:px-6 pt-5 pb-0">
-          <h1 className="bebas tracking-widest text-[22px] dark:text-white mb-4">LOCAL NEWS</h1>
+          <h1 className="bebas tracking-widest text-[22px] dark:text-white mb-4">ACROSS CANADA</h1>
 
-          {/* City tabs */}
+          {/* Region tabs — only regions that currently have news */}
           <div className="flex overflow-x-auto scrollbar-x-navy gap-0 -mb-px">
-            {CITIES.map(city => (
+            {tabs.map(tab => (
               <button
-                key={city}
-                onClick={() => setActiveCity(city)}
+                key={tab.slug}
+                onClick={() => setActiveSlug(tab.slug)}
                 className={clsx(
                   'flex-shrink-0 px-4 py-2.5 bebas tracking-widest text-[13px] border-b-2 transition-colors whitespace-nowrap mr-1',
-                  activeCity === city
+                  activeSlug === tab.slug
                     ? 'border-[#D52B1E] text-[#D52B1E]'
                     : 'border-transparent text-[#999] dark:text-[#666] hover:text-[#1a1a1a] dark:hover:text-[#CCC]',
                 )}
               >
-                {city}
+                {tab.name}
               </button>
             ))}
           </div>
@@ -59,21 +90,21 @@ export default function LocalNewsPage() {
         <div className="flex items-center gap-2 mb-5">
           <span className="text-[11px] text-[#999] uppercase tracking-wider font-semibold mr-2">Sort:</span>
           <button
-            onClick={() => setSortByTime(false)}
+            onClick={() => setSortMode('popular')}
             className={clsx(
               'text-xs font-semibold px-3 py-1.5 border transition-colors',
-              !sortByTime
+              sortMode === 'popular'
                 ? 'bg-[#D52B1E] text-white border-[#D52B1E]'
                 : 'border-[#E8E8E8] dark:border-[#333] text-[#3a3a3a] dark:text-[#CCC] hover:border-[#D52B1E] hover:text-[#D52B1E]',
             )}
           >
-            Editors' Picks
+            Most Popular
           </button>
           <button
-            onClick={() => setSortByTime(true)}
+            onClick={() => setSortMode('recent')}
             className={clsx(
               'text-xs font-semibold px-3 py-1.5 border transition-colors',
-              sortByTime
+              sortMode === 'recent'
                 ? 'bg-[#D52B1E] text-white border-[#D52B1E]'
                 : 'border-[#E8E8E8] dark:border-[#333] text-[#3a3a3a] dark:text-[#CCC] hover:border-[#D52B1E] hover:text-[#D52B1E]',
             )}
@@ -96,7 +127,7 @@ export default function LocalNewsPage() {
               </svg>
             </div>
             <p className="bebas tracking-widest text-[#999] text-lg">NO ARTICLES FOUND</p>
-            <p className="text-[#999] text-sm mt-1">No local news available for {activeCity} right now.</p>
+            <p className="text-[#999] text-sm mt-1">No news available for {activeName} right now.</p>
           </div>
         ) : (
           <>

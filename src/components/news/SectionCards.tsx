@@ -34,11 +34,11 @@ function CardImage({ src, color, label }: { src?: string; color: string; label: 
  * linking straight to that section. `thumbnails` is keyed by nav label. */
 export function SectionCards({ thumbnails }: { thumbnails: Record<string, string | undefined> }) {
   return (
-    <section aria-labelledby="explore-sections-heading" className="max-w-[1400px] mx-auto px-4 pt-6 pb-2">
+    <section aria-labelledby="explore-categories-heading" className="max-w-[1400px] mx-auto px-4 pt-6 pb-2">
       <div className="mb-5">
         <div className="w-12 h-1 bg-canadaRed mb-3" />
-        <h2 id="explore-sections-heading" className="font-sans font-bold text-lg tracking-wide text-[#1a1a1a] dark:text-white">
-          EXPLORE SECTIONS
+        <h2 id="explore-categories-heading" className="font-sans font-bold text-lg tracking-wide text-[#1a1a1a] dark:text-white">
+          EXPLORE CATEGORIES
         </h2>
       </div>
 

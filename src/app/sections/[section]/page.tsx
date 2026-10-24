@@ -88,7 +88,7 @@ function SectionDetail() {
         <div className="max-w-[1180px] mx-auto px-4 sm:px-6 pt-5 pb-0">
           <div className="flex items-baseline gap-3 mb-3">
             <Link href="/sections" className="text-[#999] hover:text-[#1a1a1a] dark:hover:text-white transition-colors text-sm">
-              Sections
+              Categories
             </Link>
             <span className="text-[#CCC] dark:text-[#555]">›</span>
             <h1

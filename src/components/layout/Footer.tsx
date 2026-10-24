@@ -5,7 +5,7 @@ import { FloatingBubbles } from '@/components/ui/FloatingBubbles';
 
 const FOOTER_COLS = [
   {
-    heading: 'SECTIONS',
+    heading: 'CATEGORIES',
     // Same list the header and mobile menu render — see src/lib/nav.ts.
     // Scoped to the mockup's 6 categories only — no generic Politics/World/
     // Business/etc columns.

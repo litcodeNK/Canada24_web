@@ -323,6 +323,27 @@ export async function fetchLocalNews(regionName?: string): Promise<Article[]> {
   }
 }
 
+export type RegionInfo = { slug: string; name: string; province: string };
+
+export async function fetchRegions(): Promise<RegionInfo[]> {
+  try {
+    return await apiRequest<RegionInfo[]>('/regions/');
+  } catch {
+    return [];
+  }
+}
+
+/** Articles tagged to exactly this region. Unlike /news/local/, which falls
+ * back to every article when a region has none, this returns [] — which is
+ * what lets the page hide regions that have no news. */
+export async function fetchRegionArticles(slug: string): Promise<Article[]> {
+  try {
+    return await fetchArticleList(`/news/articles/?regions__slug=${encodeURIComponent(slug)}`);
+  } catch {
+    return [];
+  }
+}
+
 export async function searchArticles(query: string): Promise<Article[]> {
   const trimmed = query.trim();
   if (!trimmed) return [];
