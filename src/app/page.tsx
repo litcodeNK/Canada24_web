@@ -101,11 +101,6 @@ export default function TopStoriesPage() {
     <AppShell>
       <BreakingTicker articles={homeArticles} />
 
-      {/* Advertisement label */}
-      <div className="w-full text-center py-4">
-        <span className="text-[11px] text-gray-400 font-sans tracking-wide">Advertisement</span>
-      </div>
-
       {/* ── 3-column layout ── */}
       <main
         id="main-content"

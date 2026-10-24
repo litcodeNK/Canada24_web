@@ -2,12 +2,14 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter, usePathname } from 'next/navigation';
-import { Search, User, Menu, X } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { useState } from 'react';
+import { Search, User, Menu, X, ChevronDown } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { clsx } from 'clsx';
-import { SECTION_NAV } from '@/lib/nav';
+import { SECTION_NAV, topicHref } from '@/lib/nav';
+import { SearchModal } from './SearchModal';
 import { Logo } from '@/components/brand/Logo';
 import { FloatingBubbles } from '@/components/ui/FloatingBubbles';
 
@@ -22,12 +24,13 @@ export function Header({ onMenuToggle }: HeaderProps) {
   const handleMenu = sidebarOpen ? closeSidebar : onMenuToggle;
   const MenuIcon = sidebarOpen ? X : Menu;
   const { user, isAuthLoading } = useAuth();
-  const router = useRouter();
+  const [searchOpen, setSearchOpen] = useState(false);
   const pathname = usePathname();
 
   return (
+    <>
     <header className="fixed top-0 left-0 right-0 z-50 w-full font-sans">
-      <div className="relative overflow-hidden bg-gradient-to-r from-navy via-[#12306a] to-navy text-white">
+      <div className="relative bg-gradient-to-r from-navy via-[#12306a] to-navy text-white">
         <FloatingBubbles variant="header" />
         <div className="c247-shimmer-line absolute bottom-0 left-0 right-0 z-10" aria-hidden="true" />
         <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 h-[64px] sm:h-[76px] flex items-center gap-4">
@@ -60,18 +63,43 @@ export function Header({ onMenuToggle }: HeaderProps) {
           >
             {SECTION_NAV.map(item => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+              const linkClass = clsx(
+                'px-2.5 xl:px-3 py-2 hover:text-canadaRed transition-colors whitespace-nowrap inline-flex items-center gap-1',
+                isActive && 'text-canadaRed',
+              );
+              if (!item.topics?.length) {
+                return (
+                  <Link key={item.href} href={item.href} aria-current={isActive ? 'page' : undefined} className={linkClass}>
+                    {item.label.toUpperCase()}
+                  </Link>
+                );
+              }
               return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  aria-current={isActive ? 'page' : undefined}
-                  className={clsx(
-                    'px-2.5 xl:px-3 py-2 hover:text-canadaRed transition-colors whitespace-nowrap',
-                    isActive && 'text-canadaRed',
-                  )}
-                >
-                  {item.label.toUpperCase()}
-                </Link>
+                <div key={item.href} className="relative group">
+                  <Link href={item.href} aria-current={isActive ? 'page' : undefined} aria-haspopup="true" className={linkClass}>
+                    {item.label.toUpperCase()}
+                    <ChevronDown className="w-3.5 h-3.5 transition-transform group-hover:rotate-180 group-focus-within:rotate-180" />
+                  </Link>
+                  <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 transition-opacity duration-150 absolute left-0 top-full min-w-[210px] pt-1">
+                    <ul className="bg-[#0b1a3a] border-t-2 border-canadaRed shadow-xl py-1 tracking-normal">
+                      <li>
+                        <Link href={item.href} className="block px-4 py-2.5 text-[13px] font-semibold text-white/90 hover:bg-white/10 hover:text-canadaRed border-b border-white/10">
+                          All {item.label}
+                        </Link>
+                      </li>
+                      {item.topics.map(topic => (
+                        <li key={topic}>
+                          <Link
+                            href={topicHref(item, topic)}
+                            className="block px-4 py-2.5 text-[13px] font-semibold text-white/90 hover:bg-white/10 hover:text-canadaRed border-b border-white/10 last:border-b-0"
+                          >
+                            {topic}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               );
             })}
           </nav>
@@ -91,7 +119,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
             </button>
 
             <button
-              onClick={() => router.push('/search')}
+              onClick={() => setSearchOpen(true)}
               className="flex items-center text-white/80 hover:text-white transition-colors p-2"
               aria-label="Search"
             >
@@ -141,5 +169,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
         </div>
       </div>
     </header>
+    <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+    </>
   );
 }

@@ -16,12 +16,18 @@ export type SectionNavItem = {
   href: string;
   /** Accent colour used by the mobile sidebar's category dots. */
   color?: string;
+  /** Sub-topics shown in the header dropdown; each links to `${href}?topic=…`. */
+  topics?: string[];
 };
 
 export const SECTION_NAV: SectionNavItem[] = [
-  { label: 'Immigration', href: '/sections/immigration', color: '#BF360C' },
-  { label: 'Jobs & Money', href: '/sections/jobs-money', color: '#E65100' },
-  { label: 'Housing', href: '/sections/housing', color: '#00695C' },
-  { label: 'Auto', href: '/sections/auto', color: '#37474F' },
+  { label: 'Immigration', href: '/sections/immigration', color: '#BF360C', topics: ['Refugees', 'Policy', 'Study Permit', 'Work Permit', 'Citizenship'] },
+  { label: 'Jobs & Money', href: '/sections/jobs-money', color: '#E65100', topics: ['Work Permits', 'Hiring', 'Careers', 'Credentials', 'Banking'] },
+  { label: 'Housing', href: '/sections/housing', color: '#00695C', topics: ['Renting', 'Buying', 'Mortgages', 'Market', 'Affordability'] },
+  { label: 'Auto', href: '/sections/auto', color: '#37474F', topics: ['Buying', 'Insurance', 'EVs', 'Licensing', 'Reviews'] },
   { label: 'Video', href: '/videos', color: '#D52B1E' },
 ];
+
+export function topicHref(item: SectionNavItem, topic: string): string {
+  return `${item.href}?topic=${encodeURIComponent(topic)}`;
+}

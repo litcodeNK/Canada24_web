@@ -9,7 +9,8 @@ import { AnimatedButton } from '@/components/ui/AnimatedButton';
 
 const SHOW_DELAY_MS = 20000;
 const SHOW_SCROLL_RATIO = 0.4;
-const DISMISS_SUPPRESS_DAYS = 3;
+const DISMISS_SUPPRESS_DAYS = 7;
+const SHOWN_THIS_SESSION_KEY = 'signin_prompt_shown';
 const DISMISSED_AT_KEY = 'signin_prompt_dismissed_at';
 const SKIP_PATH_PREFIXES = ['/auth', '/onboarding', '/privacy', '/terms'];
 
@@ -25,6 +26,22 @@ function wasRecentlyDismissed(): boolean {
   }
 }
 
+function shownThisSession(): boolean {
+  try {
+    return sessionStorage.getItem(SHOWN_THIS_SESSION_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function markShownThisSession(): void {
+  try {
+    sessionStorage.setItem(SHOWN_THIS_SESSION_KEY, '1');
+  } catch {
+    // sessionStorage unavailable — fall back to the dismissal suppression only
+  }
+}
+
 function markDismissed(): void {
   try {
     localStorage.setItem(DISMISSED_AT_KEY, String(Date.now()));
@@ -37,7 +54,7 @@ function markDismissed(): void {
  * Substack: it never interrupts on arrival, only after the reader has shown
  * intent (about 20s on the site, or scrolled ~40% down a page). It is
  * dismissable via X, backdrop click or Escape, and a dismissal suppresses it
- * for a few days. Shown as a centred card on desktop and a bottom sheet on
+ * for a week, and it shows at most once per browser session. Shown as a centred card on desktop and a bottom sheet on
  * mobile. Skipped on auth/onboarding/legal pages. */
 export function SignInPrompt() {
   const { user, isAuthLoading } = useAuth();
@@ -47,9 +64,12 @@ export function SignInPrompt() {
   const skip = !!user || isAuthLoading || SKIP_PATH_PREFIXES.some(p => pathname?.startsWith(p));
 
   useEffect(() => {
-    if (skip || wasRecentlyDismissed()) return;
+    if (skip || wasRecentlyDismissed() || shownThisSession()) return;
 
-    const show = () => setVisible(true);
+    const show = () => {
+      markShownThisSession();
+      setVisible(true);
+    };
     const timer = setTimeout(show, SHOW_DELAY_MS);
     const onScroll = () => {
       const scrollable = document.documentElement.scrollHeight - window.innerHeight;
@@ -102,7 +122,7 @@ export function SignInPrompt() {
         <p className="text-sm text-[#666] dark:text-[#AAA] leading-relaxed mb-6">
           Save stories, follow your regions and get alerts that matter to you. It&rsquo;s free and takes a minute.
         </p>
-        <AnimatedButton href="/auth/email" block>
+        <AnimatedButton href="/auth/email" onClick={markDismissed} block>
           Sign in or create account
         </AnimatedButton>
         <button
