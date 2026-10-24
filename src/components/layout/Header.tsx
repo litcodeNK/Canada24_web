@@ -51,7 +51,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
           </Link>
 
           <span className="hidden md:block text-[12px] lg:text-[13px] text-white/70 leading-tight flex-shrink-0">
-            The Newcomer&apos;s News Network • Live 24/7
+            Canada in Real Time
           </span>
 
           <div className="flex-1" />
