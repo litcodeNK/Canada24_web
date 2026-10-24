@@ -275,7 +275,21 @@ export async function fetchCommunityStories(): Promise<Article[]> {
   }
 }
 
+/* The backend has no Settlement section, so it is assembled from search hits
+   on settlement-related terms, de-duplicated and sorted newest first. */
+const SETTLEMENT_TERMS = ['settlement', 'newcomers', 'settling in canada'];
+
+async function fetchSettlementArticles(): Promise<Article[]> {
+  const lists = await Promise.all(SETTLEMENT_TERMS.map(term => searchArticles(term)));
+  const byId: Record<string, Article> = {};
+  for (const article of lists.flat()) byId[article.id] = article;
+  return Object.values(byId).sort(
+    (a, b) => new Date(b.publishedAt ?? 0).getTime() - new Date(a.publishedAt ?? 0).getTime(),
+  );
+}
+
 export async function fetchCategoryArticles(section: string): Promise<Article[]> {
+  if (section.toLowerCase() === 'settlement') return fetchSettlementArticles();
   try {
     const sections = await apiRequest<BackendSection[]>('/news/sections/');
     const requested = SECTION_NAME_ALIASES[section.toLowerCase()] ?? section;

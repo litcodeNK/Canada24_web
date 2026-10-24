@@ -26,6 +26,7 @@ export const SECTION_NAV: SectionNavItem[] = [
   { label: 'Immigration', href: '/sections/immigration', color: '#BF360C', topics: ['Refugees', 'Policy', 'Study Permit', 'Work Permit', 'Citizenship'], description: 'Study permits, work permits, refugee and citizenship updates for newcomers.' },
   { label: 'Jobs & Money', href: '/sections/jobs-money', color: '#E65100', topics: ['Work Permits', 'Hiring', 'Careers', 'Credentials', 'Banking'], description: 'Hiring, careers, credentials and banking news to help you settle in.' },
   { label: 'Housing', href: '/sections/housing', color: '#00695C', topics: ['Renting', 'Buying', 'Mortgages', 'Market', 'Affordability'], description: 'Renting, buying, mortgages and affordability across Canada.' },
+  { label: 'Settlement', href: '/sections/settlement', color: '#6A1B9A', topics: ['Newcomer Services', 'Language', 'Healthcare', 'Education', 'Community'], description: 'Settling in Canada: newcomer services, language, healthcare, schools and community.' },
   { label: 'Auto', href: '/sections/auto', color: '#37474F', topics: ['Buying', 'Insurance', 'EVs', 'Licensing', 'Reviews'], description: 'Buying, insurance, EVs and licensing for Canadian drivers.' },
   { label: 'Video', href: '/videos', color: '#D52B1E', description: 'Watch the latest news videos and live coverage.' },
 ];

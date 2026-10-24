@@ -13,7 +13,7 @@ const SECTION_COLORS: Record<string, string> = {
   POLITICS: '#1565C0', WORLD: '#00695C', BUSINESS: '#E65100',
   HEALTH: '#1B5E20', SPORTS: '#D52B1E', TECHNOLOGY: '#01579B',
   ENTERTAINMENT: '#880E4F', IMMIGRATION: '#BF360C', INDIGENOUS: '#4A148C',
-  HOUSING: '#00695C', 'JOBS-MONEY': '#E65100', AUTO: '#37474F', 'AUTO-NEWS': '#37474F',
+  HOUSING: '#00695C', SETTLEMENT: '#6A1B9A', 'JOBS-MONEY': '#E65100', AUTO: '#37474F', 'AUTO-NEWS': '#37474F',
 };
 
 /* Keywords that place an article under a topic tab. Matched against headline
@@ -37,6 +37,11 @@ const TOPIC_KEYWORDS: Record<string, string[]> = {
   Insurance: ['insurance', 'insurer', 'premium'],
   EVs: ['ev', 'electric', 'hybrid', 'battery', 'charging', 'tesla'],
   Licensing: ['licen', 'driver', 'road test', 'registration', 'g1', 'g2'],
+  'Newcomer Services': ['newcomer', 'settlement service', 'settlement agency', 'orientation', 'immigrant services'],
+  Language: ['language', 'english', 'french', 'ielts', 'celpip', 'clb'],
+  Healthcare: ['health', 'doctor', 'ohip', 'medical', 'hospital', 'clinic'],
+  Education: ['school', 'education', 'university', 'college', 'student', 'child care'],
+  Community: ['community', 'neighbourhood', 'volunteer', 'cultural', 'festival', 'support group'],
   Reviews: ['review', 'first drive', 'tested', 'test drive', 'versus', ' vs '],
 };
 

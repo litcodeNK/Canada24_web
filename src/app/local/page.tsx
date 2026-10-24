@@ -6,8 +6,15 @@ import { ArticleCard } from '@/components/news/ArticleCard';
 import { fetchTopStories, fetchRegions, fetchRegionArticles } from '@/services/newsService';
 import type { Article } from '@/context/AppContext';
 import { clsx } from 'clsx';
+import { ListFilter, Check } from 'lucide-react';
 
-type SortMode = 'recent' | 'popular';
+type SortMode = 'recent' | 'oldest' | 'popular';
+
+const SORT_OPTIONS: { mode: SortMode; label: string }[] = [
+  { mode: 'recent', label: 'Most Recent' },
+  { mode: 'oldest', label: 'Oldest First' },
+  { mode: 'popular', label: 'Most Popular' },
+];
 type Tab = { slug: string; name: string };
 
 const ALL_CANADA: Tab = { slug: 'all', name: 'All Canada' };
@@ -26,6 +33,7 @@ export default function LocalNewsPage() {
   const [activeSlug, setActiveSlug] = useState(ALL_CANADA.slug);
   const [loading, setLoading] = useState(true);
   const [sortMode, setSortMode] = useState<SortMode>('recent');
+  const [filterOpen, setFilterOpen] = useState(false);
 
   // Load national news plus every region's own news, then only show region
   // tabs that actually have stories. A region appears as soon as news tagged
@@ -53,9 +61,11 @@ export default function LocalNewsPage() {
 
   const articles = byTab[activeSlug] ?? [];
   const activeName = tabs.find(t => t.slug === activeSlug)?.name ?? ALL_CANADA.name;
-  const sorted = [...articles].sort((a, b) =>
-    sortMode === 'popular' ? engagement(b) - engagement(a) || byRecent(a, b) : byRecent(a, b),
-  );
+  const sorted = [...articles].sort((a, b) => {
+    if (sortMode === 'oldest') return byRecent(b, a);
+    if (sortMode === 'popular') return engagement(b) - engagement(a) || byRecent(a, b);
+    return byRecent(a, b);
+  });
 
   return (
     <AppShell>
@@ -86,31 +96,41 @@ export default function LocalNewsPage() {
 
       <div className="max-w-[1180px] mx-auto px-4 sm:px-6 py-5">
 
-        {/* Sort controls */}
-        <div className="flex items-center gap-2 mb-5">
-          <span className="text-[11px] text-[#999] uppercase tracking-wider font-semibold mr-2">Sort:</span>
+        {/* Filter menu */}
+        <div className="relative mb-5 inline-block">
           <button
-            onClick={() => setSortMode('popular')}
-            className={clsx(
-              'text-xs font-semibold px-3 py-1.5 border transition-colors',
-              sortMode === 'popular'
-                ? 'bg-[#D52B1E] text-white border-[#D52B1E]'
-                : 'border-[#E8E8E8] dark:border-[#333] text-[#3a3a3a] dark:text-[#CCC] hover:border-[#D52B1E] hover:text-[#D52B1E]',
-            )}
+            onClick={() => setFilterOpen(o => !o)}
+            aria-haspopup="menu"
+            aria-expanded={filterOpen}
+            aria-label="Filter stories"
+            className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-2 border border-[#E8E8E8] dark:border-[#333] text-[#3a3a3a] dark:text-[#CCC] hover:border-[#D52B1E] hover:text-[#D52B1E] transition-colors"
           >
-            Most Popular
+            <ListFilter className="w-4 h-4" />
+            {SORT_OPTIONS.find(o => o.mode === sortMode)?.label}
           </button>
-          <button
-            onClick={() => setSortMode('recent')}
-            className={clsx(
-              'text-xs font-semibold px-3 py-1.5 border transition-colors',
-              sortMode === 'recent'
-                ? 'bg-[#D52B1E] text-white border-[#D52B1E]'
-                : 'border-[#E8E8E8] dark:border-[#333] text-[#3a3a3a] dark:text-[#CCC] hover:border-[#D52B1E] hover:text-[#D52B1E]',
-            )}
-          >
-            Most Recent
-          </button>
+          {filterOpen && (
+            <>
+              <div className="fixed inset-0 z-20" onClick={() => setFilterOpen(false)} aria-hidden="true" />
+              <ul role="menu" className="absolute left-0 top-full mt-1 z-30 min-w-[180px] bg-white dark:bg-[#1C1C1C] border border-[#E8E8E8] dark:border-[#333] shadow-lg py-1">
+                {SORT_OPTIONS.map(option => (
+                  <li key={option.mode} role="none">
+                    <button
+                      role="menuitemradio"
+                      aria-checked={sortMode === option.mode}
+                      onClick={() => { setSortMode(option.mode); setFilterOpen(false); }}
+                      className={clsx(
+                        'flex w-full items-center justify-between px-4 py-2.5 text-[13px] font-semibold text-left hover:bg-[#F5F5F5] dark:hover:bg-[#2A2A2A]',
+                        sortMode === option.mode ? 'text-[#D52B1E]' : 'text-[#3a3a3a] dark:text-[#CCC]',
+                      )}
+                    >
+                      {option.label}
+                      {sortMode === option.mode && <Check className="w-4 h-4" />}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
 
         {/* Content */}
