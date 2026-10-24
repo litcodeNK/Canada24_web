@@ -15,6 +15,8 @@ import { BreakingTicker } from '@/components/news/BreakingTicker';
 import { SectionBlock } from '@/components/news/SectionBlock';
 import { fetchCategoryArticles, fetchVideoFeed } from '@/services/newsService';
 import { SECTION_NAV } from '@/lib/nav';
+import { getDirectVideoUrl, parseYouTubeId } from '@/lib/video';
+import type { VideoItem } from '@/types/video';
 import { useRouter } from 'next/navigation';
 import type { Article } from '@/context/AppContext';
 import { AnimatedButton } from '@/components/ui/AnimatedButton';
@@ -61,10 +63,19 @@ export default function TopStoriesPage() {
 
   // First video thumbnail for the Video card (the other cards use their section's top story image).
   const [videoThumb, setVideoThumb] = useState<string | undefined>();
+  const [previewVideo, setPreviewVideo] = useState<VideoItem | undefined>();
   useEffect(() => {
     let cancelled = false;
     fetchVideoFeed()
-      .then(feed => { if (!cancelled) setVideoThumb(feed.trending.find(v => v.imgUrl)?.imgUrl); })
+      .then(feed => {
+        if (cancelled) return;
+        setVideoThumb(feed.trending.find(v => v.imgUrl)?.imgUrl);
+        // Prefer a direct file (smoothest autoplay), then a YouTube link.
+        setPreviewVideo(
+          feed.trending.find(v => getDirectVideoUrl(v)) ??
+          feed.trending.find(v => v.sourceUrl && parseYouTubeId(v.sourceUrl)),
+        );
+      })
       .catch(() => {});
     return () => { cancelled = true; };
   }, []);
@@ -113,6 +124,7 @@ export default function TopStoriesPage() {
       <BreakingTicker articles={homeArticles} />
 
       <SectionCards
+        previewVideo={previewVideo}
         thumbnails={{
           ...Object.fromEntries(
             Object.entries(categoryArticles).map(([label, list]) => [label, list.find(a => a.imgUrl)?.imgUrl]),

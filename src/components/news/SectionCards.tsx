@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Play } from 'lucide-react';
+import type { VideoItem } from '@/types/video';
+import { getDirectVideoUrl, parseYouTubeId } from '@/lib/video';
 import { SECTION_NAV } from '@/lib/nav';
 
 function CardImage({ src, color, label }: { src?: string; color: string; label: string }) {
@@ -30,9 +32,66 @@ function CardImage({ src, color, label }: { src?: string; color: string; label: 
   );
 }
 
+/** Muted, looping, non-interactive preview of one video, so the Video card
+ * shows motion instead of a still. Direct files play in a <video>; YouTube
+ * links play in a chrome-less embed. The whole card stays a link, so the
+ * player itself ignores pointer events. Falls back to the poster/thumbnail
+ * when there is nothing playable or the visitor prefers reduced motion. */
+function VideoPreview({ video, poster, color }: { video?: VideoItem; poster?: string; color: string }) {
+  const [reduceMotion, setReduceMotion] = useState(true);
+  useEffect(() => {
+    setReduceMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }, []);
+
+  const directUrl = video ? getDirectVideoUrl(video) : null;
+  const youtubeId = video?.sourceUrl ? parseYouTubeId(video.sourceUrl) : null;
+  const playable = !reduceMotion && (directUrl || youtubeId);
+
+  return (
+    <div className="relative w-full aspect-[16/10] overflow-hidden bg-black">
+      {playable && directUrl ? (
+        <video
+          src={directUrl}
+          poster={poster}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        />
+      ) : playable && youtubeId ? (
+        <iframe
+          title="Video preview"
+          loading="lazy"
+          tabIndex={-1}
+          aria-hidden="true"
+          allow="autoplay; encrypted-media"
+          src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${youtubeId}&playsinline=1&modestbranding=1&rel=0&disablekb=1`}
+          className="absolute top-1/2 left-1/2 w-[177.78%] h-[177.78%] -translate-x-1/2 -translate-y-1/2 pointer-events-none border-0"
+        />
+      ) : (
+        <CardImage src={poster} color={color} label="Video" />
+      )}
+      <span className="absolute left-3 bottom-3 inline-flex items-center gap-1.5 bg-black/60 text-white text-[11px] font-bold tracking-wider px-2.5 py-1">
+        <Play className="w-3 h-3 fill-current" />
+        WATCH
+      </span>
+    </div>
+  );
+}
+
 /** Landing-page category cards: one card per nav category, in nav order, each
  * linking straight to that section. `thumbnails` is keyed by nav label. */
-export function SectionCards({ thumbnails }: { thumbnails: Record<string, string | undefined> }) {
+export function SectionCards({
+  thumbnails,
+  previewVideo,
+}: {
+  thumbnails: Record<string, string | undefined>;
+  /** A video to play inside the Video card. */
+  previewVideo?: VideoItem;
+}) {
   return (
     <section aria-labelledby="explore-categories-heading" className="max-w-[1400px] mx-auto px-4 pt-6 pb-2">
       <div className="mb-5">
@@ -52,7 +111,11 @@ export function SectionCards({ thumbnails }: { thumbnails: Record<string, string
               className="group flex flex-col bg-white dark:bg-[#1C1C1C] border border-[#E5E5E5] dark:border-[#2A2A2A] transition-all duration-200 hover:-translate-y-1 hover:shadow-xl focus-visible:-translate-y-1 focus-visible:shadow-xl outline-none"
             >
               <div className="overflow-hidden">
-                <CardImage src={thumbnails[item.label]} color={color} label={item.label} />
+                {item.href === '/videos' ? (
+                  <VideoPreview video={previewVideo} poster={thumbnails[item.label]} color={color} />
+                ) : (
+                  <CardImage src={thumbnails[item.label]} color={color} label={item.label} />
+                )}
               </div>
               <div className="flex flex-col flex-1 p-6">
                 <h3 className="font-sans font-bold text-[22px] leading-tight text-[#0b1a3a] dark:text-white">

@@ -2,7 +2,7 @@ import type { VideoItem } from '@/types/video';
 
 const DIRECT_VIDEO_EXTENSIONS = ['.mp4', '.webm', '.ogg', '.mov', '.m3u8'];
 
-function parseYouTubeId(url: string): string | null {
+export function parseYouTubeId(url: string): string | null {
   try {
     const parsed = new URL(url);
     if (parsed.hostname.includes('youtu.be')) {
