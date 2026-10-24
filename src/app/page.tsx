@@ -10,9 +10,10 @@ import { HomeHero } from '@/components/news/HomeHero';
 import { FeaturedUpdates } from '@/components/news/FeaturedUpdates';
 import { ImmigrationByProvince } from '@/components/news/ImmigrationByProvince';
 import { LatestVideos } from '@/components/news/LatestVideos';
+import { SectionCards } from '@/components/news/SectionCards';
 import { BreakingTicker } from '@/components/news/BreakingTicker';
 import { SectionBlock } from '@/components/news/SectionBlock';
-import { fetchCategoryArticles } from '@/services/newsService';
+import { fetchCategoryArticles, fetchVideoFeed } from '@/services/newsService';
 import { SECTION_NAV } from '@/lib/nav';
 import { useRouter } from 'next/navigation';
 import type { Article } from '@/context/AppContext';
@@ -58,6 +59,16 @@ export default function TopStoriesPage() {
     };
   }, []);
 
+  // First video thumbnail for the Video card (the other cards use their section's top story image).
+  const [videoThumb, setVideoThumb] = useState<string | undefined>();
+  useEffect(() => {
+    let cancelled = false;
+    fetchVideoFeed()
+      .then(feed => { if (!cancelled) setVideoThumb(feed.trending.find(v => v.imgUrl)?.imgUrl); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   useEffect(() => {
     if (appReady && hasSeenWelcome && !isAuthLoading && user && !onboardingComplete) router.replace('/onboarding/regions');
   }, [appReady, hasSeenWelcome, isAuthLoading, user, onboardingComplete, router]);
@@ -100,6 +111,15 @@ export default function TopStoriesPage() {
   return (
     <AppShell>
       <BreakingTicker articles={homeArticles} />
+
+      <SectionCards
+        thumbnails={{
+          ...Object.fromEntries(
+            Object.entries(categoryArticles).map(([label, list]) => [label, list.find(a => a.imgUrl)?.imgUrl]),
+          ),
+          Video: videoThumb,
+        }}
+      />
 
       {/* ── 3-column layout ── */}
       <main
