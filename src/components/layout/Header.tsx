@@ -50,9 +50,26 @@ export function Header({ onMenuToggle }: HeaderProps) {
             <Logo surface="onDark" priority className="h-[46px] sm:h-[58px]" />
           </Link>
 
-          <span className="hidden md:block text-[12px] lg:text-[13px] text-white/70 leading-tight flex-shrink-0">
-            Canada in Real Time
-          </span>
+          {/* Tagline lockup: condensed display caps over an italic serif line,
+              a red rule and a pulsing "live" dot, set off by a hairline divider. */}
+          <div className="hidden md:flex items-center gap-4 flex-shrink-0 select-none" aria-label="Canada in Real Time">
+            <span className="h-9 lg:h-10 w-px bg-gradient-to-b from-transparent via-white/40 to-transparent" aria-hidden="true" />
+            <div className="flex flex-col leading-none">
+              <span className="font-bebas text-[26px] lg:text-[31px] tracking-[0.22em] text-white [-webkit-text-stroke:0.7px_white] drop-shadow-[0_1px_8px_rgba(0,0,0,0.35)]">
+                CANADA
+              </span>
+              <span className="mt-1.5 flex items-center gap-2">
+                <span className="h-[2px] w-6 lg:w-8 bg-canadaRed" aria-hidden="true" />
+                <span className="font-serif italic text-[13px] lg:text-[15px] tracking-[0.06em] text-white/85">
+                  in real time
+                </span>
+                <span className="relative flex h-2 w-2" aria-hidden="true">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-canadaRed opacity-75 animate-ping" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-canadaRed" />
+                </span>
+              </span>
+            </div>
+          </div>
 
           <div className="flex-1" />
 
